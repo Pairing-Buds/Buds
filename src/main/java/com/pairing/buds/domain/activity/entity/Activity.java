@@ -6,7 +6,7 @@ import lombok.*;
 import java.util.Set;
 
 @Entity
-@Data
+@Data // toString 순환 참조 예방 @Getter 사용 권장
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +15,7 @@ public class Activity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer activityId;
+    private Integer activityId; // id로 해도 자동으로 테이블명_id 형태로 해줄 거에요!
 
     @Column(name = "name", nullable = false)
     private String name;

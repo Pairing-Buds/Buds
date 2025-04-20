@@ -1,5 +1,8 @@
 package com.pairing.buds.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public enum Message {
 
     USER_NOT_FOUND("User not found"),
@@ -8,6 +11,5 @@ public enum Message {
 
     private final String text;
     Message(String text) { this.text = text; }
-    public String getText() { return text; }
 
 }

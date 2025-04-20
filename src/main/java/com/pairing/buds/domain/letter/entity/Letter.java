@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Table(name = "letters")
 public class Letter {
-
+    // @Ge.. Id..
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer letterId;

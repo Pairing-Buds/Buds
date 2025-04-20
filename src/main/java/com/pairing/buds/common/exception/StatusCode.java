@@ -1,5 +1,8 @@
 package com.pairing.buds.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public enum StatusCode {
 
     OK(200),
@@ -11,7 +14,5 @@ public enum StatusCode {
     private final int httpStatus;
 
     StatusCode(int httpStatus) { this.httpStatus = httpStatus; }
-
-    public int getHttpStatus() { return httpStatus; }
 
 }

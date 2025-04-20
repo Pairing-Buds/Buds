@@ -2,22 +2,21 @@ package com.pairing.buds.domain.survey.entity;
 
 import com.pairing.buds.domain.users.entity.Users;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Data // toString 순환 참조 예방 @Getter 사용 권장
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "surveys")
 public class Survey {
 
+    // 카멜 케이스 및 id만 적어도 자동 구성
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer survey_id;

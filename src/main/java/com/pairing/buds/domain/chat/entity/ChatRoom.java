@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 @Table(name = "chat_rooms")
 public class ChatRoom {
 
+    // getter와 id..
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_rooms_id")
@@ -35,6 +37,6 @@ public class ChatRoom {
     private LocalDateTime createdAt;
 
     @Column(name = "ended_at")
-    private LocalDateTime endedAt;
+    private LocalDateTime endedAt; // UpdateTimeSt..
 
 }

@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Data // toString 순환 참조 예방 @Getter 사용 권장
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +16,7 @@ public class UserActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userActivityId;
+    private Integer userActivityId; // id로 해도 자동으로 테이블명_id 형태로 해줄 거에요!
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

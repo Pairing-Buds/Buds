@@ -1,5 +1,8 @@
 package com.pairing.buds.common.exception;
 
+import lombok.Getter;
+
+@Getter
 public class ApiException extends RuntimeException {
 
     private final StatusCode code;
@@ -10,8 +13,5 @@ public class ApiException extends RuntimeException {
         this.code = code;
         this.messageEnum = messageEnum;
     }
-
-    public StatusCode getCode() { return code; }
-    public Message getMessageEnum() { return messageEnum; }
 
 }

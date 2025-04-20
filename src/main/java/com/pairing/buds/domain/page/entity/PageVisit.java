@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 @Table(name = "page_visits")
 public class PageVisit {
 
+    // getter
+
     @EmbeddedId
     private PageVisitId id;
 
