@@ -12,12 +12,12 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "cs_answers")
-public class CSAnswer extends CUBaseTime {
+@Table(name = "answers")
+public class Answer extends CUBaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cs_answer_id")
+    @Column(name = "answer_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
