@@ -1,42 +1,34 @@
 package com.pairing.buds.domain.letter.entity;
 
+import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.activity.entity.UserActivityStatus;
 import com.pairing.buds.domain.users.entity.Users;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "letters")
-public class Letter {
-    // @Ge.. Id..
+public class Letter extends CreateBaseTime {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer letterId;
+    @Column(name = "letter_id")
+    private Integer id;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "match_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "FK_matches_TO_letters_1")
-    )
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "match_id", nullable = false)
     private Match match;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "receiver_id",
-            referencedColumnName = "user_id",
-            foreignKey = @ForeignKey(name = "FK_letters_users_receiver_id")
-    )
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "receiver_id", referencedColumnName = "user_id")
     private Users receiver;
 
     @Column(name = "content")
@@ -45,8 +37,5 @@ public class Letter {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private LetterStatus status;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
 
 }

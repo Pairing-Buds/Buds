@@ -22,19 +22,11 @@ public class Match {
     private Integer matchId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "user1_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "FK_matches_users_user1_id")
-    )
+    @JoinColumn(name = "user1_id", nullable = false)
     private Users user1;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "user2_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "FK_matches_users_user2_id")
-    )
+    @JoinColumn(name = "user2_id", nullable = false)
     private Users user2;
 
     @Column(name = "matched_at", nullable = false)

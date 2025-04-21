@@ -1,13 +1,11 @@
 package com.pairing.buds.domain.page.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,6 +14,7 @@ public class Page {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer pageId;
+    @Column(name = "page_id")
+    private Integer id;
 
 }

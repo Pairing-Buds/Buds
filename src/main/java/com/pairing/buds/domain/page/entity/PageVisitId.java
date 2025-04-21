@@ -2,15 +2,13 @@ package com.pairing.buds.domain.page.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Embeddable
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

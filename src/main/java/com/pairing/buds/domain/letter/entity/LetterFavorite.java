@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.letter.entity;
 
+import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "letter_favorites")
-public class LetterFavorite {
+public class LetterFavorite extends CreateBaseTime {
 
     @Id
     @Column(name = "letter_id")
@@ -27,21 +28,11 @@ public class LetterFavorite {
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
-    @JoinColumn(
-            name = "letter_id",
-            foreignKey = @ForeignKey(name = "FK_letters_TO_letter_favorites_1")
-    )
+    @JoinColumn(name = "letter_id", nullable = false)
     private Letter letter;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "user_id",
-            referencedColumnName = "user_id",
-            foreignKey = @ForeignKey(name = "FK_letter_favorites_users_user_id")
-    )
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
 
 }
