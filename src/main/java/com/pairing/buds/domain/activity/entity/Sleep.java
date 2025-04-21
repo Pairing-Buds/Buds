@@ -1,6 +1,5 @@
-package com.pairing.buds.domain.diary.entity;
+package com.pairing.buds.domain.activity.entity;
 
-import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,25 +7,25 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "diaries")
-public class Diary extends CreateBaseTime {
+@Table(name = "sleep")
+public class Sleep {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "diary_id")
+    @Column(name = "sleep_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "subject", nullable = false)
-    private String subject;
+    // HHMM 형식
+    @Column(name = "wake_time")
+    private String wakeTime;
 
-    @Column(name = "content", nullable = false)
-    private String content;
+    @Column(name = "sleep_time")
+    private String sleepTime;
 
 }

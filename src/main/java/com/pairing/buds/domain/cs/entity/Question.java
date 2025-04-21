@@ -1,6 +1,6 @@
-package com.pairing.buds.domain.diary.entity;
+package com.pairing.buds.domain.cs.entity;
 
-import com.pairing.buds.common.basetime.CreateBaseTime;
+import com.pairing.buds.common.basetime.CUBaseTime;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,16 +11,16 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "diaries")
-public class Diary extends CreateBaseTime {
+@Table(name = "questions")
+public class Question extends CUBaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "diary_id")
+    @Column(name = "question_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
     private User user;
 
     @Column(name = "subject", nullable = false)

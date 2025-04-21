@@ -1,6 +1,6 @@
 package com.pairing.buds.domain.activity.entity;
 
-import com.pairing.buds.domain.users.entity.Users;
+import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -23,7 +23,7 @@ public class UserActivity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "activity_id", nullable = false)

@@ -1,12 +1,9 @@
 package com.pairing.buds.domain.admin.entity;
 
 import com.pairing.buds.common.basetime.CreateBaseTime;
-import com.pairing.buds.domain.users.entity.UserRole;
+import com.pairing.buds.domain.user.entity.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter

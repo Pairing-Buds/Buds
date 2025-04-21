@@ -1,13 +1,9 @@
 package com.pairing.buds.domain.letter.entity;
 
 import com.pairing.buds.common.basetime.CreateBaseTime;
-import com.pairing.buds.domain.activity.entity.UserActivityStatus;
-import com.pairing.buds.domain.users.entity.Users;
+import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -25,11 +21,11 @@ public class Letter extends CreateBaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "receiver", referencedColumnName = "user_id", nullable = false)
-    private Users receiver;
+    private User receiver;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "sender", referencedColumnName = "user_id", nullable = false)
-    private Users sender;
+    private User sender;
 
     @Column(name = "content")
     private String content;

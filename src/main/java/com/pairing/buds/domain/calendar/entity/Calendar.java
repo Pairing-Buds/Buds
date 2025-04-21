@@ -1,12 +1,10 @@
 package com.pairing.buds.domain.calendar.entity;
 import com.pairing.buds.common.basetime.CreateBaseTime;
-import com.pairing.buds.domain.emotion.entity.EmotionBadge;
-import com.pairing.buds.domain.users.entity.Users;
+import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -23,7 +21,7 @@ public class Calendar extends CreateBaseTime {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "emotion_badge_id", nullable = false)
