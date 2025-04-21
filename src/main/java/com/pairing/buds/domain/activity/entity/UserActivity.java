@@ -1,11 +1,9 @@
 package com.pairing.buds.domain.activity.entity;
 
+import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -14,7 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "user_activities")
-public class UserActivity {
+public class UserActivity extends CreateBaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,9 +33,5 @@ public class UserActivity {
 
     @Column(name = "proof")
     private String proof;
-
-    @CreationTimestamp
-    @Column(name = "recorded_at", nullable = false)
-    private LocalDateTime recordedAt;
 
 }

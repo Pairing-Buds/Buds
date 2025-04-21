@@ -3,8 +3,6 @@ package com.pairing.buds.domain.activity.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
-
 @Entity
 @Getter
 @Setter
@@ -24,9 +22,6 @@ public class Activity {
 
     @Column(name = "description")
     private String description;
-
-    @OneToMany(mappedBy = "activity")
-    private Set<UserActivity> userActivities;
 
 }
 
