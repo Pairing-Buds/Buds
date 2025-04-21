@@ -24,12 +24,12 @@ public class Letter extends CreateBaseTime {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "match_id", nullable = false)
-    private Match match;
+    @JoinColumn(name = "receiver", referencedColumnName = "user_id", nullable = false)
+    private Users receiver;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "receiver_id", referencedColumnName = "user_id")
-    private Users receiver;
+    @JoinColumn(name = "sender", referencedColumnName = "user_id", nullable = false)
+    private Users sender;
 
     @Column(name = "content")
     private String content;
