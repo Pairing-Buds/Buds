@@ -47,5 +47,4 @@ public class ActivityController {
         activityService.deleteWakeTime(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
-
 }
