@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.diary.entity;
+package com.pairing.buds.domain.calendar.entity;
 
 import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.user.entity.User;

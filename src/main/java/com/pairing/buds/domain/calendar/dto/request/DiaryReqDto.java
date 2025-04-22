@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.diary.dto.request;
+package com.pairing.buds.domain.calendar.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
