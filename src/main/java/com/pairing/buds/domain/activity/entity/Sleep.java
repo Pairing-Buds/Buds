@@ -7,6 +7,7 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "sleep")
@@ -24,8 +25,5 @@ public class Sleep {
     // HHMM 형식
     @Column(name = "wake_time")
     private String wakeTime;
-
-    @Column(name = "sleep_time")
-    private String sleepTime;
 
 }

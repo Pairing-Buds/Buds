@@ -9,7 +9,7 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 @Valid
-public class WakeTimeReqDto {
+public class CreateWakeTimeReqDto {
 
     @Positive(message = "Gotcha! Ha Ha!")
     @NotNull(message = "Seriously? Please Give Me Right Data.. Not Abusing")
@@ -20,8 +20,4 @@ public class WakeTimeReqDto {
     @Length(min = 4, max = 4 , message = "Oh, Not 4 characters.. what's wrong with you?")
     private String wakeTime;
 
-    @NotEmpty
-    @NotBlank
-    @Length(min = 4, max = 4 , message = "Oh, Not 4 characters.. what's wrong with you?")
-    private String sleepTime;
 }
