@@ -23,9 +23,6 @@ public class Diary extends CreateBaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "subject", nullable = false)
-    private String subject;
-
     @Column(name = "content", nullable = false)
     private String content;
 
