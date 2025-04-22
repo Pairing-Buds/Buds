@@ -1,6 +1,6 @@
-package com.pairing.buds.domain.diary.repository;
+package com.pairing.buds.domain.calendar.repository;
 
-import com.pairing.buds.domain.diary.entity.Diary;
+import com.pairing.buds.domain.calendar.entity.Diary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

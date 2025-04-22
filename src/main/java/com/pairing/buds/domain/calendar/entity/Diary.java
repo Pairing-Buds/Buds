@@ -1,5 +1,6 @@
-package com.pairing.buds.domain.activity.entity;
+package com.pairing.buds.domain.calendar.entity;
 
+import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,20 +11,19 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "sleep")
-public class Sleep {
+@Table(name = "diaries")
+public class Diary extends CreateBaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sleep_id")
+    @Column(name = "diary_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // HHMM 형식
-    @Column(name = "wake_time")
-    private String wakeTime;
+    @Column(name = "content", nullable = false)
+    private String content;
 
 }

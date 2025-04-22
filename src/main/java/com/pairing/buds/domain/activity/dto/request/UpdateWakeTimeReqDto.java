@@ -18,7 +18,7 @@ public class UpdateWakeTimeReqDto {
 
     @Positive
     @NotNull
-    private int sleepId;
+    private int wakeId;
 
     @NotEmpty
     @NotBlank

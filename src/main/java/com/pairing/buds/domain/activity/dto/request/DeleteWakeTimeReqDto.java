@@ -15,5 +15,5 @@ public class DeleteWakeTimeReqDto {
 
     @Positive
     @NotNull
-    private int sleepId;
+    private int wakeId;
 }
