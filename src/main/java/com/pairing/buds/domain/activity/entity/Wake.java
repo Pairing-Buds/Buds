@@ -7,14 +7,15 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "sleep")
-public class Sleep {
+@Table(name = "wakes")
+public class Wake {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sleep_id")
+    @Column(name = "wake_id")
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -24,8 +25,4 @@ public class Sleep {
     // HHMM 형식
     @Column(name = "wake_time")
     private String wakeTime;
-
-    @Column(name = "sleep_time")
-    private String sleepTime;
-
 }
