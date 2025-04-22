@@ -20,7 +20,4 @@ public class EmotionBadge {
     @Column(name = "emotion", nullable = false)
     private String emotion;
 
-    @Column(name = "image", nullable = false)
-    private String image;
-
 }

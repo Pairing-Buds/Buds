@@ -21,7 +21,4 @@ public class ActivityBadge {
     @JoinColumn(name = "activity_id", nullable = false)
     private Activity activityId;
 
-    @Column(name = "image", nullable = false)
-    private String image;
-
 }
