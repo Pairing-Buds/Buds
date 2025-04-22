@@ -1,4 +1,4 @@
-package com.pairing.buds.common.exception;
+package com.pairing.buds.common.response;
 
 import lombok.Getter;
 

@@ -1,13 +1,13 @@
-package com.pairing.buds.common.exception;
+package com.pairing.buds.common.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ResponseBody {
+public class ResponseDto {
 
     private StatusCode statusCode;
-    private String     resMsg;
+    private Object resMsg;
 
 }
