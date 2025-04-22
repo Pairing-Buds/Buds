@@ -16,12 +16,12 @@ import org.hibernate.validator.constraints.Length;
 @Valid
 public class UpdateWakeTimeReqDto {
 
-    @Positive(message = "Gotcha! Ha Ha!")
-    @NotNull(message = "Seriously? Please Give Me Right Data.. Not Abusing")
+    @Positive
+    @NotNull
     private int sleepId;
 
     @NotEmpty
     @NotBlank
-    @Length(min = 4, max = 4 , message = "Oh, Not 4 characters.. what's wrong with you?")
+    @Length(min = 4, max = 4)
     private String wakeTime;
 }

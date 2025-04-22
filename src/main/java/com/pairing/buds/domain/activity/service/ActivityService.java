@@ -28,14 +28,14 @@ public class ActivityService {
      * 중요 정보 로깅은 배포 시 제거
      * **/
 
-    private final ActivityRepository activityRepository;
+    private final ActivityRepository activityRepository;q
     private final UserRepository userRepository;
     private final SleepRepository sleepRepository;
 
 
     /** 기상 시간 등록 **/
     @Transactional
-    public ResponseEntity<?> createWakeTime(@Valid CreateWakeTimeReqDto dto) {
+    public ResponseDto createWakeTime(@Valid CreateWakeTimeReqDto dto) {
 
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String wakeTime = dto.getWakeTime();
@@ -52,12 +52,12 @@ public class ActivityService {
                 .build();
         sleepRepository.save(newSleep);
 
-        return ResponseEntity.ok().body(new ResponseDto(StatusCode.CREATED, Message.OK));
+        return new ResponseDto(StatusCode.CREATED, Message.OK);
     }
 
     /** 기상 시간 수정 **/
     @Transactional
-    public ResponseEntity<?> updateWakeTime(@Valid UpdateWakeTimeReqDto dto) {
+    public ResponseDto updateWakeTime(@Valid UpdateWakeTimeReqDto dto) {
 
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         int sleepId = dto.getSleepId();
@@ -82,11 +82,12 @@ public class ActivityService {
         sleepToUpdate.setWakeTime(wakeTime);
         sleepRepository.save(sleepToUpdate);
         
-        return ResponseEntity.ok().body(new ResponseDto(StatusCode.OK, Message.OK));
+        return new ResponseDto(StatusCode.OK, Message.OK);
     }
     
     /** 기상 시간 삭제 **/
-    public ResponseEntity<?> deleteWakeTime(@Valid DeleteWakeTimeReqDto dto) {
+    @Transactional
+    public ResponseDto deleteWakeTime(@Valid DeleteWakeTimeReqDto dto) {
 
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         int sleepId = dto.getSleepId();
@@ -107,6 +108,6 @@ public class ActivityService {
         // DB에 데이터 부재 시 OptimisticLockingFailureException 발생
         sleepRepository.delete(sleepToDelete);
 
-        return ResponseEntity.ok().body(new ResponseDto(StatusCode.OK, Message.OK));
+        return new ResponseDto(StatusCode.OK, Message.OK);
     }
 }

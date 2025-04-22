@@ -13,7 +13,6 @@ public class CreateWakeTimeReqDto {
 
     @NotEmpty
     @NotBlank
-    @Length(min = 4, max = 4 , message = "Oh, Not 4 characters.. what's wrong with you?")
+    @Length(min = 4, max = 4 , message = "wakeTime field not proper")
     private String wakeTime;
-
 }

@@ -13,7 +13,7 @@ import lombok.*;
 @Valid
 public class DeleteWakeTimeReqDto {
 
-    @Positive(message = "Gotcha! Ha Ha!")
-    @NotNull(message = "Seriously? Please Give Me Right Data.. Not Abusing")
+    @Positive
+    @NotNull
     private int sleepId;
 }
