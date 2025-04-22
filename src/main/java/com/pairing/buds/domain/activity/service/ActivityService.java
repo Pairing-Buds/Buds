@@ -28,22 +28,20 @@ public class ActivityService {
      * 중요 정보 로깅은 배포 시 제거
      * **/
 
-    private final ActivityRepository activityRepository;q
+    private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final SleepRepository sleepRepository;
 
 
     /** 기상 시간 등록 **/
     @Transactional
-    public ResponseDto createWakeTime(@Valid CreateWakeTimeReqDto dto) {
+    public ResponseDto createWakeTime(int userId , @Valid CreateWakeTimeReqDto dto) {
 
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         String wakeTime = dto.getWakeTime();
-        log.info("wakeTime : {}, username : {}", wakeTime, username);
+        log.info("wakeTime : {}, userId : {}", wakeTime, userId);
 
         // 유저 유무 조회
-        User userToSave = userRepository.findByUserName(username);
-        if(userToSave == null) new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        User userToSave = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
 
         // 저장
         Sleep newSleep = Sleep.builder()
@@ -57,18 +55,16 @@ public class ActivityService {
 
     /** 기상 시간 수정 **/
     @Transactional
-    public ResponseDto updateWakeTime(@Valid UpdateWakeTimeReqDto dto) {
+    public ResponseDto updateWakeTime(int userId, @Valid UpdateWakeTimeReqDto dto) {
 
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         int sleepId = dto.getSleepId();
         String wakeTime = dto.getWakeTime();
-        log.info("sleepId : {}, wakeTime : {}, username : {}", sleepId, wakeTime, username);
+        log.info("sleepId : {}, wakeTime : {}, userId : {}", sleepId, wakeTime, userId);
         
         // user, sleep 유무 검증
-        User user = userRepository.findByUserName(username);
+        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
         Sleep sleepToUpdate = sleepRepository.findById(sleepId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
 
-        int userId = user.getId();
         int userIdOfSleepToUpdate = sleepToUpdate.getUser().getId();
         log.info("userId : {}, userIdOfSleepToUpdate : {}", userId, userIdOfSleepToUpdate);
         
@@ -87,16 +83,14 @@ public class ActivityService {
     
     /** 기상 시간 삭제 **/
     @Transactional
-    public ResponseDto deleteWakeTime(@Valid DeleteWakeTimeReqDto dto) {
+    public ResponseDto deleteWakeTime(int userId, @Valid DeleteWakeTimeReqDto dto) {
 
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getDetails();
         int sleepId = dto.getSleepId();
-        log.info("sleepId : {}, username : {}", sleepId, username);
+        log.info("sleepId : {}, userId : {}", sleepId, userId);
 
-        User user = userRepository.findByUserName(username);
+        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
         Sleep sleepToDelete = sleepRepository.findById(sleepId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
 
-        int userId = user.getId();
         int userIdOfSleepToDelete = sleepToDelete.getUser().getId();
         log.info("userId : {}, userIdOfSleepToDelete : {}", userId, userIdOfSleepToDelete);
 

@@ -7,7 +7,7 @@ import com.pairing.buds.domain.activity.dto.request.UpdateWakeTimeReqDto;
 import com.pairing.buds.domain.activity.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,8 +19,9 @@ public class ActivityController {
 
     /** 기상 시간 등록 **/
     @PostMapping("/wake")
-    public ResponseDto createWakeTime(@Valid @RequestBody CreateWakeTimeReqDto dto){
-        return activityService.createWakeTime(dto);
+    public ResponseDto createWakeTime(@AuthenticationPrincipal int userId,
+            @Valid @RequestBody CreateWakeTimeReqDto dto){
+        return activityService.createWakeTime(userId, dto);
     }
 
     /** 기상 시간 인증 **/
@@ -28,14 +29,16 @@ public class ActivityController {
 
     /** 기상 시간 수정 **/
     @PatchMapping("/wake")
-    public ResponseDto updateWakeTime(@Valid @RequestBody UpdateWakeTimeReqDto dto){
-        return activityService.updateWakeTime(dto);
+    public ResponseDto updateWakeTime(@AuthenticationPrincipal int userId,
+            @Valid @RequestBody UpdateWakeTimeReqDto dto){
+        return activityService.updateWakeTime(userId, dto);
     }
 
     /** 기상 시간 삭제 **/
     @DeleteMapping("/wake")
-    public ResponseDto deleteWakeTime(@Valid @RequestBody DeleteWakeTimeReqDto dto){
-        return activityService.deleteWakeTime(dto);
+    public ResponseDto deleteWakeTime(@AuthenticationPrincipal int userId,
+            @Valid @RequestBody DeleteWakeTimeReqDto dto){
+        return activityService.deleteWakeTime(userId, dto);
     }
 
 }
