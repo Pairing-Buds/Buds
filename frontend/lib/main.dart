@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'buds',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
