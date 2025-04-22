@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.diary.entity;
+package com.pairing.buds.domain.calendar.entity;
 
 import com.pairing.buds.common.basetime.CreateBaseTime;
 import com.pairing.buds.domain.user.entity.User;
@@ -22,9 +22,6 @@ public class Diary extends CreateBaseTime {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-    @Column(name = "subject", nullable = false)
-    private String subject;
 
     @Column(name = "content", nullable = false)
     private String content;
