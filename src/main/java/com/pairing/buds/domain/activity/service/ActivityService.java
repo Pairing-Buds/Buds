@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ActivityService { 
+public class ActivityService {
+
     /**
      * 중요 정보 로깅은 배포 시 제거
      * **/
@@ -32,10 +33,9 @@ public class ActivityService {
     private final UserRepository userRepository;
     private final SleepRepository sleepRepository;
 
-
     /** 기상 시간 등록 **/
     @Transactional
-    public ResponseDto createWakeTime(int userId , @Valid CreateWakeTimeReqDto dto) {
+    public void createWakeTime(int userId , @Valid CreateWakeTimeReqDto dto) {
 
         String wakeTime = dto.getWakeTime();
         log.info("wakeTime : {}, userId : {}", wakeTime, userId);
@@ -49,13 +49,11 @@ public class ActivityService {
                 .wakeTime(wakeTime)
                 .build();
         sleepRepository.save(newSleep);
-
-        return new ResponseDto(StatusCode.CREATED, Message.OK);
     }
 
     /** 기상 시간 수정 **/
     @Transactional
-    public ResponseDto updateWakeTime(int userId, @Valid UpdateWakeTimeReqDto dto) {
+    public void updateWakeTime(int userId, @Valid UpdateWakeTimeReqDto dto) {
 
         int sleepId = dto.getSleepId();
         String wakeTime = dto.getWakeTime();
@@ -77,17 +75,16 @@ public class ActivityService {
         // 저장
         sleepToUpdate.setWakeTime(wakeTime);
         sleepRepository.save(sleepToUpdate);
-        
-        return new ResponseDto(StatusCode.OK, Message.OK);
     }
     
     /** 기상 시간 삭제 **/
     @Transactional
-    public ResponseDto deleteWakeTime(int userId, @Valid DeleteWakeTimeReqDto dto) {
+    public void deleteWakeTime(int userId, @Valid DeleteWakeTimeReqDto dto) {
 
         int sleepId = dto.getSleepId();
         log.info("sleepId : {}, userId : {}", sleepId, userId);
 
+        // exists...
         User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
         Sleep sleepToDelete = sleepRepository.findById(sleepId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
 
@@ -101,7 +98,5 @@ public class ActivityService {
 
         // DB에 데이터 부재 시 OptimisticLockingFailureException 발생
         sleepRepository.delete(sleepToDelete);
-
-        return new ResponseDto(StatusCode.OK, Message.OK);
     }
 }
