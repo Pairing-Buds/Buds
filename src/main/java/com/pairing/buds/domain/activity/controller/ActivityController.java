@@ -1,6 +1,8 @@
 package com.pairing.buds.domain.activity.controller;
 
 import com.pairing.buds.domain.activity.dto.request.CreateWakeTimeReqDto;
+import com.pairing.buds.domain.activity.dto.request.DeleteWakeTimeReqDto;
+import com.pairing.buds.domain.activity.dto.request.UpdateWakeTimeReqDto;
 import com.pairing.buds.domain.activity.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +26,16 @@ public class ActivityController {
 
 
     /** 기상 시간 수정 **/
-//    @PatchMapping("/wake")
-//    public ResponseEntity<?> updateWakeTime(@Valid @RequestBody UpdateWakeTimeReqDto dto){
-//        return activityService.updateWakeTime(dto);
-//    }
+    @PatchMapping("/wake")
+    public ResponseEntity<?> updateWakeTime(@Valid @RequestBody UpdateWakeTimeReqDto dto){
+        return activityService.updateWakeTime(dto);
+    }
 
     /** 기상 시간 삭제 **/
+    @DeleteMapping("/wake")
+    public ResponseEntity<?> deleteWakeTime(@Valid @RequestBody DeleteWakeTimeReqDto dto){
+        return activityService.deleteWakeTime(dto);
+    }
 
     /** 취침 시간 등록 **/
 

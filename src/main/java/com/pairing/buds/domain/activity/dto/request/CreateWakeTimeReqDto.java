@@ -11,10 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @Valid
 public class CreateWakeTimeReqDto {
 
-    @Positive(message = "Gotcha! Ha Ha!")
-    @NotNull(message = "Seriously? Please Give Me Right Data.. Not Abusing")
-    private int userId;
-
     @NotEmpty
     @NotBlank
     @Length(min = 4, max = 4 , message = "Oh, Not 4 characters.. what's wrong with you?")
