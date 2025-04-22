@@ -1,5 +1,8 @@
 package com.pairing.buds.common.exception;
 
+import com.pairing.buds.common.response.Common;
+import com.pairing.buds.common.response.Message;
+import com.pairing.buds.common.response.StatusCode;
 import lombok.Getter;
 
 @Getter
