@@ -49,7 +49,7 @@ public class QuestionController {
     }
 
     /** 문의 삭제 **/
-    @PostMapping("")
+    @DeleteMapping("")
     public ResponseDto deleteQuestion(
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody DeleteQuestionReqDto dto
