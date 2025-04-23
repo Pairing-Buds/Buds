@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.calendar.controller;
 
+import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.calendar.dto.request.DiaryReqDto;
@@ -21,7 +22,7 @@ public class DiaryController {
             @RequestBody DiaryReqDto diaryReqDto
     ) {
         diaryService.addDiary(userId, diaryReqDto);
-        return new ResponseDto(StatusCode.OK, "저장 성공");
+        return new ResponseDto(StatusCode.OK, Message.CREATED);
     }
 
     /** 일기 삭제 **/
@@ -31,7 +32,7 @@ public class DiaryController {
             @PathVariable Integer diaryNo
     ){
         diaryService.deleteDiary(userId, diaryNo);
-        return new ResponseDto(StatusCode.OK, "삭제 성공");
+        return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
 

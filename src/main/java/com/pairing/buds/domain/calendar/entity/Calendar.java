@@ -23,11 +23,9 @@ public class Calendar extends CreateBaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "emotion_badge_id", nullable = false)
-    private EmotionBadge emotionBadge;
+    @Column(name = "badge")
+    private String badge; // 캘린더에 표시할 대표 뱃지, 뱃지를 저장할 때 기분 뱃지가 있다면 기분 뱃지, 없다면 가장 최근 활동 뱃지가 대표 이미지
 
-    // 2025-04-21 형식인지?
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
