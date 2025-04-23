@@ -7,6 +7,7 @@ import com.pairing.buds.domain.cs.dto.req.CreateQuestionReqDto;
 import com.pairing.buds.domain.cs.dto.res.GetQuestionResDto;
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
+import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,15 @@ public class QuestionService {
     /** 문의 생성 **/
     public void createQuestion(int userId, @Valid CreateQuestionReqDto dto) {
 
-        log.info("");
+        String subject = dto.getSubject();
+        String content = dto.getContent();
+        log.info("userId : {}, subject : {}, content : {}", userId, subject, content);
+
+        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        Question newQuestion = Question.builder()
+                .user(user)
+                .subject(subject)
+                .content(content)
+                .build();
     }
 }
