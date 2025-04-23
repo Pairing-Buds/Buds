@@ -5,6 +5,7 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.calendar.dto.request.DiaryReqDto;
 import com.pairing.buds.domain.calendar.entity.Diary;
+import com.pairing.buds.domain.calendar.entity.RecordType;
 import com.pairing.buds.domain.calendar.repository.DiaryRepository;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
@@ -23,13 +24,20 @@ public class DiaryService {
     public void addDiary(Integer userId, DiaryReqDto diaryReqDto) {
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
+        // 유효한 타입인지 확인
+        try {
+            RecordType.valueOf(diaryReqDto.getDiaryType());
+        } catch (Exception e) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.TYPE_NOT_FOUND);
+        }
+
         Diary diary = Diary.builder()
                 .user(user)
+                .diaryType(RecordType.valueOf(diaryReqDto.getDiaryType()))
                 .content(diaryReqDto.getContent())
                 .build();
 
         diaryRepository.save(diary);
-
     }
 
     /** 일기 삭제 **/

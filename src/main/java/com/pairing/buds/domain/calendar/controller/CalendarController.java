@@ -1,9 +1,35 @@
 package com.pairing.buds.domain.calendar.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.pairing.buds.common.response.ResponseDto;
+import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.calendar.dto.request.DiaryReqDto;
+import com.pairing.buds.domain.calendar.service.CalendarService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/calendar")
+@RequiredArgsConstructor
 public class CalendarController {
+    private CalendarService calendarService;
+
+    /** 달별 뱃지 조회 **/
+    @GetMapping("/{date}")
+    public ResponseDto getBadgeByCalendar(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable String date
+    ) {
+        return new ResponseDto(StatusCode.OK, calendarService.getBadgeByCalendar(userId, date));
+    }
+
+    /** 일별 뱃지, 일기 조회 **/
+    @GetMapping("/calendars/day/{date}")
+    public ResponseDto getBadgesAndDiary(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable String date
+    ) {
+        return new ResponseDto(StatusCode.OK, calendarService.getBadgesAndDiary(userId, date));
+    }
+
 }
