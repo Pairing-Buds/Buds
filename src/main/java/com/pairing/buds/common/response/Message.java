@@ -12,9 +12,10 @@ public enum Message {
     DIARY_NOT_FOUND("해당 일기를 찾을 수 없습니다."),
     USER_NOT_EQUAL("다른 유저의 데이터에 접근할 수 없습니다."),
     QUESTION_NOT_FOUND("해당 문의를 찾을 수 없습니다."),
+    ARGUMENT_NOT_PROPER("적절하지 않은 인자입니다."),
 
     OK("성공"),
-    ARGUMENT_NOT_PROPER("적절하지 않은 인자입니다."),
+    CREATED("성공")
     ;
 
     private final String text;

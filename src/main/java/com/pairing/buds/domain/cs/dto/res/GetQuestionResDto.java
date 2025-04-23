@@ -2,7 +2,6 @@ package com.pairing.buds.domain.cs.dto.res;
 
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.user.entity.User;
-import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
