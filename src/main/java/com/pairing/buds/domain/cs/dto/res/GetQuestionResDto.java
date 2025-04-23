@@ -17,7 +17,7 @@ public class GetQuestionResDto {
 
     @Positive
     @NotNull
-    private Integer id;
+    private int questionId;
 
     @NotNull
     private User user;
@@ -28,7 +28,7 @@ public class GetQuestionResDto {
 
     public static GetQuestionResDto toDto(Question question){
         return GetQuestionResDto.builder()
-                .id(question.getId())
+                .questionId(question.getId())
                 .user(question.getUser())
                 .subject(question.getSubject())
                 .content(question.getContent())

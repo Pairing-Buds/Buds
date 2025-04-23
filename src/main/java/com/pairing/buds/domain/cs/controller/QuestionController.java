@@ -4,6 +4,8 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.cs.dto.req.CreateQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.req.DeleteQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.req.PatchQuestionReqDto;
 import com.pairing.buds.domain.cs.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +36,25 @@ public class QuestionController {
     ){
         questionService.createQuestion(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.CREATED);
+    }
+
+    /** 문의 수정 **/
+    @PatchMapping("")
+    public ResponseDto patchQuestion(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody PatchQuestionReqDto dto
+    ){
+        questionService.patchQuestion(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+    /** 문의 삭제 **/
+    @PostMapping("")
+    public ResponseDto deleteQuestion(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody DeleteQuestionReqDto dto
+    ){
+        questionService.deleteQuestion(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
     }
 }
