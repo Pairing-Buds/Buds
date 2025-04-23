@@ -20,22 +20,17 @@ class LoginMainScreen extends StatelessWidget {
               // 상단 타이틀 위젯
               const MainTitleWidget(),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
 
               // 채팅 컨테이너 위젯
               const ChatContainer(),
 
-              const SizedBox(height: 80),
+              const SizedBox(height: 30),
 
               // 곰 캐릭터 이미지
-              Image.asset(
-                'assets/images/marmet.png',
-                scale: 0.01,
-                width: 150,
-                height: 150,
-              ),
+              Image.asset('assets/images/newmarmet2.png', scale: 2.5),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 0),
 
               // 시작하기 버튼 위젯
               StartButton(
