@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/diary/diary_list_screen.dart';
 import '../screens/diary/diary_detail_screen.dart';
-import '../screens/login/login_screen.dart';
+// import '../screens/login/login_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {
   static final Map<String, WidgetBuilder> routes = {
     RouteNames.home: (context) => const HomeScreen(),
     RouteNames.diaryList: (context) => const DiaryListScreen(),
-    RouteNames.login: (context) => const LoginScreen(),
+    // RouteNames.login: (context) => const LoginScreen(),
 
     // 매개변수가 필요한 경로는 여기서 제외하고 generateRoute에서 처리
   };
