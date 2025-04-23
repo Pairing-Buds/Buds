@@ -15,7 +15,7 @@ class LoginMainScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             children: [
-              const SizedBox(height: 100),
+              const SizedBox(height: 80),
 
               // 상단 타이틀 위젯
               const MainTitleWidget(),
@@ -49,44 +49,6 @@ class LoginMainScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-// 채팅 버블 위젯
-class ChatBubble extends StatelessWidget {
-  final Color color;
-  final String text;
-  final bool isLeft;
-
-  const ChatBubble({
-    Key? key,
-    required this.color,
-    required this.text,
-    required this.isLeft,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment:
-          isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE0E0E0),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(radius: 8, backgroundColor: color),
-              const SizedBox(width: 8),
-              Text(text, style: const TextStyle(fontSize: 14)),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -48,18 +48,49 @@ class ChatContainer extends StatelessWidget {
       width: 280,
       child: Column(
         children: [
-          // 대화 버블 1
+          // 대화 버블 1 - 토끼
           ChatBubble(
-            color: Colors.redAccent,
+            color: Colors.pink,
             text: '오늘은 무슨 좋은 일 있었어??',
             isLeft: true,
+            iconPath: 'assets/icons/rabbiticon.png',
           ),
-          const SizedBox(height: 12),
-          // 대화 버블 2
-          ChatBubble(color: Colors.orange, text: '너무 많은 일이 있었어', isLeft: false),
-          const SizedBox(height: 12),
-          // 대화 버블 3
-          ChatBubble(color: Colors.redAccent, text: '저런...', isLeft: true),
+          const SizedBox(height: 10),
+
+          // 대화 버블 2 - 여우
+          ChatBubble(
+            color: Colors.orange,
+            text: '너무 많은 일이 있었어!',
+            isLeft: false,
+            iconPath: 'assets/icons/foxicon.png',
+          ),
+          const SizedBox(height: 10),
+
+          // 대화 버블 3 - 토끼
+          ChatBubble(
+            color: Colors.pink,
+            text: '어떤 일이 있었는데?',
+            isLeft: true,
+            iconPath: 'assets/icons/rabbiticon.png',
+          ),
+          const SizedBox(height: 10),
+
+          // 대화 버블 4 - 개구리
+          // ChatBubble(
+          //   color: Colors.green,
+          //   text: '나도 듣고 싶어!',
+          //   isLeft: true,
+          //   iconPath: 'assets/icons/frogicon.png',
+          // ),
+          // const SizedBox(height: 10),
+
+          // 대화 버블 5 - 여우
+          // ChatBubble(
+          //   color: Colors.orange,
+          //   text: '새로운 친구들을 많이 만났어요',
+          //   isLeft: false,
+          //   iconPath: 'assets/icons/foxicon.png',
+          // ),
         ],
       ),
     );
