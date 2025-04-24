@@ -65,6 +65,14 @@ class DiaryListScreen extends StatelessWidget {
                   '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
                   additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
                 ),
+                SizedBox(height: 16),
+                _buildDiaryCard(
+                  date: DateTime(2025, 4, 20),
+                  moodIcons: ['⏰', '📝'],
+                  content:
+                  '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
+                  additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
+                ),
               ],
             ),
           ),
@@ -81,7 +89,7 @@ class DiaryListScreen extends StatelessWidget {
     String? additionalNote,
   }) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 22),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
