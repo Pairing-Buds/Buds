@@ -5,6 +5,8 @@ import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -25,5 +27,12 @@ public class Diary extends CreateBaseTime {
 
     @Column(name = "content", nullable = false)
     private String content;
+
+    @Column(name = "date", nullable = false)
+    private Date date; //저장된 날짜가 아닌 일기 날짜
+
+    @Column(name = "diary_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RecordType diaryType;
 
 }
