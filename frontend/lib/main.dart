@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home/home_screen.dart';
+// import 'screens/login/login_screen.dart';
+import 'screens/login/login_main.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'buds',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
+      // home: const HomeScreen(),
+      home: const LoginMainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
