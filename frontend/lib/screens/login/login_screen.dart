@@ -39,7 +39,7 @@ class LoginScreen extends StatelessWidget {
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: Image.asset('assets/images/marmet.png'),
+                      child: Image.asset('assets/images/newmarmet.png'),
                     ),
                     const SizedBox(height: 16),
 
