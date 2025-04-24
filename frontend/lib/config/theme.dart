@@ -15,4 +15,7 @@ class AppColors {
   static const Color text = Color(0xFFF2FEFF);
   // 텍스트 색상
   static const Color toast = Color(0xFF828282);
+  // 일기 채팅 배경색
+  static const Color cardBackground = Color(0xFFFFFDF4);
+
 }

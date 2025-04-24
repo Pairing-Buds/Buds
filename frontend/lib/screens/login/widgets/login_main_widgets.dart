@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:buds/screens/login/login_screen.dart';
+import 'package:buds/screens/login/login_screen.dart';
 import 'package:buds/screens/login/widgets/chat_bubble.dart';
 
 /// 상단 타이틀 위젯
@@ -132,10 +132,10 @@ class LoginButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => const LoginScreen()),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
       },
       child: const Text(
         '기존 계정으로 로그인',
