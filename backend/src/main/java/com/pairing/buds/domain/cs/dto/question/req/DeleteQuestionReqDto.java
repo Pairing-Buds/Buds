@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.cs.dto.req;
+package com.pairing.buds.domain.cs.dto.question.req;
 
 
 import jakarta.validation.Valid;

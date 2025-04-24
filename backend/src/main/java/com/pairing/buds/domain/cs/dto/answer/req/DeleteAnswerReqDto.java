@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.activity.dto.request;
+package com.pairing.buds.domain.cs.dto.answer.req;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -11,9 +11,9 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 @Valid
-public class DeleteWakeTimeReqDto {
+public class DeleteAnswerReqDto {
 
-    @Positive
     @NotNull
-    private int wakeId;
+    @Positive
+    private int answerId;
 }
