@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/calendar")
+@RequestMapping("/calendars")
 @RequiredArgsConstructor
 public class CalendarController {
     private CalendarService calendarService;
@@ -24,7 +24,7 @@ public class CalendarController {
     }
 
     /** 일별 뱃지, 일기 조회 **/
-    @GetMapping("/calendars/day/{date}")
+    @GetMapping("/day/{date}")
     public ResponseDto getBadgesAndDiary(
             @AuthenticationPrincipal Integer userId,
             @PathVariable String date
