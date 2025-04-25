@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.activity.dto.request;
+package com.pairing.buds.domain.activity.dto.req;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

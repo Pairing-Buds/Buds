@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.cs.dto.res;
+package com.pairing.buds.domain.cs.dto.question.res;
 
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.user.entity.User;

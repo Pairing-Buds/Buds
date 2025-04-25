@@ -6,6 +6,8 @@ import lombok.Getter;
 public enum Message {
 
     USER_NOT_FOUND("해당 사용자를 찾을 수 없습니다."),
+    ADMIN_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
+    ANSWER_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS("이미 존재하는 사용자입니다."),
     SLEEP_NOT_FOUND("존재하지 않는 기상 입니다"),
     SERVER_ERROR("서버 오류가 발생했습니다"),
