@@ -23,7 +23,6 @@ class _StartScreenState extends State<StartChattingScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +30,7 @@ class _StartScreenState extends State<StartChattingScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          _buildHeader(),
           const Spacer(),
           Opacity(opacity: 0.5,
               child: Image.asset('assets/images/marmet_head.png', width: 240,)),
@@ -82,4 +82,17 @@ class _StartScreenState extends State<StartChattingScreen> {
       ),
     );
   }
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 40, bottom: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+    );
+  }
 }
+
