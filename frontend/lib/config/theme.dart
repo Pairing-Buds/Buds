@@ -18,4 +18,7 @@ class AppColors {
   // 일기 채팅 배경색
   static const Color cardBackground = Color(0xFFFFFDF4);
 
+  // 회원가입 회색 색상
+  static const Color gray = Color(0xFFEEEEEE);
+  // static final Color gray = Colors.grey.shade200;
 }

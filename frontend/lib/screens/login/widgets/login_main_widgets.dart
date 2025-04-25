@@ -20,7 +20,7 @@ class MainTitleWidget extends StatelessWidget {
             color: Colors.black,
           ),
         ),
-        const SizedBox(height: 10),
+        // const SizedBox(height: 10),
         // 로고 이미지와 앱 이름
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
