@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'screens/home/home_screen.dart';
 // import 'screens/login/login_screen.dart';
 import 'screens/login/login_main.dart';
+import 'package:provider/provider.dart';
+import 'providers/agree_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AgreementProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

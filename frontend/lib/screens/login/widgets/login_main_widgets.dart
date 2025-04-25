@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/screens/login/login_screen.dart';
 import 'package:buds/screens/login/widgets/chat_bubble.dart';
+import 'package:buds/screens/login/agree_screen.dart';
 
 /// 상단 타이틀 위젯
 class MainTitleWidget extends StatelessWidget {
@@ -99,16 +100,19 @@ class ChatContainer extends StatelessWidget {
 
 /// 새롭게 시작하기 버튼 위젯
 class StartButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const StartButton({Key? key, required this.onPressed}) : super(key: key);
+  const StartButton({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 250,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AgreeScreen()),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
           minimumSize: const Size(180, 55),

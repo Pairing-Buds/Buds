@@ -33,11 +33,7 @@ class LoginMainScreen extends StatelessWidget {
               const SizedBox(height: 0),
 
               // 시작하기 버튼 위젯
-              StartButton(
-                onPressed: () {
-                  // 버튼 클릭 시 동작
-                },
-              ),
+              const StartButton(),
 
               const SizedBox(height: 20),
 
