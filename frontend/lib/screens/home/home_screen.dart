@@ -16,6 +16,22 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
+          // 태양 아이콘 (music_active와 같은 줄, 왼쪽)
+          Positioned(
+            top: 40,
+            left: 20, // music_active보다 왼쪽으로 이동 (right 값 더 크게)
+            child: GestureDetector(
+              onTap: () {
+                // TODO: 태양 아이콘 눌렀을 때
+              },
+              child: Image.asset(
+                'assets/icons/sun.png',
+                width: 120,
+                height: 120,
+              ),
+            ),
+          ),
+
           // 음악 on/off 아이콘
           Positioned(
             top: 40,
@@ -34,21 +50,29 @@ class HomeScreen extends StatelessWidget {
 
           // 캐릭터 이미지
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.5, // 화면 높이의 45% 지점에 배치
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Image.asset(
-                'assets/images/newmarmet.png', // 주의: 폴더 이름 assets/image ❌ → assets/images ⭕ 로 수정했어요
-                width: 200,
-                height: 200,
-              ),
+            top: MediaQuery.of(context).size.height * 0.5,
+            left: MediaQuery.of(context).size.width * 0.5 - 100, // 화면 가로 가운데에 맞추기 (width 200 고려)
+            child: Image.asset(
+              'assets/images/newmarmet.png',
+              width: 200,
+              height: 200,
+            ),
+          ),
+
+          // 조개 아이콘 (캐릭터 왼쪽에)
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.65,
+            left: 40,
+            child: Image.asset(
+              'assets/icons/shell.png',
+              width: 80,
+              height: 80,
             ),
           ),
 
           // 편지 아이콘
           Positioned(
-            bottom: 80, // 화면 하단에서 40px 위
+            bottom: 80,
             left: 190,
             right: 0,
             child: Center(

@@ -24,8 +24,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'buds',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
-      // home: const LoginMainScreen(),
+      // home: const HomeScreen(),
+      home: const LoginMainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
