@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
+import '../chat/start_chatting_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
@@ -23,7 +24,17 @@ class LoginMainScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // 채팅 컨테이너 위젯
-              const ChatContainer(),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StartChattingScreen(),
+                    ),
+                  );
+                },
+                child: const ChatContainer(),
+              ),
 
               const SizedBox(height: 20),
 
