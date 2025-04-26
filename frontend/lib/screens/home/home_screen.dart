@@ -1,37 +1,70 @@
 import 'package:flutter/material.dart';
 
-// 홈 화면
-
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('홈')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              '아  일단 만들어놔',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      body: Stack(
+        children: [
+          // 배경화면
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/main_bg.png',
+              fit: BoxFit.cover,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: 일기 목록 화면으로 이동
+          ),
+
+          // 음악 on/off 아이콘
+          Positioned(
+            top: 40,
+            right: 20,
+            child: GestureDetector(
+              onTap: () {
+                // TODO: 배경음악 끄는 기능 추가
               },
-              child: const Text('일기 목록 보기'),
+              child: Image.asset(
+                'assets/icons/music_active.png',
+                width: 40,
+                height: 40,
+              ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: 일기 작성 화면으로 이동
-        },
-        child: const Icon(Icons.add),
+          ),
+
+          // 캐릭터 이미지
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.5, // 화면 높이의 45% 지점에 배치
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Image.asset(
+                'assets/images/newmarmet.png', // 주의: 폴더 이름 assets/image ❌ → assets/images ⭕ 로 수정했어요
+                width: 200,
+                height: 200,
+              ),
+            ),
+          ),
+
+          // 편지 아이콘
+          Positioned(
+            bottom: 80, // 화면 하단에서 40px 위
+            left: 190,
+            right: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  // TODO: 편지 아이콘 눌렀을 때 처리
+                },
+                child: Image.asset(
+                  'assets/icons/bottle_letter.png',
+                  width: 100,
+                  height: 100,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
