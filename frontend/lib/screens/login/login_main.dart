@@ -24,7 +24,17 @@ class LoginMainScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // 채팅 컨테이너 위젯
-              const ChatContainer(),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StartChattingScreen(),
+                    ),
+                  );
+                },
+                child: const ChatContainer(),
+              ),
 
               const SizedBox(height: 20),
 

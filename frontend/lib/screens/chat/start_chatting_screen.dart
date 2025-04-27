@@ -1,4 +1,5 @@
 import 'package:buds/config/theme.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'voice_chatting_screen.dart';
 import 'chat_detail_screen.dart';
@@ -27,10 +28,10 @@ class _StartScreenState extends State<StartChattingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
+      appBar: const CustomAppBar(),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildHeader(),
           const Spacer(),
           Opacity(opacity: 0.5,
               child: Image.asset('assets/images/marmet_head.png', width: 240,)),
@@ -79,18 +80,6 @@ class _StartScreenState extends State<StartChattingScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 40, bottom: 4),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
     );
   }
