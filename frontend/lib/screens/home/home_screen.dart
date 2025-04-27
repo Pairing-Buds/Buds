@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:buds/screens/home/widget/shell_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,10 +17,10 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // 태양 아이콘 (music_active와 같은 줄, 왼쪽)
+          // 태양 아이콘
           Positioned(
             top: 40,
-            left: 20, // music_active보다 왼쪽으로 이동 (right 값 더 크게)
+            left: 20,
             child: GestureDetector(
               onTap: () {
                 // TODO: 태양 아이콘 눌렀을 때
@@ -59,16 +60,28 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // 조개 아이콘 (캐릭터 왼쪽에)
+          // 조개 아이콘 클릭시 shell_screen으로 이동
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.65,
-            left: 40,
-            child: Image.asset(
-              'assets/icons/shell.png',
-              width: 80,
-              height: 80,
+            top: MediaQuery
+                .of(context)
+                .size
+                .height * 0.65, // 캐릭터보다 살짝 아래
+            left: 40, // 왼쪽에서 40px 띄움
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ShellScreen()),
+                );
+              },
+              child: Image.asset(
+                'assets/icons/shell.png',
+                width: 80,
+                height: 80,
+              ),
             ),
           ),
+
 
           // 편지 아이콘
           Positioned(
