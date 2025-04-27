@@ -1,3 +1,4 @@
+import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 
@@ -29,11 +30,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
+      appBar: const CustomAppBar(),
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-
             Padding(
               padding: EdgeInsets.symmetric(horizontal: sideMargin),
               child: Row(
@@ -96,19 +96,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, top: 8, bottom: 4),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
         ),
       ),
     );
