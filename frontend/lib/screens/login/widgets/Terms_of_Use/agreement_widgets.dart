@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'terms_contents.dart';
 
 /// 동의 항목 위젯
 class AgreementItem extends StatelessWidget {
@@ -33,9 +34,15 @@ class AgreementItem extends StatelessWidget {
                       MaterialPageRoute(
                         builder:
                             (context) => Scaffold(
-                              appBar: AppBar(title: Text(title)),
-                              body: const Center(
-                                child: Text('약관 내용이 여기에 표시됩니다.'),
+                              appBar: AppBar(
+                                title: Text(title),
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                elevation: 0,
+                              ),
+                              body: SingleChildScrollView(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(getTermsContent(title)),
                               ),
                             ),
                       ),
@@ -77,6 +84,22 @@ class AgreementItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // 약관 제목에 따라 적절한 약관 내용을 반환하는 함수
+  String getTermsContent(String title) {
+    switch (title) {
+      case '서비스 이용약관':
+        return TermsContents.serviceTerms;
+      case '개인정보수집/이용 동의':
+        return TermsContents.privacyTerms;
+      case '개인정보 제3자 정보제공 동의':
+        return TermsContents.thirdPartyTerms;
+      case '위치 기반 서비스 이용약관 동의':
+        return TermsContents.locationTerms;
+      default:
+        return '약관 내용이 준비되지 않았습니다.';
+    }
   }
 }
 
