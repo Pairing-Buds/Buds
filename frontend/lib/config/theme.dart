@@ -34,7 +34,6 @@ final ThemeData appTheme = ThemeData(
   textTheme: const TextTheme(
     titleLarge: TextStyle(
       fontSize: 24,
-      fontWeight: FontWeight.bold,
       color: Colors.black,
     ),
     bodyMedium: TextStyle(
@@ -50,7 +49,6 @@ final ThemeData appTheme = ThemeData(
       textStyle: const TextStyle(
         fontFamily: 'GmarketSans',
         fontSize: 16,
-        fontWeight: FontWeight.bold,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(30),
