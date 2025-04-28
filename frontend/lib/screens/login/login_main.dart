@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
 import 'package:buds/screens/home/home_screen.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
@@ -47,13 +48,10 @@ class LoginMainScreen extends StatelessWidget {
                     MaterialPageRoute(builder: (context) => const HomeScreen()),
                   );
                 },
-                child: Image.asset(
-                  'assets/images/newmarmet2.png',
-                  scale: 2.5,
-                ),
+                child: Image.asset('assets/images/newmarmet2.png', scale: 2.5),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 0),
 
               // 시작하기 버튼 위젯
               const StartButton(),
