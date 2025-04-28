@@ -74,7 +74,14 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/icons/
-    
+    - assets/icons/badges/
+  fonts:
+    - family: GmarketSans
+      fonts:
+        - asset: assets/fonts/GmarketSansTTFMedium.ttf
+        - asset: assets/fonts/GmarketSansTTFBold.ttf
+          weight: 700
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
