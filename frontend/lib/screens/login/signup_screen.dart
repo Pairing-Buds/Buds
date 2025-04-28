@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'package:buds/screens/character/character_select_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -300,9 +301,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
       );
 
-      // 로그인 화면으로 이동
-      Navigator.of(context).pop();
-      Navigator.of(context).pop(); // 약관 동의 화면도 제거
+      // 캐릭터 선택 화면으로 이동
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const CharacterSelectScreen()),
+      );
     }
   }
 }
