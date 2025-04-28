@@ -4,6 +4,7 @@ import '../../providers/agree_provider.dart';
 import 'package:buds/config/theme.dart';
 import 'widgets/Terms_of_Use/agreement_widgets.dart';
 
+
 class AgreeScreen extends StatelessWidget {
   const AgreeScreen({super.key});
 
@@ -118,6 +119,7 @@ class AgreeScreen extends StatelessWidget {
                     isEnabled: agreementProvider.isAllRequiredAgreed,
                     onPressed: () {
                       // 다음 화면으로 Navigator.push 등을 사용하여 이동할 수 있습니다.
+                    
                     },
                   ),
                 ],
