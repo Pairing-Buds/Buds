@@ -38,7 +38,7 @@ class LoginMainScreen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // ✅ 곰 캐릭터를 GestureDetector로 감싸기 (터치 가능)
+              // 곰 캐릭터 클릭시 home_screen으로 이동
               GestureDetector(
                 onTap: () {
                   // HomeScreen으로 이동
