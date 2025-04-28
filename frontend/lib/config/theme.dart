@@ -22,3 +22,39 @@ class AppColors {
   static const Color gray = Color(0xFFEEEEEE);
   // static final Color gray = Colors.grey.shade200;
 }
+
+final ThemeData appTheme = ThemeData(
+  fontFamily: 'GmarketSans',
+  primaryColor: AppColors.primary,
+  scaffoldBackgroundColor: AppColors.background,
+  colorScheme: ColorScheme.fromSwatch().copyWith(
+    primary: AppColors.primary,
+    background: AppColors.background,
+  ),
+  textTheme: const TextTheme(
+    titleLarge: TextStyle(
+      fontSize: 24,
+      color: Colors.black,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 16,
+      color: Colors.black,
+    ),
+  ),
+
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.black,
+      textStyle: const TextStyle(
+        fontFamily: 'GmarketSans',
+        fontSize: 16,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30),
+      ),
+      minimumSize: const Size(120, 48),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+    ),
+  ),
+);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
+import 'package:buds/screens/home/home_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
@@ -23,12 +24,36 @@ class LoginMainScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // 채팅 컨테이너 위젯
-              const ChatContainer(),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StartChattingScreen(),
+                    ),
+                  );
+                },
+                child: const ChatContainer(),
+              ),
 
               const SizedBox(height: 20),
 
-              // 곰 캐릭터 이미지
-              Image.asset('assets/images/newmarmet2.png', scale: 2.5),
+              // 곰 캐릭터 클릭시 home_screen으로 이동
+              GestureDetector(
+                onTap: () {
+                  // HomeScreen으로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/newmarmet2.png',
+                  scale: 2.5,
+                ),
+              ),
+
+              const SizedBox(height: 20),
 
               // 시작하기 버튼 위젯
               const StartButton(),
