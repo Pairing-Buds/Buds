@@ -22,10 +22,10 @@ public class QuestionController {
     /** 문의 조회 **/
     @GetMapping("")
     public ResponseDto getQuestion(
-            @AuthenticationPrincipal int userId,
-            @RequestParam("questionId") int questionId
+            @AuthenticationPrincipal int userId
+//            @RequestParam("questionId") int questionId
     ){
-        return new ResponseDto(StatusCode.OK, questionService.getQuestion(questionId, userId));
+        return new ResponseDto(StatusCode.OK, questionService.getQuestion(userId));
     }
 
     /** 문의 생성 **/

@@ -4,6 +4,7 @@ import com.pairing.buds.common.basetime.CUBaseTime;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
@@ -28,5 +29,17 @@ public class Question extends CUBaseTime {
 
     @Column(name = "content", nullable = false)
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    @ColumnDefault("'UNANSWERED'")
+    private QuestionStatus status = QuestionStatus.UNANSWERED;
+
+    @PrePersist
+    public void initializeStatus(){
+        if(this.status == null){
+            this.status = QuestionStatus.UNANSWERED;
+        }
+    }
 
 }

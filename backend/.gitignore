@@ -29,6 +29,7 @@ out/
 !**/src/test/**/out/
 resources
 application.yml
+*.idea
 
 ### NetBeans ###
 /nbproject/private/
