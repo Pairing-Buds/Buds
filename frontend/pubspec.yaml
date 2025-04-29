@@ -74,6 +74,7 @@ flutter:
     - assets/images/
     - assets/fonts/
     - assets/icons/
+    - assets/icons/badges/
   fonts:
     - family: GmarketSans
       fonts:

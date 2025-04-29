@@ -3,7 +3,10 @@ import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/calendar/calendar_screen.dart';
 import 'package:buds/screens/mypage/my_page_screen.dart';
-import 'package:buds/widgets/bottom_nav_bar.dart'; // 하단 내브바 분리 파일
+import 'package:buds/widgets/bottom_nav_bar.dart';
+import 'package:buds/providers/calendar_provider.dart';
+import 'package:provider/provider.dart';
+
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -18,7 +21,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const LetterScreen(),
-    const CalendarScreen(),
+    CalendarScreen(),
     const MyPageScreen(),
   ];
 
@@ -30,18 +33,21 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
+    return ChangeNotifierProvider(
+      create: (_) => CalendarProvider(),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+        child: Scaffold(
+          body: _screens[_selectedIndex],
+          bottomNavigationBar: BottomNavBar(
+            selectedIndex: _selectedIndex,
+            onItemTapped: _onItemTapped,
+          ),
+        ),
       ),
-    child: Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
-      ),
-    ),
     );
   }
 }

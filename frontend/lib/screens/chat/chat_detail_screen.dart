@@ -1,6 +1,7 @@
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'package:buds/screens/diary/diary_detail_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String message;
@@ -70,7 +71,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   fillColor: const Color(0xFFF5F5F5),
                   contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
                   suffixIcon: GestureDetector(
-                    onTap: _handleSend,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const DiaryDetailScreen(),
+                        ),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: Image.asset(

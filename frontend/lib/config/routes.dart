@@ -10,7 +10,7 @@ import 'route_names.dart';
 class AppRouter {
   static final Map<String, WidgetBuilder> routes = {
     RouteNames.home: (context) => const HomeScreen(),
-    RouteNames.diaryList: (context) => const DiaryListScreen(),
+    //RouteNames.diaryList: (context) => const DiaryListScreen(),
     // RouteNames.login: (context) => const LoginScreen(),
 
     // 매개변수가 필요한 경로는 여기서 제외하고 generateRoute에서 처리
@@ -18,11 +18,11 @@ class AppRouter {
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     // 매개변수가 있는 라우트 처리 (예: diary/:id)
-    if (settings.name?.startsWith(RouteNames.diaryDetail) ?? false) {
-      // 예시: diary/123 형태를 파싱하여 id만 추출
-      final id = settings.name?.split('/').last;
-      return MaterialPageRoute(builder: (_) => DiaryDetailScreen(id: id ?? ''));
-    }
+    // if (settings.name?.startsWith(RouteNames.diaryDetail) ?? false) {
+    //   // 예시: diary/123 형태를 파싱하여 id만 추출
+    //   final id = settings.name?.split('/').last;
+    //   return MaterialPageRoute(builder: (_) => DiaryDetailScreen(id: id ?? ''));
+    // }
 
     // 없는 라우트 처리
     return MaterialPageRoute(

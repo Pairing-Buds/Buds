@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../models/diary_model.dart';
 import '../../config/theme.dart';
+import 'package:buds/screens/calendar/calendar_screen.dart';
+import 'package:buds/screens/diary/widgets/diary_card.dart';
+
 
 class DiaryListScreen extends StatelessWidget {
-  const DiaryListScreen({super.key});
+  final DateTime selectedDate;
+  const DiaryListScreen({Key? key, required this.selectedDate});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,42 +17,48 @@ class DiaryListScreen extends StatelessWidget {
         children: [
           // 상단 헤더
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.arrow_back),
-                    const Spacer(),
-                    const Text(
-                      '2025년 4월',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    const Spacer(),
-                    const SizedBox(width: 24),
-                  ],
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => CalendarScreen()),
+                      );
+                    },
+                  ),
                 ),
-                const SizedBox(height: 6),
                 Center(
-                  child: Container(
-                    width: 110,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
+                  child: Text(
+                    '${selectedDate.year}년 ${selectedDate.month}월',
+                    style: const TextStyle(
+                      fontSize: 18,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+          Center(
+            child: Container(
+              width: 110,
+              height: 6,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
 
           SizedBox(height: 6),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(32),
               children: [
                 _buildDiaryCard(
                   date: DateTime(2025, 4, 19),
@@ -57,7 +67,7 @@ class DiaryListScreen extends StatelessWidget {
                   '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
                   additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 32),
                 _buildDiaryCard(
                   date: DateTime(2025, 4, 20),
                   moodIcons: ['⏰', '📝'],
@@ -81,74 +91,25 @@ class DiaryListScreen extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildDiaryCard({
     required DateTime date,
     required List<String> moodIcons,
     required String content,
     String? additionalNote,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 22),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: moodIcons
-                .map((icon) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Text(icon, style: const TextStyle(fontSize: 28)),
-            ))
-                .toList(),
-          ),
-
-          const SizedBox(height: 12),
-
-          Center(
-            child: Text(
-              '${date.year}. ${_twoDigits(date.month)}. ${_twoDigits(date.day)} ${_weekdayKor(date.weekday)}',
-              style: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 13,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          badgeLabel('감정일기'),
-          const SizedBox(height: 4),
-          Text(
-            content,
-            style: const TextStyle(fontSize: 14, height: 1.5),
-          ),
-
-          if (additionalNote != null && additionalNote.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            badgeLabel('활동일기'),
-            const SizedBox(height: 4),
-            Text(
-              additionalNote,
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-          ],
-        ],
-      ),
+    return DiaryCard(
+      date: date,
+      badgeIcons: [
+        'assets/icons/badges/3000.png',
+      ],
+      emotionContent: content,
+      activityContent: additionalNote ?? '',
+      showEditButton: false,
+      showRecordButton: false,
+      hasShadow: true,
     );
   }
+
 
   Widget badgeLabel(String label) {
     return Container(
