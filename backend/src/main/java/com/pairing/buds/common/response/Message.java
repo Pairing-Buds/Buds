@@ -16,6 +16,7 @@ public enum Message {
     QUESTION_NOT_FOUND("해당 문의를 찾을 수 없습니다."),
     ARGUMENT_NOT_PROPER("적절하지 않은 인자입니다."),
     TYPE_NOT_FOUND("해당 타입은 존재하지 않습니다."),
+    DUPLICATE_EMAIL_EXEPTION("이미 사용 중인 이메일입니다."),
 
     OK("성공"),
     CREATED("성공")
