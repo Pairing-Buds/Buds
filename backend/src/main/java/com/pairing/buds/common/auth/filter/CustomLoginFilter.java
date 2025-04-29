@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +33,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     public CustomLoginFilter(AuthenticationManager authenticationManager,
                              JwtTokenProvider jwtTokenProvider,
-                             RedisTemplate<String, String> redisTemplate) {
+                             @Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate) {
         super(new AntPathRequestMatcher("/login", "POST"), authenticationManager);
         this.jwtTokenProvider = jwtTokenProvider;
         this.redisTemplate = redisTemplate;

@@ -26,7 +26,7 @@ dependencies {
 	/** VALIDATION **/
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	/** SECURITY **/
-	implementation("org.springframework.boot:spring-boot-starter-security:3.4.4")
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	/** WEB */
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	/** DB */
@@ -39,9 +39,6 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // JSON 처리 라이브러리
-	/** add **/
-	implementation("org.jooq:jooq:3.19.22")
-	implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
 	/** LOMBOK **/
 	annotationProcessor 'org.projectlombok:lombok'
 	compileOnly 'org.projectlombok:lombok'
