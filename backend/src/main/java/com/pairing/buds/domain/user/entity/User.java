@@ -24,9 +24,6 @@ public class User extends CUBaseTime {
     @Column(name = "user_email", nullable = false)
     private String userEmail;
 
-    @Column(name = "user_name", nullable = false)
-    private String userName;
-
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -40,5 +37,23 @@ public class User extends CUBaseTime {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
+    @Column(name = "user_name", nullable = false)
+    private String userName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_character", nullable = false)
+    private UserCharacter userCharacter;
+
+    @Column(name = "is_completed", nullable = false)
+    private Boolean isCompleted;
+
+    @PrePersist
+    private void prePersist() {
+        if (this.isActive == null)    this.isActive = true;
+        if (this.userName == null)      this.userName = "익명";
+        if (this.userCharacter == null) this.userCharacter = UserCharacter.GECKO;
+        if (this.isCompleted == null)   this.isCompleted = false;
+    }
 
 }
