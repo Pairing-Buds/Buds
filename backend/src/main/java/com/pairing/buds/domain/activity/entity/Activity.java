@@ -23,5 +23,7 @@ public class Activity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "bonus_letter")
+    private byte bonusLetter;
 }
 

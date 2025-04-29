@@ -19,34 +19,6 @@ public class AnswerController {
 
     private final AnswerService answerService;
     
-    /** 답변 작성 **/
-    @PostMapping("")
-    public ResponseDto createAnswer(
-            @AuthenticationPrincipal int adminId,
-            @Valid @RequestBody CreateAnswerReqDto dto
-            ){
-        answerService.createAnswer(adminId, dto);
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
-    /** 답변 수정 **/
-    @PatchMapping("")
-    public ResponseDto patchAnswer(
-            @AuthenticationPrincipal int adminId,
-            @Valid @RequestBody PatchAnswerReqDto dto
-    ){
-        answerService.patchAnswer(adminId, dto);
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    /** 답변 삭제 **/
-    @DeleteMapping("")
-    public ResponseDto deleteAnswer(
-            @AuthenticationPrincipal int adminId,
-            @Valid @RequestBody DeleteAnswerReqDto dto
-    ){
-        answerService.deleteAnswer(adminId, dto);
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
 }
