@@ -3,13 +3,22 @@ import '../../models/diary_model.dart';
 import '../../config/theme.dart';
 import 'package:buds/screens/calendar/calendar_screen.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
-
+import 'package:buds/widgets/toast_bar.dart';
 
 class DiaryListScreen extends StatelessWidget {
   final DateTime selectedDate;
-  const DiaryListScreen({Key? key, required this.selectedDate});
+
+  const DiaryListScreen({
+    Key? key,
+    required this.selectedDate,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+        Toast(context, '일기가 저장되었습니다.', icon: Icon(Icons.book, color: Colors.yellow));
+    });
+
     return Scaffold(
         backgroundColor: Colors.white,
       body: SafeArea(
