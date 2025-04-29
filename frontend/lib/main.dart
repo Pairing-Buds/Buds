@@ -6,6 +6,7 @@ import 'screens/login/login_main.dart';
 import 'package:provider/provider.dart';
 import 'providers/agree_provider.dart';
 import 'providers/character_provider.dart';
+import 'package:buds/screens/main_screen.dart';
 
 void main() {
   runApp(
@@ -27,8 +28,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'buds',
       theme: appTheme,
-      // home: const HomeScreen(),
-      home: const LoginMainScreen(),
+      home: const MainScreen(),
+      //home: const LoginMainScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
