@@ -1,18 +1,20 @@
 package com.pairing.buds.common.auth.service;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
 @Service
-@RequiredArgsConstructor
 public class RedisService {
 
     private final RedisTemplate<String, String> redisTemplate;
-
     private final String REFRESH_PREFIX = "refresh:";
+
+    public RedisService(@Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     // RefreshToken 저장
     public void saveRefreshToken(Integer userId, String refreshToken, long expirationMillis) {

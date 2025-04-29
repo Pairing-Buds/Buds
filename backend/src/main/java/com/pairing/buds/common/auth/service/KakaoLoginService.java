@@ -43,10 +43,10 @@ public class KakaoLoginService {
             throw new UsernameNotFoundException("사용자 정보 파싱 실패", e);
         }
 
-        Optional<Object> existingUser = userRepository.findByUserEmail(email);
+        Optional<User> existingUser = userRepository.findByUserEmail(email);
         User user;
         if (existingUser.isPresent()) {
-            user = (User) existingUser.get();
+            user = existingUser.get();
         } else {
             user = new User();
             user.setUserEmail(email);

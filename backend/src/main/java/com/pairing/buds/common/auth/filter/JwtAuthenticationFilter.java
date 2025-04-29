@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         for(String path : publicPath){
             if(path.equals(uri)){
-                return uri.equals("/login");
+                return true;
             }
         }
         return false;

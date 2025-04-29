@@ -9,6 +9,7 @@ import com.pairing.buds.common.auth.service.RedisService;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -44,7 +45,7 @@ public class SecurityConfig {
     public SecurityConfig(AuthenticationConfiguration authenticationConfiguration,
                           CustomUserDetailsService userDetailsService,
                           JwtTokenProvider jwtTokenProvider,
-                          RedisTemplate<String, String> redisTemplate,
+                          @Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate,
                           JwtAuthenticationFilter jwtAuthenticationFilter, RedisService redisService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.userDetailsService          = userDetailsService;
@@ -100,7 +101,7 @@ public class SecurityConfig {
 
                 // URL 권한 설정
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers( "/login").permitAll()
+                        .requestMatchers( "/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
