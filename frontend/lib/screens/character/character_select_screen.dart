@@ -4,6 +4,7 @@ import '../../providers/character_provider.dart';
 import 'package:buds/config/theme.dart';
 import 'dart:async';
 import 'widgets/character_widgets.dart';
+import 'models/character_data.dart';
 
 class CharacterSelectScreen extends StatefulWidget {
   const CharacterSelectScreen({super.key});
@@ -13,17 +14,27 @@ class CharacterSelectScreen extends StatefulWidget {
 }
 
 class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   Timer? _autoScrollTimer;
-  int _currentPage = 0;
+  int _currentPage = 1000; // 충분히 큰 중간값
+  int? _flippedCardIndex;
 
   @override
   void initState() {
     super.initState();
-    // 3초마다 자동 스크롤하는 타이머 설정
+    _initPageController();
+    _startAutoScroll();
+  }
+
+  void _initPageController() {
+    // 가운데 페이지부터 시작하도록 설정
+    _pageController = PageController(initialPage: _currentPage);
+  }
+
+  void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      if (_pageController.hasClients) {
-        _currentPage = (_currentPage + 1) % 6; // 6개의 캐릭터를 순환
+      if (_pageController.hasClients && _flippedCardIndex == null) {
+        _currentPage++;
         _pageController.animateToPage(
           _currentPage,
           duration: const Duration(milliseconds: 800),
@@ -51,6 +62,12 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     // WillPopScope를 사용하여 뒤로가기 버튼 처리
     return WillPopScope(
       onWillPop: () async {
+        if (_flippedCardIndex != null) {
+          setState(() {
+            _flippedCardIndex = null;
+          });
+          return false;
+        }
         // 뒤로가기 시 상태 초기화
         characterProvider.resetSelectedCharacter();
         return true; // true를 반환하여 뒤로가기 진행
@@ -59,98 +76,127 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
         builder: (context, characterProvider, _) {
           return Scaffold(
             backgroundColor: Colors.white,
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              title: const Text('회원 가입', style: TextStyle(color: Colors.black)),
-              centerTitle: true,
-            ),
-            body: Column(
-              children: [
-                // 노란색 구분선
-                Container(
-                  height: 10,
-                  color: const Color(0xFFFAE3A0), // 파스텔 노란색
-                ),
-
-                const SizedBox(height: 40),
-
-                // 안내 텍스트
-                const HeaderText(),
-
-                const SizedBox(height: 40),
-
-                // 캐릭터 실루엣 무한 스크롤
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: 6, // 캐릭터 개수 (6개)
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentPage = index;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      return CharacterCard(
-                        index: index,
-                        onTap: () => _showCharacterBottomSheet(context, index),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 페이지 인디케이터
-                PageIndicator(currentPage: _currentPage),
-
-                const SizedBox(height: 20),
-
-                // 안내 텍스트
-                const FooterText(),
-
-                const SizedBox(height: 20),
-              ],
-            ),
+            appBar: _buildAppBar(),
+            body: _buildBody(),
           );
         },
       ),
     );
   }
 
-  // 캐릭터 선택 바텀 시트 표시
-  void _showCharacterBottomSheet(BuildContext context, int index) {
+  // 앱바 위젯
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: const Text('캐릭터 선택', style: TextStyle(color: Colors.black)),
+      centerTitle: true,
+    );
+  }
+
+  // 본문 위젯
+  Widget _buildBody() {
+    return Column(
+      children: [
+        // 노란색 구분선
+        Container(
+          height: 10,
+          color: const Color(0xFFFAE3A0), // 파스텔 노란색
+        ),
+
+        const SizedBox(height: 40),
+
+        // 안내 텍스트
+        const HeaderText(),
+
+        const SizedBox(height: 20),
+
+        // 캐릭터 캐러셀
+        _buildCharacterCarousel(),
+
+        const SizedBox(height: 20),
+
+        // 페이지 인디케이터
+        PageIndicator(currentPage: _currentPage % 6),
+
+        const SizedBox(height: 20),
+
+        // 안내 텍스트
+        const FooterText(),
+
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // 캐릭터 캐러셀 위젯
+  Widget _buildCharacterCarousel() {
+    return Expanded(
+      child: PageView.builder(
+        controller: _pageController,
+        physics:
+            _flippedCardIndex != null
+                ? const NeverScrollableScrollPhysics()
+                : null,
+        itemBuilder: (context, index) {
+          final characterIndex = index % 6; // 6개의 캐릭터를 반복
+          final isFlipped = _flippedCardIndex == characterIndex;
+
+          return FlippableCharacterCard(
+            index: characterIndex,
+            isFlipped: isFlipped,
+            onTap: () => _toggleCardFlip(characterIndex),
+            onSelect: () => _selectCharacter(characterIndex),
+          );
+        },
+        onPageChanged: (index) {
+          setState(() {
+            _currentPage = index;
+          });
+        },
+      ),
+    );
+  }
+
+  // 카드 뒤집기 토글
+  void _toggleCardFlip(int index) {
+    setState(() {
+      if (_flippedCardIndex == index) {
+        _flippedCardIndex = null;
+      } else {
+        _flippedCardIndex = index;
+      }
+    });
+  }
+
+  // 캐릭터 선택
+  void _selectCharacter(int index) {
     final characterProvider = Provider.of<CharacterProvider>(
       context,
       listen: false,
     );
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return CharacterBottomSheet(
-          index: index,
-          onSelect: () {
-            // 캐릭터 선택
-            characterProvider.selectCharacter(index);
+    // 캐릭터 선택
+    characterProvider.selectCharacter(index);
 
-            // 바텀 시트 닫기
-            Navigator.of(context).pop();
+    // 카드 뒤집기 초기화
+    setState(() {
+      _flippedCardIndex = null;
+    });
 
-            // 선택 메시지 표시
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('캐릭터 선택 완료'),
-                backgroundColor: AppColors.primary,
-              ),
-            );
+    // 선택 메시지 표시
+    _showSelectionMessage(index);
 
-            // TODO: 다음 화면으로 이동 로직 추가
-          },
-        );
-      },
+    // TODO: 다음 화면으로 이동 로직 추가
+  }
+
+  // 선택 메시지 표시
+  void _showSelectionMessage(int index) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${CharacterData.getName(index)}와(과) 함께하게 되었습니다!'),
+        backgroundColor: AppColors.primary,
+      ),
     );
   }
 }
