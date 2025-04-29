@@ -7,7 +7,6 @@ import 'package:buds/widgets/bottom_nav_bar.dart';
 import 'package:buds/providers/calendar_provider.dart';
 import 'package:provider/provider.dart';
 
-
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
