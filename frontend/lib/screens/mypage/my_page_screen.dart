@@ -34,7 +34,7 @@ class MyPageScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Image.asset(
-                    'assets/images/newmarmet.png',
+                    'assets/images/newmarmet2.png',
                     width: 100,
                     height: 100,
                   ),
@@ -154,14 +154,14 @@ class MyPageScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      // border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Column(
                       children: [
                         Text(
                           '고객센터에 문의하기',
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          style: TextStyle(fontSize: 25, color: Colors.grey),
                         ),
                         SizedBox(height: 24),
                         Text(

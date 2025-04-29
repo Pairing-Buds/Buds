@@ -1,5 +1,8 @@
 /// 캐릭터 데이터를 관리하는 클래스
 class CharacterData {
+  // 캐릭터 총 개수
+  static const int characterCount = 6;
+
   // 캐릭터 이미지 경로 가져오기
   static String getImage(int index) {
     switch (index) {
