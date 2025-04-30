@@ -116,7 +116,7 @@ class ShellScreen extends StatelessWidget {
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Image.asset(
-                            'assets/icons/shell_marmet.png',
+                            'assets/images/marmet_cutting_head.png',
                             width: 80,
                             height: 80,
                           ),
