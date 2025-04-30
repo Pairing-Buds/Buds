@@ -10,13 +10,13 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - REDIS_URL=redis://redis:6379/0
+      - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USERNAME=${MYSQL_USERNAME}
       - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - KAKAO_API_KEY=${KAKAO_API_KEY}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      # 필요시 SMTP, REDIS 등 추가
     depends_on:
       - mysql
       - redis
@@ -29,10 +29,12 @@ services:
       - "8000:8000"
     environment:
       - MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/mydb
+      - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USERNAME=${MYSQL_USERNAME}
       - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - mongo
       - mysql
@@ -42,6 +44,7 @@ services:
     image: mysql:8
     container_name: mysql
     environment:
+      MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USERNAME}
