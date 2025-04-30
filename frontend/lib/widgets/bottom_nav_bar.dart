@@ -20,22 +20,22 @@ class BottomNavBar extends StatelessWidget {
       showUnselectedLabels: true,
       items: [
         BottomNavigationBarItem(
-          icon: Image.asset('assets/icons/home.png', width: 28, height: 28),
+          icon: Image.asset('assets/icons/home.png', width: 28, height: 28, color: Color(0xFF3D3D3D),),
           activeIcon: Image.asset('assets/icons/home_active.png', width: 28, height: 28),
           label: '홈',
         ),
         BottomNavigationBarItem(
-          icon: Image.asset('assets/icons/letter.png', width: 28, height: 28),
+          icon: Image.asset('assets/icons/letter.png', width: 28, height: 28, color: Color(0xFF3D3D3D),),
           activeIcon: Image.asset('assets/icons/letter_active.png', width: 28, height: 28),
           label: '편지',
         ),
         BottomNavigationBarItem(
-          icon: Image.asset('assets/icons/diary.png', width: 28, height: 28),
+          icon: Image.asset('assets/icons/diary.png', width: 28, height: 28, color: Color(0xFF3D3D3D),),
           activeIcon: Image.asset('assets/icons/diary_active.png', width: 28, height: 28),
           label: '일기',
         ),
         BottomNavigationBarItem(
-          icon: Image.asset('assets/icons/my.png', width: 28, height: 28),
+          icon: Image.asset('assets/icons/my.png', width: 28, height: 28, color: Color(0xFF3D3D3D),),
           activeIcon: Image.asset('assets/icons/my_active.png', width: 28, height: 28),
           label: '마이',
         ),
