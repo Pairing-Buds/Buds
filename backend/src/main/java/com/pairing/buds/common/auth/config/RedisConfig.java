@@ -22,14 +22,20 @@ public class RedisConfig {
     @Value("${spring.data.redis.port}")
     private int redisPort;
 
+    @Value("${spring.data.redis.username}")
+    private String redisUsername;
+
     @Value("${spring.data.redis.password}")
     private String redisPassword;
 
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration cfg = new RedisStandaloneConfiguration(redisHost, redisPort);
-        cfg.setPassword(RedisPassword.of(redisPassword));
-        return new LettuceConnectionFactory(cfg);
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName(redisHost);
+        config.setPort(redisPort);
+        config.setUsername(redisUsername);
+        config.setPassword(RedisPassword.of(redisPassword));
+        return new LettuceConnectionFactory(config);
     }
 
     @Bean(name = "CustomRedisTemplate")
