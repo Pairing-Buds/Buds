@@ -26,7 +26,6 @@ dependencies {
 	/** VALIDATION **/
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	/** SECURITY **/
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	/** WEB */
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -37,9 +36,9 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	/** JJWT **/
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3' // JSON 처리 라이브러리
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6' // JSON 처리 라이브러리
 	/** LOMBOK **/
 	annotationProcessor 'org.projectlombok:lombok'
 	compileOnly 'org.projectlombok:lombok'

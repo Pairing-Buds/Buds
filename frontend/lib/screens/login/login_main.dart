@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
+import 'package:buds/screens/home/home_screen.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/main_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
@@ -15,29 +18,44 @@ class LoginMainScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             children: [
-              const SizedBox(height: 80),
+              const SizedBox(height: 60),
 
               // 상단 타이틀 위젯
               const MainTitleWidget(),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
 
               // 채팅 컨테이너 위젯
-              const ChatContainer(),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StartChattingScreen(),
+                    ),
+                  );
+                },
+                child: const ChatContainer(),
+              ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
-              // 곰 캐릭터 이미지
-              Image.asset('assets/images/newmarmet2.png', scale: 2.5),
+              // 곰 캐릭터 클릭시 home_screen으로 이동
+              GestureDetector(
+                onTap: () {
+                  // HomeScreen으로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MainScreen()),
+                  );
+                },
+                child: Image.asset('assets/images/newmarmet2.png', scale: 2.5),
+              ),
 
               const SizedBox(height: 0),
 
               // 시작하기 버튼 위젯
-              StartButton(
-                onPressed: () {
-                  // 버튼 클릭 시 동작
-                },
-              ),
+              const StartButton(),
 
               const SizedBox(height: 20),
 

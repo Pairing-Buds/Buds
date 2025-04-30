@@ -6,6 +6,8 @@ import lombok.Getter;
 public enum Message {
 
     USER_NOT_FOUND("해당 사용자를 찾을 수 없습니다."),
+    ADMIN_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
+    ANSWER_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
     USER_ALREADY_EXISTS("이미 존재하는 사용자입니다."),
     SLEEP_NOT_FOUND("존재하지 않는 기상 입니다"),
     SERVER_ERROR("서버 오류가 발생했습니다"),
@@ -14,6 +16,7 @@ public enum Message {
     QUESTION_NOT_FOUND("해당 문의를 찾을 수 없습니다."),
     ARGUMENT_NOT_PROPER("적절하지 않은 인자입니다."),
     TYPE_NOT_FOUND("해당 타입은 존재하지 않습니다."),
+    DUPLICATE_EMAIL_EXEPTION("이미 사용 중인 이메일입니다."),
 
     OK("성공"),
     CREATED("성공")

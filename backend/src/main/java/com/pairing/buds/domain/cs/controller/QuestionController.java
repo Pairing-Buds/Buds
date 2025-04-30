@@ -3,9 +3,9 @@ package com.pairing.buds.domain.cs.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.cs.dto.req.CreateQuestionReqDto;
-import com.pairing.buds.domain.cs.dto.req.DeleteQuestionReqDto;
-import com.pairing.buds.domain.cs.dto.req.PatchQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.req.CreateQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.req.DeleteQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.req.PatchQuestionReqDto;
 import com.pairing.buds.domain.cs.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +22,10 @@ public class QuestionController {
     /** 문의 조회 **/
     @GetMapping("")
     public ResponseDto getQuestion(
-            @AuthenticationPrincipal int userId,
-            @RequestParam("questionId") int questionId
+            @AuthenticationPrincipal int userId
+//            @RequestParam("questionId") int questionId
     ){
-        return new ResponseDto(StatusCode.OK, questionService.getQuestion(questionId, userId));
+        return new ResponseDto(StatusCode.OK, questionService.getQuestion(userId));
     }
 
     /** 문의 생성 **/

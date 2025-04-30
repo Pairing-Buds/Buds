@@ -3,10 +3,10 @@ package com.pairing.buds.domain.cs.service;
 import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.cs.dto.req.CreateQuestionReqDto;
-import com.pairing.buds.domain.cs.dto.req.DeleteQuestionReqDto;
-import com.pairing.buds.domain.cs.dto.req.PatchQuestionReqDto;
-import com.pairing.buds.domain.cs.dto.res.GetQuestionResDto;
+import com.pairing.buds.domain.cs.dto.question.req.CreateQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.req.DeleteQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.req.PatchQuestionReqDto;
+import com.pairing.buds.domain.cs.dto.question.res.GetQuestionResDto;
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
 import com.pairing.buds.domain.user.entity.User;
@@ -25,15 +25,16 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
 
     /** 문의 조회 **/
-    public GetQuestionResDto getQuestion(int questionId, int userId) {
+    public GetQuestionResDto getQuestion(int userId) {
 
-        log.info("questionId : {}, userId : {}", questionId, userId);
+        log.info("userId : {}", userId);
 
-        Question question = questionRepository.findById(questionId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.QUESTION_NOT_FOUND)));
+//        User user = questionRepository.findByUser(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
 
-        return GetQuestionResDto.toDto(question);
+//        return GetQuestionResDto.toDto(question);
+    return null;
     }
-    
+
     /** 문의 생성 **/
     public void createQuestion(int userId, @Valid CreateQuestionReqDto dto) {
 
@@ -48,7 +49,7 @@ public class QuestionService {
                 .content(content)
                 .build();
     }
-    
+
     /** 문의 수정 **/
     public void patchQuestion(int userId, @Valid PatchQuestionReqDto dto) {
 
@@ -68,7 +69,7 @@ public class QuestionService {
         questionToPatch.setContent(content);
         questionRepository.save(questionToPatch); // 에러 시 OptimisticLockingFailureException 발생
     }
-    
+
     /** 문의 삭제 **/
     public void deleteQuestion(int userId, @Valid DeleteQuestionReqDto dto) {
 

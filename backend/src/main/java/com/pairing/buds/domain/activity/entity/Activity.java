@@ -11,7 +11,6 @@ import lombok.*;
 @AllArgsConstructor
 @Table(name = "activities")
 public class Activity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "activity_id")
@@ -23,5 +22,7 @@ public class Activity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "bonus_letter")
+    private byte bonusLetter;
 }
 
