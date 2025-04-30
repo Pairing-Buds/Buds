@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/screens/home/widget/shell_screen.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,9 +12,17 @@ class HomeScreen extends StatelessWidget {
         children: [
           // 배경화면
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/main_bg.png',
-              fit: BoxFit.cover,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const StartChattingScreen()),
+                );
+              },
+              child: Image.asset(
+                'assets/images/main_bg.png',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
 

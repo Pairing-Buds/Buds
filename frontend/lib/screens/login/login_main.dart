@@ -3,6 +3,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
 import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/main_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
@@ -45,7 +46,7 @@ class LoginMainScreen extends StatelessWidget {
                   // HomeScreen으로 이동
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    MaterialPageRoute(builder: (context) => const MainScreen()),
                   );
                 },
                 child: Image.asset('assets/images/newmarmet2.png', scale: 2.5),
