@@ -9,6 +9,7 @@ class DiaryCard extends StatelessWidget {
   final bool showEditButton;
   final bool showRecordButton;
   final bool hasShadow;
+  final VoidCallback? onEditPressed;
 
   const DiaryCard({
     Key? key,
@@ -19,6 +20,7 @@ class DiaryCard extends StatelessWidget {
     this.showEditButton = false,
     this.showRecordButton = false,
     this.hasShadow = false,
+    this.onEditPressed,
   }) : super(key: key);
 
   @override
@@ -47,9 +49,7 @@ class DiaryCard extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, size: 28, color: Colors.grey),
-                  onPressed: () {
-                    // TODO: 수정 버튼 눌렀을 때 액션
-                  },
+                  onPressed: onEditPressed,
                 ),
               ],
             ),

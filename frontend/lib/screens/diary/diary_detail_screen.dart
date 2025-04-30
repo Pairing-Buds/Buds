@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart'; // AppColors.primary 등
 import 'package:buds/screens/diary/widgets/diary_card.dart';
+import 'package:buds/widgets/common_dialog.dart';
 
 class DiaryDetailScreen extends StatelessWidget {
   final DateTime? diaryDate;
@@ -35,9 +36,27 @@ class DiaryDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.close, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => CommonDialog(
+                  title: '삭제하시겠어요?',
+                  description: '작성 중인 일기는 저장되지 않아요.',
+                  cancelText: '취소',
+                  confirmText: '삭제',
+                  confirmColor: Colors.redAccent,
+                  onCancel: () => Navigator.pop(context),
+                  onConfirm: () {
+                    Navigator.pop(context); // 닫기
+                    Navigator.pop(context); // DiaryDetailScreen 닫기
+                  },
+                ),
+              );
+            },
           )
         ],
+
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -57,7 +76,26 @@ class DiaryDetailScreen extends StatelessWidget {
                 showEditButton: true,
                 showRecordButton: true,
                 hasShadow: false,
-              ),
+
+                onEditPressed: () {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) => CommonDialog(
+                      title: '수정하시겠어요?',
+                      description: '오늘만 수정이 가능합니다.',
+                      cancelText: '취소',
+                      confirmText: '수정하기',
+                      confirmColor: AppColors.primary,
+                      onCancel: () => Navigator.pop(context),
+                      onConfirm: () {
+                        Navigator.pop(context);
+                        // TODO: 수정 화면 이동 or 수정 처리
+                      },
+                    ),
+                  );
+                },
+              )
             ),
             const SizedBox(height: 20),
           ],
