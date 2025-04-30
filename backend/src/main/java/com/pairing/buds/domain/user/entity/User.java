@@ -6,6 +6,8 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -45,15 +47,28 @@ public class User extends CUBaseTime {
     @Column(name = "user_character", nullable = false)
     private UserCharacter userCharacter;
 
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private Set<Tag> tags = new HashSet<>();
+
+    @Column(name = "letter_cnt", nullable = false)
+    private Integer letterCnt;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "is_completed", nullable = false)
-    private Boolean isCompleted;
+    private SignupStatus isCompleted;
 
     @PrePersist
     private void prePersist() {
         if (this.isActive == null)    this.isActive = true;
         if (this.userName == null)      this.userName = "익명";
         if (this.userCharacter == null) this.userCharacter = UserCharacter.GECKO;
-        if (this.isCompleted == null)   this.isCompleted = false;
+        if (this.letterCnt == null)      this.letterCnt = 0;
+        if (this.isCompleted == null)   this.isCompleted = SignupStatus.PENDING;
     }
 
 }
