@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/screens/letter/letter_list.dart';
 
@@ -8,6 +9,7 @@ class LetterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF9F9F9),
       appBar: const CustomAppBar(
         title: '편지함',
         leftIconPath: 'assets/icons/bottle_icon.png',
@@ -18,10 +20,10 @@ class LetterScreen extends StatelessWidget {
         children: [
           // 퀘스트 배너
           Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE2F7F4),
+              color: AppColors.skyblue,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -34,11 +36,11 @@ class LetterScreen extends StatelessWidget {
                   ),
                 ),
                 Transform.translate(
-                  offset: const Offset(0, 15), // y값 증가 → 아래로 이동
+                  offset: const Offset(0, 8), // y값 증가 → 아래로 이동
                   child: Image.asset(
                     'assets/images/marmet_cutting_head.png',
-                    width: 80,
-                    height: 60,
+                    width: 100,
+                    height: 80,
                   ),
                 ),
               ],
