@@ -23,7 +23,7 @@ services:
 
   # FastAPI (Backend)
   fastapi:
-    build: ./fastapi
+    build: ./ai
     container_name: fastapi
     ports:
       - "8000:8000"
