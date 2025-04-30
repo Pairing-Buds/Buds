@@ -1,18 +1,6 @@
 version: "3.8"
 
 services:
-  # Jenkins (CI/CD)
-  jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    ports:
-      - "8081:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-
   # Spring Boot (Backend)
   spring:
     build: ./spring
@@ -106,7 +94,6 @@ networks:
     driver: bridge
 
 volumes:
-  jenkins_home:
   mysql-data:
   mongo-data:
   redis-data:
