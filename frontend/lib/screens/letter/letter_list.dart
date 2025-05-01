@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/letter/letter_send.dart';
+import 'package:buds/screens/letter/letter_reply.dart';
 
 class LetterList extends StatelessWidget {
   const LetterList({super.key});
@@ -32,16 +33,17 @@ class LetterList extends StatelessWidget {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.8,
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        // width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 2),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+              blurRadius: 2,
+              offset: const Offset(1, -1),
             ),
           ],
         ),
@@ -89,8 +91,8 @@ class LetterList extends StatelessWidget {
                         opacity: isActive ? 1.0 : 0.3,
                         child: Image.asset(
                           isSent
-                              ? 'assets/icons/sent.png'
-                              : 'assets/icons/reply.png',
+                              ? 'assets/icons/letter/send.png'
+                              : 'assets/icons/letter/reply.png',
                           width: 36,
                           height: 36,
                         ),
@@ -111,6 +113,7 @@ class LetterList extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
+                      // builder: (context) => const LetterReplyScreen(),
                       builder: (context) => const LetterSendScreen(),
                     ),
                   );
@@ -122,6 +125,7 @@ class LetterList extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
+
                 ),
                 child: const Text('익명의 편지 보내기'),
               ),
