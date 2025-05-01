@@ -73,6 +73,7 @@ flutter:
     - assets/fonts/
     - assets/icons/
     - assets/icons/badges/
+    - assets/icons/letter/
   fonts:
     - family: GmarketSans
       fonts:

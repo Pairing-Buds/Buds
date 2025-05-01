@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:buds/config/theme.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterSendScreen extends StatelessWidget {
   const LetterSendScreen({Key? key}) : super(key: key);
@@ -7,11 +9,155 @@ class LetterSendScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          'letter_screen',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
+      appBar: const CustomAppBar(
+        title: '편지함',
+        leftIconPath: 'assets/icons/bottle_icon.png',
+        centerTitle: true,
+        showBackButton: true,
+      ),
+      body: Column(
+        children: [
+          // 상단 탭
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: const [
+                Text(
+                  '보낼 편지',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                Spacer(),
+                Text(
+                  'n번째 편지',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+
+          // 편지 카드
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.65,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6,
+                      offset: const Offset(2, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. 보낸 유저명, 노란색 발신 아이콘
+                    Row(
+                      children: [
+                        const Expanded(child: SizedBox()), // 왼쪽 빈 공간
+                        const Expanded(
+                          flex: 5,
+                          child: Center(
+                            child: Text(
+                              '용감한 너구리에게',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Image.asset(
+                              'assets/icons/letter/send.png',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // 2. 날짜
+                    const SizedBox(height: 10),
+                    const Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Text(
+                        '2025.04.21', //yyyy.mm.dd 형식
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // 3. 편지 내용 : 스크롤 기능 존재
+                    Center(
+                      child: SizedBox(
+                        height: 120, // 텍스트 영역의 최대 높이
+                        child: SingleChildScrollView(
+                          child: const Text(
+                            '안녕하세요 카피바라입니다. 반가워요.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // 4. 발신자 정보
+                    const Spacer(),
+                    const Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text('사랑스러운 카피바라가', style: TextStyle(fontSize: 16)),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 5. 전송버튼
+                    Center(
+                      child: Container(
+                        width: 140,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '편지보내기',
+                            style: TextStyle(color: Colors.black, fontSize: 16),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 페이지네이션
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.arrow_left, size: 32),
+                SizedBox(width: 8),
+                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
+                SizedBox(width: 4),
+                CircleAvatar(radius: 6, backgroundColor: Colors.brown),
+                SizedBox(width: 4),
+                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_right, size: 32),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
