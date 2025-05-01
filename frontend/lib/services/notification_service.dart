@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
-import 'package:buds/main.dart'; // navigatorKey 사용을 위한 import
+import 'package:buds/main.dart'; // navigatorKey와 saveNotificationState 함수 사용
 import 'package:flutter/services.dart'; // MethodChannel 사용을 위한 import
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 알림 서비스 클래스
 class NotificationService {
@@ -114,7 +115,10 @@ class NotificationService {
 
           // 알람 관련 알림이 있는지 확인 (ID 0 또는 1)
           bool hasAlarmNotification = activeNotifications.any(
-            (notification) => notification.id == 0 || notification.id == 1,
+            (notification) =>
+                notification.id == 0 ||
+                notification.id == 1 ||
+                notification.id == 100,
           );
 
           debugPrint('알람 관련 알림 존재: $hasAlarmNotification');
@@ -122,7 +126,11 @@ class NotificationService {
           // 알람 관련 알림이 있는 경우에만 알람 화면으로 이동
           if (hasAlarmNotification) {
             debugPrint('알람 관련 알림이 발견되어 알람 화면으로 이동합니다.');
-            Future.delayed(const Duration(seconds: 2), () {
+
+            // 알림 상태를 저장 (앱이 꺼져있다가 재시작될 때를 대비)
+            await _saveNotificationStateForRestart();
+
+            Future.delayed(const Duration(seconds: 1), () {
               navigateToAlarmScreen();
             });
           } else {
@@ -139,6 +147,18 @@ class NotificationService {
     }
   }
 
+  /// 앱 재시작을 위한 알림 상태 저장
+  Future<void> _saveNotificationStateForRestart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('started_from_notification', true);
+      await prefs.setString('initial_route', '/alarm');
+      debugPrint('재시작용 알림 상태 저장 완료');
+    } catch (e) {
+      debugPrint('재시작용 알림 상태 저장 실패: $e');
+    }
+  }
+
   /// 알림 응답 처리
   void _onNotificationResponse(NotificationResponse response) {
     debugPrint('======================================');
@@ -146,6 +166,9 @@ class NotificationService {
       '알림 응답 수신: ID=${response.id}, actionId=${response.actionId}, payload=${response.payload}',
     );
     debugPrint('알림 응답 시간: ${DateTime.now().toString()}');
+
+    // 알림 상태를 SharedPreferences에 저장 (재시작 시 사용)
+    _saveNotificationStateForRestart();
 
     // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
     if (response.id == 0 ||
@@ -155,6 +178,9 @@ class NotificationService {
         response.payload == 'alarm_snooze' ||
         response.payload == 'alarm_test') {
       debugPrint('알람 관련 알림이 탭되었습니다. 알람 화면으로 이동합니다.');
+
+      // 전역 플래그 설정
+      startedFromNotification = true;
 
       // 알람 화면으로 즉시 이동
       navigateToAlarmScreen();
@@ -194,11 +220,6 @@ class NotificationService {
         debugPrint('알람 화면 이동 실패: NavigatorState가 null입니다');
       }
     });
-  }
-
-  /// 알람 화면으로 이동하는 메서드 (내부용)
-  void _showAlarmScreen(int notificationId) {
-    navigateToAlarmScreen();
   }
 
   /// 알람 상태 활성화
@@ -242,13 +263,12 @@ class NotificationService {
 
   /// 알람 화면으로 바로 이동
   void showAlarmScreen() {
-    _showAlarmScreen(0);
+    navigateToAlarmScreen();
   }
 
   /// 알림 권한 요청
   Future<bool> requestPermission() async {
     try {
-      // Android 13 이상
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
           _flutterLocalNotificationsPlugin
               .resolvePlatformSpecificImplementation<
@@ -257,150 +277,127 @@ class NotificationService {
 
       if (androidImplementation != null) {
         // 알림 권한 요청
-        bool? permissionGranted;
-        try {
-          permissionGranted =
-              await androidImplementation.requestNotificationsPermission();
-          debugPrint('알림 권한 상태: $permissionGranted');
-        } catch (e) {
-          debugPrint('알림 권한 요청 실패: $e');
-        }
+        final bool? granted =
+            await androidImplementation.requestNotificationsPermission();
 
-        // 정확한 알람 권한 요청
-        bool? canScheduleExact;
-        try {
-          canScheduleExact =
-              await androidImplementation.canScheduleExactNotifications();
-          debugPrint('정확한 알람 예약 가능 여부: $canScheduleExact');
+        debugPrint('알림 권한 상태: $granted');
 
-          if (canScheduleExact == false) {
-            debugPrint('정확한 알람 권한이 필요합니다');
-            // 정확한 알림을 위한 권한 요청
-            try {
-              // 사용자에게 권한이 필요함을 알리고 설정으로 이동하도록 안내
-              bool? userResponse = await _showAlarmPermissionDialog();
-              if (userResponse == true) {
-                await androidImplementation.requestExactAlarmsPermission();
-                debugPrint('정확한 알람 권한 요청 완료');
-              } else {
-                debugPrint('사용자가 정확한 알람 권한 요청을 거부했습니다');
-              }
-            } catch (e) {
-              debugPrint('정확한 알람 권한 요청 실패: $e');
-            }
+        // 정확한 알람 설정 권한 요청 (Android 12+)
+        bool canScheduleExactAlarms = await _checkAndRequestExactAlarms();
+        debugPrint('정확한 알람 예약 가능 여부: $canScheduleExactAlarms');
 
-            // 기본 알림 권한만 요청 (잠금 화면 위 표시 권한 요청 제거)
-            try {
-              await androidImplementation.requestNotificationsPermission();
-              debugPrint('알림 권한 요청 완료');
-            } catch (e) {
-              debugPrint('알림 권한 요청 실패: $e');
-            }
-          }
-        } catch (e) {
-          debugPrint('정확한 알람 권한 확인 실패: $e');
-        }
-
-        return permissionGranted ?? false;
+        return granted ?? false;
       }
-
-      return true; // 기본값
+      return false;
     } catch (e) {
       debugPrint('알림 권한 요청 오류: $e');
       return false;
     }
   }
 
-  /// 정확한 알람 권한 요청 다이얼로그
-  Future<bool?> _showAlarmPermissionDialog() async {
-    if (navigatorKey.currentContext == null) {
-      debugPrint('알람 권한 다이얼로그 표시 실패: context가 null입니다');
+  /// 정확한 알람 설정 권한 확인 및 요청
+  Future<bool> _checkAndRequestExactAlarms() async {
+    try {
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+          _flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
+
+      if (androidImplementation != null) {
+        // Android 12 이상에서만 작동
+        bool? canScheduleExactAlarms =
+            await androidImplementation.canScheduleExactNotifications();
+
+        if (canScheduleExactAlarms == false) {
+          // 설정 화면으로 이동하여 권한 요청
+          await androidImplementation.requestExactAlarmsPermission();
+          // 권한 상태 다시 확인
+          canScheduleExactAlarms =
+              await androidImplementation.canScheduleExactNotifications();
+        }
+
+        return canScheduleExactAlarms ?? false;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('정확한 알람 권한 요청 오류: $e');
       return false;
     }
-
-    return await showDialog<bool>(
-      context: navigatorKey.currentContext!,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('정확한 알람 권한 필요'),
-          content: const Text(
-            '정확한 시간에 알람이 작동하려면 "정확한 알람 예약" 권한이 필요합니다.\n\n'
-            '설정 화면으로 이동하여 권한을 허용해 주세요.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('나중에'),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text('설정으로 이동'),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
-  /// 배터리 최적화 설정 무시 요청
-  Future<void> _requestBatteryOptimizationDisable() async {
+  // 배터리 최적화 설정 무시 요청
+  Future<bool> _requestBatteryOptimizationDisable() async {
     try {
-      final bool? result = await platform.invokeMethod<bool>(
-        'requestBatteryOptimizationDisable',
+      final bool result = await platform.invokeMethod(
+        'requestBatteryOptimization',
       );
       debugPrint('배터리 최적화 설정 무시 요청 결과: $result');
-    } on PlatformException catch (e) {
-      debugPrint('배터리 최적화 설정 무시 요청 오류: ${e.message}');
+      return result;
     } catch (e) {
-      debugPrint('배터리 최적화 설정 무시 요청 중 예상치 못한 오류: $e');
+      debugPrint('배터리 최적화 설정 변경 요청 실패: $e');
+      return false;
+    }
+  }
+
+  /// 테스트 알림 발송
+  Future<void> sendTestNotification() async {
+    try {
+      const AndroidNotificationDetails androidNotificationDetails =
+          AndroidNotificationDetails(
+            'alarm_channel_standard',
+            '알람 채널 (표준)',
+            channelDescription: '기본 알람 알림을 위한 채널입니다',
+            importance: Importance.max,
+            priority: Priority.high,
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.alarm,
+          );
+
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidNotificationDetails,
+      );
+
+      await _flutterLocalNotificationsPlugin.show(
+        100, // 테스트 알림 ID
+        '테스트 알람',
+        '테스트 알람 메시지입니다.',
+        notificationDetails,
+        payload: 'alarm_test',
+      );
+
+      debugPrint('======================================');
+      debugPrint('테스트 알림 발송 완료');
+      debugPrint('발송 시간: ${DateTime.now().toString()}');
+      debugPrint('알림 ID: 100');
+      debugPrint('페이로드: alarm_test');
+      debugPrint('======================================');
+    } catch (e) {
+      debugPrint('테스트 알림 발송 실패: $e');
     }
   }
 
   /// 기상 알람 예약
   Future<void> scheduleWakeUpAlarm(TimeOfDay time) async {
     // 이전 알람 취소
-    await cancelWakeUpAlarm();
+    await cancelAllAlarms();
 
-    final AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'alarm_channel', // 채널 ID
-      '기상 알람', // 채널 이름
-      description: '기상 시간을 알려주는 알림입니다', // 채널 설명
-      importance: Importance.high,
-      // sound: const RawResourceAndroidNotificationSound('alarm_sound'), // TODO: 알람 소리 파일 추가 후 주석 해제
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+          'alarm_channel_standard',
+          '알람 채널 (표준)',
+          channelDescription: '기본 알람 알림을 위한 채널입니다',
+          importance: Importance.max,
+          priority: Priority.high,
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.alarm,
+        );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidNotificationDetails,
     );
 
     try {
-      // 채널 등록
-      await _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(channel);
-
-      // 일반 알림 설정 (전체 화면 인텐트 완전히 비활성화)
-      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        channel.id,
-        channel.name,
-        channelDescription: channel.description,
-        importance: Importance.high,
-        priority: Priority.high,
-        // sound: channel.sound, // TODO: 알람 소리 파일 추가 후 주석 해제
-        visibility: NotificationVisibility.public,
-        category: AndroidNotificationCategory.alarm,
-        autoCancel: true, // 탭하면 자동으로 사라짐
-        showWhen: true, // 시간 표시
-      );
-
-      // 알림 세부 설정
-      final NotificationDetails notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-      );
-
       // 지정된 시간으로 변환
       final now = DateTime.now();
 
@@ -424,24 +421,22 @@ class NotificationService {
         tz.local,
       );
 
-      // 현재 시간과 알람 시간의 차이 계산
+      // 알람 시간 정보 로그 출력
       final difference = scheduledDateTime.difference(
         tz.TZDateTime.now(tz.local),
       );
       final hours = difference.inHours;
       final minutes = difference.inMinutes % 60;
 
-      // 알람 시간 정보 로그 출력
       debugPrint('======================================');
-      debugPrint('알람 설정 정보:');
+      debugPrint('알람 예약 정보:');
       debugPrint('설정된 시간: ${time.hour}시 ${time.minute}분');
       debugPrint(
         '알람 예정 시간: ${scheduledDateTime.year}년 ${scheduledDateTime.month}월 ${scheduledDateTime.day}일 ${scheduledDateTime.hour}시 ${scheduledDateTime.minute}분',
       );
       debugPrint('현재 시간으로부터: $hours시간 $minutes분 후');
-      debugPrint('======================================');
 
-      // 알림 예약 (앱이 종료되어도 알람이 작동하도록 설정)
+      // 알림 예약
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         0, // ID
         '기상 시간입니다',
@@ -450,121 +445,50 @@ class NotificationService {
         notificationDetails,
         androidScheduleMode:
             AndroidScheduleMode.exactAllowWhileIdle, // 앱이 종료되어도 작동
-        matchDateTimeComponents: DateTimeComponents.time, // 매일 반복을 위한 설정
-        payload: 'alarm', // 알림 페이로드 (알람 구분용)
+        payload: 'alarm', // 알림 페이로드
       );
-      debugPrint('알람 예약 성공 (exactAllowWhileIdle 모드)');
 
-      // 테스트용 알림 (1분 후 테스트 알림) - 개발 중에만 활성화하고 배포 시 주석 처리
-      // false로 변경하여 테스트 알림 비활성화 가능
-      bool enableTestNotification = false; // 테스트 알림 비활성화
-      if (enableTestNotification) {
-        try {
-          final testTime = tz.TZDateTime.now(
-            tz.local,
-          ).add(const Duration(minutes: 1));
+      debugPrint('알람 예약 성공');
+      debugPrint('======================================');
 
-          await _flutterLocalNotificationsPlugin.zonedSchedule(
-            999, // 테스트용 ID (다른 알림과 충돌하지 않는 ID 사용)
-            '테스트 알림',
-            '이 알림이 보이면 알림 시스템이 작동 중입니다. 눌러서 확인하세요.',
-            testTime,
-            notificationDetails,
-            androidScheduleMode:
-                AndroidScheduleMode.exactAllowWhileIdle, // 앱이 종료되어도 작동
-            payload: 'alarm_test', // 테스트용 페이로드
-          );
-          debugPrint('테스트 알림 예약 성공 (1분 후, exactAllowWhileIdle 모드)');
-        } catch (e) {
-          debugPrint('테스트 알림 예약 실패: $e');
-        }
-      } else {
-        debugPrint('테스트 알림이 비활성화되었습니다.');
-      }
-
-      // 알람 설정 후 배터리 최적화 무시 요청
-      _requestBatteryOptimizationDisable();
+      return;
     } catch (e) {
       debugPrint('알람 예약 실패: $e');
       rethrow;
     }
   }
 
-  /// 기상 알람 취소
-  Future<void> cancelWakeUpAlarm() async {
-    try {
-      await _flutterLocalNotificationsPlugin.cancel(0);
-      // 스누즈 알람도 함께 취소
-      await _flutterLocalNotificationsPlugin.cancel(1);
-      // 테스트 알람도 취소
-      await _flutterLocalNotificationsPlugin.cancel(999);
-
-      debugPrint('======================================');
-      debugPrint('모든 알람 취소 완료');
-      debugPrint('- 기본 알람 (ID: 0) 취소됨');
-      debugPrint('- 스누즈 알람 (ID: 1) 취소됨');
-      debugPrint('- 테스트 알람 (ID: 999) 취소됨');
-      debugPrint('취소 시간: ${DateTime.now().toString()}');
-      debugPrint('======================================');
-    } catch (e) {
-      debugPrint('알람 취소 실패: $e');
-    }
-  }
-
-  /// 알림 탭 이벤트 처리
-  void _onNotificationTap(NotificationResponse response) {
-    // 알림 탭 시 처리할 내용
-    if (response.actionId == 'snooze') {
-      snoozeAlarm();
-    } else {
-      // 알람 화면으로 이동
-      _showAlarmScreen(response.id ?? 0);
-    }
-  }
-
-  /// 5분 후 다시 알림 (공개 메서드)
+  /// 5분 후 다시 알림 (스누즈)
   Future<void> snoozeAlarm() async {
-    await _snoozeAlarm();
-  }
-
-  /// 5분 후 다시 알림 (내부 구현)
-  Future<void> _snoozeAlarm() async {
     try {
-      // 현재 시간에서 5분 후에 알림 예약
+      // 현재 시간에서 5분 후 알림 예약
       final now = tz.TZDateTime.now(tz.local);
       final scheduledDateTime = now.add(const Duration(minutes: 5));
 
-      // 일반 알림 설정 (전체 화면 인텐트 완전히 비활성화)
-      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'wake_up_alarm_snooze',
-        '기상 알람 (다시 알림)',
-        channelDescription: '다시 울리는 기상 알람입니다',
-        importance: Importance.high,
-        priority: Priority.high,
-        // sound: const RawResourceAndroidNotificationSound('alarm_sound'), // TODO: 알람 소리 파일 추가 후 주석 해제
-        visibility: NotificationVisibility.public, // 잠금화면에서 표시 설정
-        category: AndroidNotificationCategory.alarm,
-        autoCancel: true, // 탭하면 자동으로 사라짐
-        showWhen: true, // 시간 표시
-      );
+      const AndroidNotificationDetails androidNotificationDetails =
+          AndroidNotificationDetails(
+            'alarm_channel_standard',
+            '알람 채널 (표준)',
+            channelDescription: '다시 울리는 알람 알림입니다',
+            importance: Importance.max,
+            priority: Priority.high,
+            fullScreenIntent: true,
+            category: AndroidNotificationCategory.alarm,
+          );
 
-      // 알림 세부 설정
-      final NotificationDetails notificationDetails = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidNotificationDetails,
       );
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
-        1, // 스누즈용 다른 ID 사용
+        1, // 스누즈용 ID
         '기상 알람 (다시 알림)',
-        '5분이 지났습니다. 일어날 시간이에요! 눌러서 알람 화면으로 이동하세요.',
+        '5분이 지났습니다. 일어날 시간이에요!',
         scheduledDateTime,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: 'alarm_snooze', // 알림 페이로드 (스누즈 알람 구분용)
+        payload: 'alarm_snooze',
       );
-
-      // 알람 상태 비활성화 (스누즈 동안은 알람 화면 표시하지 않음)
-      deactivateAlarm();
 
       // 스누즈 알람 로그 출력
       debugPrint('======================================');
@@ -577,56 +501,47 @@ class NotificationService {
     }
   }
 
-  /// 활성화된 알림 목록 가져오기
-  Future<List<ActiveNotification>> getActiveNotifications() async {
+  /// 모든 알람 알림 취소
+  Future<void> cancelAllAlarms() async {
     try {
-      final androidImplementation =
-          _flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >();
+      // 기본 알람 (ID: 0)
+      await _flutterLocalNotificationsPlugin.cancel(0);
+      // 스누즈 알람 (ID: 1)
+      await _flutterLocalNotificationsPlugin.cancel(1);
+      // 테스트 알람 (ID: 999)
+      await _flutterLocalNotificationsPlugin.cancel(999);
+      // 다른 테스트 알람 (ID: 100)
+      await _flutterLocalNotificationsPlugin.cancel(100);
 
-      if (androidImplementation != null) {
-        return await androidImplementation.getActiveNotifications();
-      }
+      debugPrint('======================================');
+      debugPrint('모든 알람 취소 완료');
+      debugPrint('- 기본 알람 (ID: 0) 취소됨');
+      debugPrint('- 스누즈 알람 (ID: 1) 취소됨');
+      debugPrint('- 테스트 알람 (ID: 999) 취소됨');
+      debugPrint('- 테스트 알람 (ID: 100) 취소됨');
+      debugPrint('취소 시간: ${DateTime.now().toString()}');
+      debugPrint('======================================');
     } catch (e) {
-      debugPrint('활성화된 알림 목록 가져오기 실패: $e');
+      debugPrint('알람 취소 실패: $e');
     }
-
-    return [];
   }
 
-  /// 즉시 테스트 알림 표시 (공개 메서드)
-  Future<void> showImmediateNotification() async {
+  /// 활성화된 알림 가져오기
+  Future<List<ActiveNotification>> getActiveNotifications() async {
     try {
-      await _flutterLocalNotificationsPlugin.show(
-        100, // 테스트 알림 ID
-        '테스트 알림',
-        '알람 기능 테스트입니다. 탭하여 알람 화면으로 이동하세요.',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'test_channel',
-            '테스트 알림 채널',
-            channelDescription: '알림 테스트용 채널',
-            importance: Importance.max,
-            priority: Priority.high,
-            visibility: NotificationVisibility.public,
-          ),
-        ),
-        payload: 'alarm_test',
-      );
-
-      debugPrint('======================================');
-      debugPrint('테스트 알림 발송 완료');
-      debugPrint('발송 시간: ${DateTime.now().toString()}');
-      debugPrint('알림 ID: 100');
-      debugPrint('페이로드: alarm_test');
-      debugPrint('======================================');
-
-      return;
+      final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      final List<ActiveNotification> activeNotifications =
+          await flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >()
+              ?.getActiveNotifications() ??
+          [];
+      return activeNotifications;
     } catch (e) {
-      debugPrint('테스트 알림 발송 실패: $e');
-      throw e;
+      debugPrint('활성화된 알림 가져오기 오류: $e');
+      return [];
     }
   }
 }

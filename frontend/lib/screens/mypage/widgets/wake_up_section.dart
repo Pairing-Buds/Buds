@@ -185,7 +185,7 @@ class WakeUpSection extends StatelessWidget {
       }
 
       // 알람 예약 전에 이전 알람 취소
-      await NotificationService().cancelWakeUpAlarm();
+      await NotificationService().cancelAllAlarms();
 
       // 알람 예약
       await NotificationService().scheduleWakeUpAlarm(wakeUpTime);
@@ -223,7 +223,7 @@ class WakeUpSection extends StatelessWidget {
   void _sendTestNotification(BuildContext context) async {
     try {
       // NotificationService를 통해 테스트 알림 전송
-      await NotificationService().showImmediateNotification();
+      await NotificationService().sendTestNotification();
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

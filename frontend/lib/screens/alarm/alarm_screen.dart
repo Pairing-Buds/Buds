@@ -212,7 +212,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     debugPrint('======================================');
 
     // 알림 취소
-    NotificationService().cancelWakeUpAlarm();
+    NotificationService().cancelAllAlarms();
 
     // 메인 화면으로 이동
     Navigator.of(context).pop();
