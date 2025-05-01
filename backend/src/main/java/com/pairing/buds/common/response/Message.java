@@ -15,6 +15,7 @@ public enum Message {
     USER_NOT_EQUAL("다른 유저의 데이터에 접근할 수 없습니다."),
     QUESTION_NOT_FOUND("해당 문의를 찾을 수 없습니다."),
     ARGUMENT_NOT_PROPER("적절하지 않은 인자입니다."),
+    ALREADY_VERIFIED("이미 인증된 사용자입니다."),
     TYPE_NOT_FOUND("해당 타입은 존재하지 않습니다."),
     DUPLICATE_EMAIL_EXCEPTION("이미 사용 중인 이메일입니다."),
     FAIL_TO_SEND_EMAIL("이메일 발송에 실패했습니다."),

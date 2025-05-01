@@ -3,9 +3,7 @@ package com.pairing.buds.domain.activity.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.activity.dto.req.CreateWakeTimeReqDto;
-import com.pairing.buds.domain.activity.dto.req.DeleteWakeTimeReqDto;
-import com.pairing.buds.domain.activity.dto.req.UpdateWakeTimeReqDto;
+import com.pairing.buds.domain.activity.dto.req.*;
 import com.pairing.buds.domain.activity.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/activity")
+@RequestMapping("/activities")
 @RequiredArgsConstructor
 public class ActivityController {
 
@@ -27,8 +25,41 @@ public class ActivityController {
         activityService.createWakeTime(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
-
     /** 기상 시간 인증 **/
+    @PostMapping("/wake-verification")
+    public ResponseDto wakeVerify(
+            @AuthenticationPrincipal int userId){
+        activityService.wakeVerify(userId);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    /** 사용자 음성 텍스트 입력 **/
+    @PostMapping("/sentence-voice")
+    public ResponseDto activitySentenceVoice(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody ActivitySentenceVoiceReqDto dto){
+        activityService.activitySentenceVoice(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    /** 사용자 필사 활동 인증 (폐기) **/
+
+    /** 만보기 리워드 신청 **/
+    @PostMapping("/walk")
+    public ResponseDto walkRewardReq(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody WalkRewardReqDto dto){
+        activityService.walkRewardReq(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    /** 최초 페이지 인증 리워드 **/
+    @PostMapping("/first-visit")
+    public ResponseDto firstVisitReward(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody FirstVisitRewardReqDto dto){
+        activityService.firstVisitReward(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+
 
     /** 기상 시간 수정 **/
     @PatchMapping("/wake")
@@ -47,4 +78,5 @@ public class ActivityController {
         activityService.deleteWakeTime(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
+
 }

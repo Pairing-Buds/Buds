@@ -43,11 +43,14 @@ public class QuestionService {
         log.info("userId : {}, subject : {}, content : {}", userId, subject, content);
 
         User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Question newQuestion = Question.builder()
-                .user(user)
-                .subject(subject)
-                .content(content)
-                .build();
+        Question newQuestion = new Question();
+        newQuestion.setUser(user);
+        newQuestion.setSubject(subject);
+        newQuestion.setContent(content);
+
+        Question createdQuestion = questionRepository.save(newQuestion);
+        log.info("createdQuestion.id : {}", createdQuestion.getId());
+        log.info("문의 생성 완료");
     }
 
     /** 문의 수정 **/

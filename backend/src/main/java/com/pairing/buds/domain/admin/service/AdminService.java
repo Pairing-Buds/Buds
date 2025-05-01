@@ -67,7 +67,7 @@ public class AdminService {
 
         int userId = dto.getUserId();
         String content = dto.getContent();
-        log.info("userId : {}", userId);
+        log.info("userId : {}, adminId : {}", userId, adminId);
 
         User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND)));
@@ -80,7 +80,7 @@ public class AdminService {
     public void patchAnswer(int adminId, @Valid PatchAnswerReqDto dto) {
         int answerId = dto.getAnswerId();
         String content = dto.getContent();
-        log.info("answerId : {}", answerId);
+        log.info("answerId : {}, adminId : {}", answerId, adminId);
 
         if(!adminRepository.existsById(adminId)) throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
         Answer answer = answerRepository.findById(adminId).orElseThrow(() -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND)));
