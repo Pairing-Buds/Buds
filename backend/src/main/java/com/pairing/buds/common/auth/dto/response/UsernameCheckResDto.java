@@ -9,7 +9,6 @@ import lombok.*;
 @Builder
 public class UsernameCheckResDto {
 
-    private boolean available;
-    private String message;
+    private String username;
 
 }

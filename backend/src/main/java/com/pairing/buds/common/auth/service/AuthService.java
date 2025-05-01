@@ -2,7 +2,6 @@ package com.pairing.buds.common.auth.service;
 
 import com.pairing.buds.common.auth.dto.request.UserCompleteReqDto;
 import com.pairing.buds.common.auth.dto.request.UserSignupReqDto;
-import com.pairing.buds.common.auth.dto.response.UsernameCheckResDto;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
@@ -24,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** 회원 가입 **/
     @Transactional
     public void userSignup(@Valid UserSignupReqDto dto) {
 
@@ -45,6 +45,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    /** 닉네임/캐릭터 저장 **/
     @Transactional
     public void completeSignup(Integer userId, @Valid UserCompleteReqDto dto) {
         User user = userRepository.findById(userId)
@@ -63,14 +64,6 @@ public class AuthService {
         user.setIsCompleted(SignupStatus.DONE);
 
         userRepository.save(user);
-    }
-
-    public UsernameCheckResDto checkUsernameAvailable(String username) {
-        boolean available = !userRepository.existsByUserName(username);
-        String message = available
-                ? "사용 가능한 닉네임입니다."
-                : "이미 사용중인 닉네임입니다.";
-        return new UsernameCheckResDto(available, message);
     }
 
 }
