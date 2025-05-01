@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.cs.service;
 
+import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
@@ -42,7 +43,7 @@ public class QuestionService {
         String content = dto.getContent();
         log.info("userId : {}, subject : {}, content : {}", userId, subject, content);
 
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Question newQuestion = new Question();
         newQuestion.setUser(user);
         newQuestion.setSubject(subject);
@@ -62,10 +63,10 @@ public class QuestionService {
         log.info("questionId : {}", questionId);
 
         // 문의글 유저와 요청한 유저 동일성 확인
-        Question questionToPatch = questionRepository.findById(questionId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.QUESTION_NOT_FOUND)));
+        Question questionToPatch = questionRepository.findById(questionId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.QUESTION_NOT_FOUND));
         if(userId != questionToPatch.getUser().getId()){
             log.info("userId와 question의 userId 불일치");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
 
         questionToPatch.setSubject(subject);
@@ -83,7 +84,7 @@ public class QuestionService {
         Question questionToDelete = questionRepository.findById(questionId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.QUESTION_NOT_FOUND)));
         if(userId != questionToDelete.getUser().getId()){
             log.info("userId와 question의 userId 불일치");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
 
         questionRepository.delete(questionToDelete); // 에러 시 OptimisticLockingFailureException 발생

@@ -58,7 +58,13 @@ public class ActivityController {
         activityService.firstVisitReward(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
-
+    /** 추천 장소 방문 리워드 **/
+    @PostMapping("/visit-recommended-place")
+    public ResponseDto visitRecommendedPlaceReward(
+            @AuthenticationPrincipal int userId){
+        activityService.visitRecommendedPlaceReward(userId);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
 
 
     /** 기상 시간 수정 **/
