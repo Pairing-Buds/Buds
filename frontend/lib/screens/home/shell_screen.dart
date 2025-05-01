@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:buds/config/theme.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class ShellScreen extends StatelessWidget {
   const ShellScreen({super.key});
@@ -6,20 +8,11 @@ class ShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          '행운의 조개',
-          style: TextStyle(color: Colors.black),
-        ),
+      backgroundColor: AppColors.background,
+      appBar: const CustomAppBar(
+        title: '행운의 조개',
+        centerTitle: true,
+        showBackButton: true,
       ),
       body: Column(
         children: [
@@ -45,7 +38,7 @@ class ShellScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Container(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.30,
+              height: MediaQuery.of(context).size.height * 0.27,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -60,7 +53,6 @@ class ShellScreen extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // ✨ 글자 덩어리: 세로 위쪽, 가로 중앙 정렬
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
@@ -128,7 +120,7 @@ class ShellScreen extends StatelessWidget {
                           child: Image.asset(
                             'assets/icons/stand_mic.png',
                             width: 40,
-                            height: 80, // mic 높이 80 고정
+                            height: 40,
                           ),
                         ),
                         const SizedBox(width: 20),
@@ -152,7 +144,7 @@ class ShellScreen extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                // fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),

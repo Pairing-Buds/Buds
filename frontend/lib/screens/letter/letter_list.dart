@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:buds/config/theme.dart';
 import 'package:buds/screens/letter/letter_send.dart';
 
 class LetterList extends StatelessWidget {
@@ -115,7 +116,7 @@ class LetterList extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF6DCA7),
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),

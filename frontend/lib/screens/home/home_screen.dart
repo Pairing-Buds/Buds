@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:buds/screens/home/widget/shell_screen.dart';
+import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 
@@ -81,7 +81,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShellScreen()),
+                  MaterialPageRoute(builder: (context) => const ShellScreenSTT()),
                 );
               },
               child: Image.asset(
