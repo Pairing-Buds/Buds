@@ -48,6 +48,9 @@ public class User extends CUBaseTime {
     @Column(name = "is_completed", nullable = false)
     private Boolean isCompleted;
 
+    @Column(name = "letter_cnt")
+    private int letterCnt;
+
     @PrePersist
     private void prePersist() {
         if (this.isActive == null)    this.isActive = true;

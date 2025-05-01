@@ -19,6 +19,4 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class AnswerController {
 
-    private final AnswerService answerService;
-
 }
