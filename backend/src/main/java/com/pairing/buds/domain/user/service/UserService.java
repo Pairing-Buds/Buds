@@ -36,7 +36,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    /** 태그 업데이트(신규 저장도 포함) **/
+    /** 태그 업데이트(신규 저장 포함) **/
     @Transactional
     public void updateUserTags(Integer userId, List<TagType> selected) {
         User user = userRepository.findById(userId)

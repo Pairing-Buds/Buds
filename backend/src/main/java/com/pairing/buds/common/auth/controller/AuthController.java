@@ -48,16 +48,10 @@ public class AuthController {
         return new ResponseDto(StatusCode.CREATED, Message.OK);
     }
 
-    /** 닉네임 랜덤 제공 **/
+    /** 중복 없는 닉네임 랜덤 제공 **/
     @GetMapping("/random-nickname")
     public ResponseDto randomNickname() {
         return new ResponseDto(StatusCode.OK, ng.generateName());
-    }
-
-    /** 닉네임 중복 확인 **/
-    @GetMapping("/check-nickname")
-    public ResponseDto checkUsername(@RequestParam("username") String username) {
-        return new ResponseDto(StatusCode.OK, authService.checkUsernameAvailable(username));
     }
 
     /** 닉네임/캐릭터 저장 **/

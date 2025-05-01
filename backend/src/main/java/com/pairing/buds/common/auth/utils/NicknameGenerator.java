@@ -1,6 +1,8 @@
 package com.pairing.buds.common.auth.utils;
 
-import com.pairing.buds.common.auth.dto.response.RandomNameResDto;
+import com.pairing.buds.common.auth.dto.response.UsernameCheckResDto;
+import com.pairing.buds.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
@@ -9,7 +11,10 @@ import java.util.List;
 import java.util.Random;
 
 @Component
+@RequiredArgsConstructor
 public class NicknameGenerator {
+
+    private final UserRepository userRepository;
 
     private static final List<String> ADJECTIVES = Arrays.asList(
             "귀여운", "멋진", "용감한", "부드러운", "활발한",
@@ -40,10 +45,15 @@ public class NicknameGenerator {
     private final Random rnd = new SecureRandom();
 
     /** 형용사 + 동물명 조합 랜덤 닉네임 반환 **/
-    public RandomNameResDto generateName() {
-        String adj = ADJECTIVES.get(rnd.nextInt(ADJECTIVES.size()));
-        String mammal = MAMMALS.get(rnd.nextInt(MAMMALS.size()));
-        return new RandomNameResDto(adj + " " + mammal);
+    public UsernameCheckResDto generateName() {
+        String username;
+        do {
+            String adj = ADJECTIVES.get(rnd.nextInt(ADJECTIVES.size()));
+            String mammal = MAMMALS.get(rnd.nextInt(MAMMALS.size()));
+            username = adj + " " + mammal;
+        } while (userRepository.existsByUserName(username));
+
+        return new UsernameCheckResDto(username);
     }
 
 }
