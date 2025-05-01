@@ -27,12 +27,6 @@ import java.time.LocalDateTime;
 @Slf4j
 public class ActivityService {
 
-    /**
-     * 중요 정보 로깅은 배포 시 제거
-     * **/
-
-    @PersistenceContext
-    private final EntityManager em;
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final SleepRepository sleepRepository;
@@ -46,7 +40,7 @@ public class ActivityService {
         log.info("wakeTime : {}, userId : {}", wakeTime, userId);
 
         // 유저 유무 조회
-        User userToSave = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        User userToSave = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         // 저장
         Wake newSleep = Wake.builder()
@@ -202,8 +196,8 @@ public class ActivityService {
         log.info("sleepId : {}, wakeTime : {}, userId : {}", wakeId, wakeTime, userId);
         
         // user, sleep 유무 검증
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToUpdate = wakeToUpdate.getUser().getId();
         log.info("userId : {}, userIdOfWakeToUpdate : {}", userId, userIdOfWakeToUpdate);
@@ -211,7 +205,7 @@ public class ActivityService {
         // sleep의 유저와 식별자 비교
         if(userId != userIdOfWakeToUpdate){
             log.info("userId, userIdOfSleepToUpdate Not Match");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
         
         // 저장
@@ -227,21 +221,49 @@ public class ActivityService {
         log.info("wakeId : {}, userId : {}", wakeId, userId);
 
         // exists...
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToDelete = wakeToDelete.getUser().getId();
         log.info("userId : {}, userIdOfWakeToDelete : {}", userId, userIdOfWakeToDelete);
 
         if(userId != userIdOfWakeToDelete){
             log.info("userId, userIdOfSleepToDelete Not Match");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
 
         // DB에 데이터 부재 시 OptimisticLockingFailureException 발생
         sleepRepository.delete(wakeToDelete);
     }
 
+    /** 추천 장소 방문 리워드 **/
+    @Transactional
+    public void visitRecommendedPlaceReward(int userId) {
+        // 변수
+        log.info("userId : {}", userId);
+        User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        
+        // 활동
+        Activity activity = new Activity();
+        activity.setName(ActivityType.VISIT_PLACE);
+        activity.setDescription("추천 장소 방문 활동");
+        activity.setBonusLetter(3);
+        
+        // 유저 활동
+        UserActivity userActivity = new UserActivity();
+        userActivity.setUser(user);
+        userActivity.setActivity(activity);
+        userActivity.setStatus(UserActivityStatus.DONE);
+        userActivity.setProof("추천 장소 방문 활동 인증 완료");
+        
 
-    
+        activityRepository.save(activity);
+        log.info("활동 저장 완료");
+        userActivityRepository.save(userActivity);
+        log.info("유저 활동 저장 완료");
+
+        // 유저 리워드 편지 3개 추가
+        user.setLetterCnt(user.getLetterCnt() + 3);
+        log.info("유저 리워드 편지 3개 증정 완료");
+    }
 }

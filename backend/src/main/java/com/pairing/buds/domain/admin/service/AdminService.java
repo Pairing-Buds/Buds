@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.admin.service;
 
+import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
@@ -37,7 +38,7 @@ public class AdminService {
     public List<GetAnsweredQuestionListReqDto> getAnsweredQuestionList(int adminId) {
 
         if(adminRepository.existsById(adminId)){
-            throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
         return questionRepository.findAnsweredQuestionsByStatusOrderByCreatedAt(QuestionStatus.ANSWERED);
     }
@@ -46,14 +47,14 @@ public class AdminService {
         log.info("adminId : {}", adminId);
 
         if(adminRepository.existsById(adminId)){
-            throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
         return questionRepository.findUnAnsweredQuestionsByStatusOrderByCreatedAt(QuestionStatus.UNANSWERED);
     }
     /** 특정 유저의 문의 조회 **/
     public Object getQuestionOfUser(int adminId, int questionId) {
         if(adminRepository.existsById(adminId)){
-            throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
 
 //        answerRepository.find
@@ -69,8 +70,8 @@ public class AdminService {
         String content = dto.getContent();
         log.info("userId : {}, adminId : {}", userId, adminId);
 
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
 
         Answer answerToCreate = CreateAnswerReqDto.toAnswer(admin, user, content);
         answerRepository.save(answerToCreate);
@@ -82,8 +83,8 @@ public class AdminService {
         String content = dto.getContent();
         log.info("answerId : {}, adminId : {}", answerId, adminId);
 
-        if(!adminRepository.existsById(adminId)) throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
-        Answer answer = answerRepository.findById(adminId).orElseThrow(() -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND)));
+        if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
+        Answer answer = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
 
         Answer answerToSave = PatchAnswerReqDto.patchAnswer(answer, content);
         answerRepository.save(answerToSave);
@@ -95,8 +96,8 @@ public class AdminService {
         int answerId = dto.getAnswerId();
         log.info("answerId : {}", answerId);
 
-        if(!adminRepository.existsById(adminId)) throw new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
-        Answer answerToDelete = answerRepository.findById(adminId).orElseThrow(() -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND)));
+        if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
+        Answer answerToDelete = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
         answerRepository.delete(answerToDelete); // 에러 시 OptimisticLockingFailureException 발생
     }
 
