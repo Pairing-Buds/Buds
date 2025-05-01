@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:buds/screens/home/widget/shell_screen.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/home/shell_screen_stt.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/letter/letter_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -44,7 +48,7 @@ class HomeScreen extends StatelessWidget {
 
           // 음악 on/off 아이콘
           Positioned(
-            top: 40,
+            top: 50,
             right: 20,
             child: GestureDetector(
               onTap: () {
@@ -60,7 +64,7 @@ class HomeScreen extends StatelessWidget {
 
           // 캐릭터 이미지
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.5,
+            top: MediaQuery.of(context).size.height * 0.435,
             left: MediaQuery.of(context).size.width * 0.5 - 100, // 화면 가로 가운데에 맞추기 (width 200 고려)
             child: Image.asset(
               'assets/images/newmarmet.png',
@@ -74,13 +78,13 @@ class HomeScreen extends StatelessWidget {
             top: MediaQuery
                 .of(context)
                 .size
-                .height * 0.65, // 캐릭터보다 살짝 아래
+                .height * 0.575,
             left: 40, // 왼쪽에서 40px 띄움
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShellScreen()),
+                  MaterialPageRoute(builder: (context) => const ShellScreenSTT()),
                 );
               },
               child: Image.asset(
@@ -91,16 +95,21 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-
           // 편지 아이콘
           Positioned(
-            bottom: 80,
+            bottom: MediaQuery
+        .of(context)
+        .size
+        .height * 0.15-100,
             left: 190,
             right: 0,
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  // TODO: 편지 아이콘 눌렀을 때 처리
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LetterScreen()),
+                  );
                 },
                 child: Image.asset(
                   'assets/icons/bottle_letter.png',

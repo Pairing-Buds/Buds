@@ -1,34 +1,36 @@
 package com.pairing.buds.domain.activity.service;
 
+import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.activity.dto.req.CreateWakeTimeReqDto;
-import com.pairing.buds.domain.activity.dto.req.DeleteWakeTimeReqDto;
-import com.pairing.buds.domain.activity.dto.req.UpdateWakeTimeReqDto;
-import com.pairing.buds.domain.activity.entity.Wake;
+import com.pairing.buds.domain.activity.dto.req.*;
+import com.pairing.buds.domain.activity.entity.*;
 import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.SleepRepository;
+import com.pairing.buds.domain.activity.repository.UserActivityRepository;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ActivityService {
 
-    /**
-     * 중요 정보 로깅은 배포 시 제거
-     * **/
-
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final SleepRepository sleepRepository;
+    private final UserActivityRepository userActivityRepository;
 
     /** 기상 시간 등록 **/
     @Transactional
@@ -38,7 +40,7 @@ public class ActivityService {
         log.info("wakeTime : {}, userId : {}", wakeTime, userId);
 
         // 유저 유무 조회
-        User userToSave = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        User userToSave = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         // 저장
         Wake newSleep = Wake.builder()
@@ -46,6 +48,143 @@ public class ActivityService {
                 .wakeTime(wakeTime)
                 .build();
         sleepRepository.save(newSleep);
+    }
+    /** 최초 페이지 방문 리워드 **/
+    public void firstVisitReward(int userId, FirstVisitRewardReqDto dto) {
+
+        PageName pageName = dto.getPageName();
+        log.info("userId : {}, pageName : {}", userId, pageName);
+
+        /******  ddddddddddddddddddddd *****/
+
+    }
+    /** 기상 시간 인증 **/
+    @Transactional
+    public void wakeVerify(int userId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+        // 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        // 검증
+        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, ActivityType.WAKE, start, end)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
+        }
+        user.setLetterCnt(user.getLetterCnt() + 3);
+        // 활동, 유저 활동 생성
+        Activity activity = WakeVerifyReqDto.toActivity(user);
+        UserActivity userActivity = new UserActivity();
+        userActivity.setUser(user);
+        userActivity.setActivity(activity);
+        userActivity.setStatus(UserActivityStatus.DONE);
+        userActivity.setProof("인증 완료");
+        // 저장
+        userRepository.save(user);
+        log.info("유저 리워드 편지 3개 추가 저장");
+        activityRepository.save(activity);
+        log.info("Activity 저장");
+        userActivityRepository.save(userActivity);
+        log.info("userActivity 저장");
+    }
+    /** 사용자 음성 활동 인증 **/
+    @Transactional
+    public void activitySentenceVoice(int userId, ActivitySentenceVoiceReqDto dto) {
+        String originalSentenceText = dto.getOriginalSentenceText() != null? dto.getOriginalSentenceText().trim() : "";
+        String userSentence = dto.getUserSentenceText() != null? dto.getUserSentenceText().trim() : "";
+        log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
+
+        if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+        }
+        Activity activity = new Activity();
+        activity.setName(ActivityType.VOICE_TEXT);
+        activity.setDescription("사용자 음성 텍스트 활동 인증");
+        activity.setBonusLetter(3);
+        log.info("활동 생성 완료");
+
+        Activity createdActivity = activityRepository.save(activity);
+
+        // 유저 정보가 필요하므로 조회
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        user.setLetterCnt(user.getLetterCnt() + 3);
+
+        UserActivity userActivity = new UserActivity();
+        userActivity.setUser(user);
+        userActivity.setActivity(createdActivity);
+        userActivity.setStatus(UserActivityStatus.DONE);
+        userActivity.setProof(userSentence);
+
+        userRepository.save(user);
+        log.info("유저 리워드 편지 3개 추가 저장 완료");
+        userActivityRepository.save(userActivity);
+        log.info("사용자 활동 생성 완료");
+
+
+    }
+//    /** 사용자 필사 활동 인증 **/
+//    @Transactional
+//    public void activitySentenceText(int userId, ActivitySentenceVoiceReqDto dto) {
+//        String originalSentenceText = dto.getOriginalSentenceText() != null? dto.getOriginalSentenceText().trim() : "";
+//        String userSentence = dto.getUserSentenceText() != null? dto.getUserSentenceText().trim() : "";
+//        log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
+//
+//        if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
+//            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+//        }
+//        Activity activity = new Activity();
+//        activity.setName(ActivityType.TEXT);
+//        activity.setDescription("사용자 필사 활동 인증");
+//        activity.setBonusLetter(3);
+//        log.info("활동 생성 완료");
+//
+//        Activity createdActivity = activityRepository.save(activity);
+//
+//        // 유저 정보가 필요하므로 조회
+//        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+//        user.setLetterCnt(user.getLetterCnt() + 3);
+//
+//        UserActivity userActivity = new UserActivity();
+//        userActivity.setUser(user);
+//        userActivity.setActivity(createdActivity);
+//        userActivity.setStatus(UserActivityStatus.DONE);
+//        userActivity.setProof(userSentence);
+//
+//        userRepository.save(user);
+//        log.info("유저 리워드 편지 3개 추가 저장 완료");
+//        userActivityRepository.save(userActivity);
+//        log.info("사용자 활동 생성 완료");
+//    }
+    /** 만보기 리워드 신청 **/
+    @Transactional
+    public void walkRewardReq(int userId, WalkRewardReqDto dto) {
+        // 변수
+        int userStepSet = dto.getUserStepSet();
+        int userRealStep = dto.getUserRealStep();
+        log.info("userStepSet : {}, userRealStep : {}", userStepSet, userRealStep);
+        // 검증
+        if(userStepSet > userRealStep){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+        }
+        // 유저 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        user.setLetterCnt(user.getLetterCnt() + 3);
+        // 활동, 유저 활동 생성
+        Activity activity = WalkRewardReqDto.toActivity(user, dto);
+        UserActivity userActivity = UserActivity.builder()
+                .user(user)
+                .activity(activity)
+                .status(UserActivityStatus.DONE)
+                .proof("인증 완료")
+                .build();
+        // 저장
+        userRepository.save(user);
+        log.info("유저 리워드 편지 3개 추가 저장");
+        activityRepository.save(activity);
+        log.info("Activity 저장");
+        userActivityRepository.save(userActivity);
+        log.info("userActivity 저장");
     }
 
     /** 기상 시간 수정 **/
@@ -57,8 +196,8 @@ public class ActivityService {
         log.info("sleepId : {}, wakeTime : {}, userId : {}", wakeId, wakeTime, userId);
         
         // user, sleep 유무 검증
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToUpdate = wakeToUpdate.getUser().getId();
         log.info("userId : {}, userIdOfWakeToUpdate : {}", userId, userIdOfWakeToUpdate);
@@ -66,7 +205,7 @@ public class ActivityService {
         // sleep의 유저와 식별자 비교
         if(userId != userIdOfWakeToUpdate){
             log.info("userId, userIdOfSleepToUpdate Not Match");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
         
         // 저장
@@ -82,18 +221,49 @@ public class ActivityService {
         log.info("wakeId : {}, userId : {}", wakeId, userId);
 
         // exists...
-        User user = userRepository.findById(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
-        Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND)));
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToDelete = wakeToDelete.getUser().getId();
         log.info("userId : {}, userIdOfWakeToDelete : {}", userId, userIdOfWakeToDelete);
 
         if(userId != userIdOfWakeToDelete){
             log.info("userId, userIdOfSleepToDelete Not Match");
-            throw new RuntimeException(Common.toString(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER));
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
 
         // DB에 데이터 부재 시 OptimisticLockingFailureException 발생
         sleepRepository.delete(wakeToDelete);
+    }
+
+    /** 추천 장소 방문 리워드 **/
+    @Transactional
+    public void visitRecommendedPlaceReward(int userId) {
+        // 변수
+        log.info("userId : {}", userId);
+        User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        
+        // 활동
+        Activity activity = new Activity();
+        activity.setName(ActivityType.VISIT_PLACE);
+        activity.setDescription("추천 장소 방문 활동");
+        activity.setBonusLetter(3);
+        
+        // 유저 활동
+        UserActivity userActivity = new UserActivity();
+        userActivity.setUser(user);
+        userActivity.setActivity(activity);
+        userActivity.setStatus(UserActivityStatus.DONE);
+        userActivity.setProof("추천 장소 방문 활동 인증 완료");
+        
+
+        activityRepository.save(activity);
+        log.info("활동 저장 완료");
+        userActivityRepository.save(userActivity);
+        log.info("유저 활동 저장 완료");
+
+        // 유저 리워드 편지 3개 추가
+        user.setLetterCnt(user.getLetterCnt() + 3);
+        log.info("유저 리워드 편지 3개 증정 완료");
     }
 }

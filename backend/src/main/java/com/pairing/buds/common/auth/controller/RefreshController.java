@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth")
+@RequestMapping("/refresh")
 public class RefreshController {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -32,7 +32,7 @@ public class RefreshController {
         return null;
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("")
     public ResponseDto refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = extractCookie(request, "refresh_token");
 

@@ -16,13 +16,14 @@ public class Activity {
     @Column(name = "activity_id")
     private Integer id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "name", nullable = false)
-    private String name;
+    private ActivityType name;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "bonus_letter")
-    private byte bonusLetter;
+    private int bonusLetter;
 }
 

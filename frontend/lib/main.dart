@@ -130,6 +130,7 @@ void main() async {
   debugPrint('초기 라우트: $initialRoute');
   debugPrint('======================================');
 
+
   runApp(
     MultiProvider(
       providers: [
@@ -183,6 +184,8 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       theme: appTheme,
       home: const MainScreen(),
+
+      //home: const LoginMainScreen(),
       debugShowCheckedModeBanner: false,
       routes: {
         '/alarm':
