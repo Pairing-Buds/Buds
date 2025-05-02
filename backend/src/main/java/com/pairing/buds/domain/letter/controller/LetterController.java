@@ -21,23 +21,6 @@ public class LetterController {
 
     private final LetterService letterService;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /** 편지 조회 **/
     @GetMapping("/detail")
     public ResponseDto getLetterDetail(
