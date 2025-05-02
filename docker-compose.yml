@@ -32,6 +32,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - CHROMADB_URL=http://${CHROMADB_HOST}:${CHROMADB_PORT}
       - MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/mydb
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_PORT=${MYSQL_PORT}
@@ -41,8 +42,10 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
-      - mongo
-      - mysql
+      chromadb:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
 
   # MySQL (RDB)
   mysql:
@@ -65,22 +68,23 @@ services:
       timeout: 5s
       retries: 5
 
-  # MongoDB (NoSQL)
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  # ChromaDB (Vector Database)
+  chromadb:
+    image: ghcr.io/chroma-core/chroma:latest
+    container_name: chromadb
     ports:
-      - "27017:27017"
+      - "8100:8000"  # 변경된 포트: FastAPI와 포트 충돌 방지
     volumes:
-      - mongo-data:/data/db
+      - chroma-data:/chroma/chroma
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
-      interval: 5s
-      retries: 10
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis (Cache)
   redis:
@@ -116,5 +120,5 @@ networks:
 
 volumes:
   mysql-data:
-  mongo-data:
+  chroma-data:
   redis-data:
