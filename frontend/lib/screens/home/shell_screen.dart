@@ -26,7 +26,7 @@ class ShellScreen extends StatelessWidget {
 
           // 조개 이미지
           Image.asset(
-            'assets/icons/lucky_shell.png',
+            'assets/images/lucky_shell.png',
             width: 310,
             height: 310,
           ),
@@ -118,7 +118,7 @@ class ShellScreen extends StatelessWidget {
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Image.asset(
-                            'assets/icons/stand_mic.png',
+                            'assets/images/stand_mic.png',
                             width: 40,
                             height: 40,
                           ),

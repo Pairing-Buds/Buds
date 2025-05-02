@@ -4,7 +4,7 @@ class AppColors {
   // 누렁이 색상
   static const Color primary = Color(0xFFF4D6A2);
   // 배경색
-  static const Color background = Color(0xFFFFFFFFF);
+  static const Color background = Color(0xFFFFFFFF);
   // 배너색
   static const Color banner = Color(0xFFE9F9E7);
   // 카카오 색상

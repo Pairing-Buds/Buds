@@ -76,7 +76,7 @@ class _ShellScreenSTTState extends State<ShellScreenSTT> {
         children: [
           Container(height: 1, color: const Color(0xFFD7D7D7)),
           const SizedBox(height: 5),
-          Image.asset('assets/icons/lucky_shell.png', width: 310, height: 310),
+          Image.asset('assets/images/lucky_shell.png', width: 310, height: 310),
           const SizedBox(height: 20),
 
           // 📦 흰 박스
@@ -136,7 +136,7 @@ class _ShellScreenSTTState extends State<ShellScreenSTT> {
                         GestureDetector(
                           onTap: _isListening ? _stopListening : _startListening,
                           child: Image.asset(
-                            'assets/icons/stand_mic.png',
+                            'assets/images/stand_mic.png',
                             width: 40,
                             height: 40,
                           ),
