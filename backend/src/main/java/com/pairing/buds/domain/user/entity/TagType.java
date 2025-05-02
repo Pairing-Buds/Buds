@@ -13,6 +13,7 @@ public enum TagType {
     GAME("게임"),
     COMIC("만화");
 
+
     private final String displayName;
 
     TagType(String displayName) {

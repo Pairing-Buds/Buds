@@ -17,6 +17,15 @@ public class ActivityController {
 
     private final ActivityService activityService;
 
+    /** 취향이 맞는 친구 찾기 **/
+    @GetMapping("/find-friend-by-tag")
+    public ResponseDto findFriendByTag(
+            @AuthenticationPrincipal int userId
+    ){
+        return new ResponseDto(StatusCode.OK, activityService.findFriendByTag(userId));
+    }
+
+
     /** 기상 시간 등록 **/
     @PostMapping("/wake")
     public ResponseDto createWakeTime(

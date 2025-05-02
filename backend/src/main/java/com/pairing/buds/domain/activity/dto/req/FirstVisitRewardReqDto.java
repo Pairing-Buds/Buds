@@ -15,6 +15,6 @@ import lombok.*;
 @Valid
 public class FirstVisitRewardReqDto {
 
-    @NotBlank
+    @NotNull
     private PageName pageName;
 }
