@@ -5,6 +5,9 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:buds/main.dart'; // navigatorKey와 saveNotificationState 함수 사용
 import 'package:flutter/services.dart'; // MethodChannel 사용을 위한 import
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:typed_data';
 
 /// 알림 서비스 클래스
 class NotificationService {
@@ -19,6 +22,40 @@ class NotificationService {
 
   // 네이티브 코드 호출을 위한 메서드 채널
   static const platform = MethodChannel('com.buds.app/battery_optimization');
+
+  // 알림 인텐트 확인을 위한 메서드 채널
+  static const notificationIntentChannel = MethodChannel(
+    'com.buds.app/notification_intent',
+  );
+
+  /// 시작 인텐트 확인
+  Future<Map<String, dynamic>> checkInitialIntent() async {
+    try {
+      final result = await notificationIntentChannel.invokeMethod(
+        'getInitialIntent',
+      );
+
+      // Map<Object?, Object?> 타입을 Map<String, dynamic>으로 안전하게 변환
+      Map<String, dynamic> intentData = {};
+      if (result is Map) {
+        result.forEach((key, value) {
+          if (key is String) {
+            intentData[key] = value;
+          }
+        });
+      }
+
+      final bool isAlarm = intentData['is_alarm'] == true;
+      final int notificationId = intentData['notification_id'] as int? ?? -1;
+
+      debugPrint('시작 인텐트 확인: isAlarm=$isAlarm, notificationId=$notificationId');
+
+      return intentData;
+    } catch (e) {
+      debugPrint('시작 인텐트 확인 오류: $e');
+      return {'is_alarm': false, 'notification_id': -1};
+    }
+  }
 
   /// 알림 서비스 초기화
   Future<void> initialize() async {
@@ -170,6 +207,10 @@ class NotificationService {
     // 알림 상태를 SharedPreferences에 저장 (재시작 시 사용)
     _saveNotificationStateForRestart();
 
+    // 전역 변수에도 직접 설정
+    startedFromNotification = true;
+    initialRoute = '/alarm';
+
     // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
     if (response.id == 0 ||
         response.id == 1 ||
@@ -178,9 +219,9 @@ class NotificationService {
         response.payload == 'alarm_snooze' ||
         response.payload == 'alarm_test') {
       debugPrint('알람 관련 알림이 탭되었습니다. 알람 화면으로 이동합니다.');
-
-      // 전역 플래그 설정
-      startedFromNotification = true;
+      debugPrint(
+        '상태 확인: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
+      );
 
       // 알람 화면으로 즉시 이동
       navigateToAlarmScreen();
@@ -192,13 +233,18 @@ class NotificationService {
 
   /// 알람 화면으로 이동
   void navigateToAlarmScreen() {
+    // 전역 상태 설정 (메인.dart에서 참조)
+    startedFromNotification = true;
+    initialRoute = '/alarm';
+
+    debugPrint(
+      '알람 화면 이동 준비: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
+    );
+
     // 메인 스레드에서 실행하여 UI 업데이트 보장
     Future.microtask(() {
       if (navigatorKey.currentState != null) {
         try {
-          // 플래그 설정 (메인.dart에서 참조)
-          startedFromNotification = true;
-
           // 알람 화면으로 이동
           navigatorKey.currentState!.pushNamed('/alarm');
           debugPrint('알람 화면 이동 성공');
@@ -229,9 +275,34 @@ class NotificationService {
   }
 
   /// 알람 상태 비활성화
-  void deactivateAlarm() {
-    // 이 메서드는 현재 사용되지 않습니다만 향후 확장성을 위해 유지
-    debugPrint('알람 상태 비활성화됨');
+  Future<void> deactivateAlarm() async {
+    // 알람 상태를 완전히 초기화
+    try {
+      // 전역 변수 초기화
+      startedFromNotification = false;
+      initialRoute = null;
+
+      // SharedPreferences에서 값 초기화
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('started_from_notification', false);
+      await prefs.remove('initial_route');
+
+      // 알림 플래그 파일도 삭제
+      try {
+        final directory = await getApplicationDocumentsDirectory();
+        final flagFile = File('${directory.path}/alarm_notification.flag');
+        if (await flagFile.exists()) {
+          await flagFile.delete();
+          debugPrint('알림 플래그 파일 삭제 완료');
+        }
+      } catch (e) {
+        debugPrint('알림 플래그 파일 삭제 실패: $e');
+      }
+
+      debugPrint('알람 상태 비활성화 완료: 모든 알람 관련 상태가 초기화되었습니다.');
+    } catch (e) {
+      debugPrint('알람 상태 비활성화 중 오류 발생: $e');
+    }
   }
 
   /// 알람 관련 알림 채널 설정 (일반 알림만 사용)
@@ -343,28 +414,40 @@ class NotificationService {
   /// 테스트 알림 발송
   Future<void> sendTestNotification() async {
     try {
-      const AndroidNotificationDetails androidNotificationDetails =
-          AndroidNotificationDetails(
-            'alarm_channel_standard',
-            '알람 채널 (표준)',
-            channelDescription: '기본 알람 알림을 위한 채널입니다',
-            importance: Importance.max,
-            priority: Priority.high,
-            fullScreenIntent: true,
-            category: AndroidNotificationCategory.alarm,
-          );
+      // 안드로이드 전용 설정: 인텐트 추가
+      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'alarm_channel_standard',
+        '알람 채널 (표준)',
+        channelDescription: '기본 알람 알림을 위한 채널입니다',
+        importance: Importance.max,
+        priority: Priority.high,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
+        // 알림을 탭했을 때 from_notification 플래그가 전달되도록 설정
+        actions: <AndroidNotificationAction>[
+          const AndroidNotificationAction(
+            'dismiss',
+            '알람 끄기',
+            cancelNotification: true,
+            showsUserInterface: true,
+          ),
+        ],
+      );
 
-      const NotificationDetails notificationDetails = NotificationDetails(
-        android: androidNotificationDetails,
+      final notificationDetails = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
       );
 
       await _flutterLocalNotificationsPlugin.show(
         100, // 테스트 알림 ID
         '테스트 알람',
-        '테스트 알람 메시지입니다.',
+        '테스트 알람 메시지입니다. 탭하여 알람 화면으로 이동하세요.',
         notificationDetails,
         payload: 'alarm_test',
       );
+
+      // 알림 상태를 미리 저장
+      await _saveNotificationStateForRestart();
 
       debugPrint('======================================');
       debugPrint('테스트 알림 발송 완료');
@@ -377,24 +460,49 @@ class NotificationService {
     }
   }
 
+  /// 인텐트를 사용한 테스트 알람 시작
+  Future<void> testAlarmIntent() async {
+    try {
+      // 안드로이드에서만 작동하는 플랫폼 채널 사용
+      const platform = MethodChannel('com.buds.app/notification_intent');
+
+      // 네이티브 코드에서 알람 인텐트 테스트 호출
+      final result = await platform.invokeMethod('testAlarmIntent');
+
+      debugPrint('======================================');
+      debugPrint('인텐트 테스트 요청 완료: $result');
+      debugPrint('======================================');
+    } catch (e) {
+      debugPrint('인텐트 테스트 요청 실패: $e');
+    }
+  }
+
   /// 기상 알람 예약
   Future<void> scheduleWakeUpAlarm(TimeOfDay time) async {
     // 이전 알람 취소
     await cancelAllAlarms();
 
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-          'alarm_channel_standard',
-          '알람 채널 (표준)',
-          channelDescription: '기본 알람 알림을 위한 채널입니다',
-          importance: Importance.max,
-          priority: Priority.high,
-          fullScreenIntent: true,
-          category: AndroidNotificationCategory.alarm,
-        );
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'alarm_channel_standard',
+      '알람 채널 (표준)',
+      channelDescription: '기본 알람 알림을 위한 채널입니다',
+      importance: Importance.max,
+      priority: Priority.high,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
+      // 알림을 탭했을 때 from_notification 플래그가 전달되도록 설정
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'dismiss',
+          '알람 끄기',
+          cancelNotification: true,
+          showsUserInterface: true,
+        ),
+      ],
+    );
 
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
+    final NotificationDetails notificationDetails = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
     );
 
     try {
@@ -436,11 +544,14 @@ class NotificationService {
       );
       debugPrint('현재 시간으로부터: $hours시간 $minutes분 후');
 
+      // 알림 상태를 미리 저장 (알림 수신 시 사용)
+      await _saveNotificationStateForRestart();
+
       // 알림 예약
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         0, // ID
         '기상 시간입니다',
-        '일어날 시간이에요! 눌러서 알람 화면으로 이동하세요.',
+        '일어날 시간이에요! 탭하여 알람 화면으로 이동하세요.',
         scheduledDateTime,
         notificationDetails,
         androidScheduleMode:
@@ -465,25 +576,36 @@ class NotificationService {
       final now = tz.TZDateTime.now(tz.local);
       final scheduledDateTime = now.add(const Duration(minutes: 5));
 
-      const AndroidNotificationDetails androidNotificationDetails =
-          AndroidNotificationDetails(
-            'alarm_channel_standard',
-            '알람 채널 (표준)',
-            channelDescription: '다시 울리는 알람 알림입니다',
-            importance: Importance.max,
-            priority: Priority.high,
-            fullScreenIntent: true,
-            category: AndroidNotificationCategory.alarm,
-          );
-
-      const NotificationDetails notificationDetails = NotificationDetails(
-        android: androidNotificationDetails,
+      final androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'alarm_channel_standard',
+        '알람 채널 (표준)',
+        channelDescription: '다시 울리는 알람 알림입니다',
+        importance: Importance.max,
+        priority: Priority.high,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.alarm,
+        // 알림을 탭했을 때 from_notification 플래그가 전달되도록 설정
+        actions: <AndroidNotificationAction>[
+          const AndroidNotificationAction(
+            'dismiss',
+            '알람 끄기',
+            cancelNotification: true,
+            showsUserInterface: true,
+          ),
+        ],
       );
+
+      final notificationDetails = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+      );
+
+      // 알림 상태를 미리 저장
+      await _saveNotificationStateForRestart();
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         1, // 스누즈용 ID
         '기상 알람 (다시 알림)',
-        '5분이 지났습니다. 일어날 시간이에요!',
+        '5분이 지났습니다. 일어날 시간이에요! 탭하여 알람 화면으로 이동하세요.',
         scheduledDateTime,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
