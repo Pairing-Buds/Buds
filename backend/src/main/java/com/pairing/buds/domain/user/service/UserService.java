@@ -3,6 +3,7 @@ package com.pairing.buds.domain.user.service;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.response.TagResDto;
 import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
@@ -10,12 +11,14 @@ import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
@@ -56,5 +59,24 @@ public class UserService {
 
         userRepository.save(user);
     }
-
+    
+    /** 전체 태그 조회 **/
+    public String[] getAllTags(int userId) {
+        return new String[]{"취업", "자격증", "운동", "패션", "음악", "독서", "요리", "게임", "만화"};
+    }
+    
+    /** 설문조사 결과 저장 **/
+    public void saveSurveyResult(int userId, SaveSurveyResultReqDto dto) {
+        int seclusionScore = dto.getSeclusionScore();
+        int opennessScore = dto.getOpennessScore();
+        int routineScore = dto.getRoutineScore();
+        int sociabilityScore = dto.getSociabilityScore();
+        int quietnessScore = dto.getQuietnessScore();
+        int expressionScore = dto.getExpressionScore();
+        log.info("userId : {}, opennessScore : {}, routineScore : {}, quitenessScore : {}, expressionScore : {}, seclusionScore : {}, sociabilityScore",
+                userId, opennessScore, routineScore, quietnessScore, expressionScore, seclusionScore, sociabilityScore);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        User updatedUser = SaveSurveyResultReqDto.toUser(user, dto);
+        userRepository.save(updatedUser);
+    }
 }

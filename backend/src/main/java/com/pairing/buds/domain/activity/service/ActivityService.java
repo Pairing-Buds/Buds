@@ -5,10 +5,14 @@ import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.activity.dto.req.*;
+import com.pairing.buds.domain.activity.dto.res.FindFriendByTagResDto;
 import com.pairing.buds.domain.activity.entity.*;
 import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.SleepRepository;
 import com.pairing.buds.domain.activity.repository.UserActivityRepository;
+import com.pairing.buds.domain.letter.entity.Letter;
+import com.pairing.buds.domain.user.dto.response.UserDto;
+import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -21,6 +25,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,13 +56,18 @@ public class ActivityService {
         sleepRepository.save(newSleep);
     }
     /** 최초 페이지 방문 리워드 **/
+    @Transactional
     public void firstVisitReward(int userId, FirstVisitRewardReqDto dto) {
 
         PageName pageName = dto.getPageName();
         log.info("userId : {}, pageName : {}", userId, pageName);
 
-        /******  ddddddddddddddddddddd *****/
+        if(!activityRepository.isVisited(userId, pageName)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+        }
 
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        user.setLetterCnt(user.getLetterCnt() + 3);
     }
     /** 기상 시간 인증 **/
     @Transactional
@@ -265,5 +276,24 @@ public class ActivityService {
         // 유저 리워드 편지 3개 추가
         user.setLetterCnt(user.getLetterCnt() + 3);
         log.info("유저 리워드 편지 3개 증정 완료");
+    }   
+        
+    /** 취향이 맞는 친구 찾기 **/
+    public Set<UserDto> findFriendByTag(int userId) {
+        // 변수
+        log.info("userId : {}", userId);
+        // 유저 및 태그 조회
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        Set<Tag> userTags = user.getTags();
+        // 취향 맞는 추천 친구 조회
+        Set<User> recommendedUsers = userRepository.findDistinctTop10ByIdNotAndIsActiveTrueAndTagsIn(userId, userTags);
+        // 사용자 태그 수집
+        // 유저가 아닌 다른 사람만
+        // IN으로 사용자 태그 리스트 안에 있는 것 수집
+        // 활성화된 사용자만
+        // 10개만 수집
+        // 랜덤은 parallel 메소드로 순서 보장 하지 않음
+        Set<UserDto> responseDto = FindFriendByTagResDto.toDto(recommendedUsers); // Set<User> users
+        return responseDto;
     }
 }
