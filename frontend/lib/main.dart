@@ -12,6 +12,7 @@ import 'package:buds/providers/my_page_provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:buds/services/step_counter_manager.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -20,7 +21,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 bool startedFromNotification = false;
 
 // 초기 라우트 (알림으로 시작된 경우 '/'가 아닌 다른 경로로 시작)
-String? initialRoute;
+String initialRoute = '/';
+
+// 걸음 수 관리자 전역 인스턴스
+final StepCounterManager stepCounterManager = StepCounterManager();
 
 // 백그라운드 알림 이벤트 핸들러
 @pragma('vm:entry-point')
@@ -76,6 +80,18 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
 
+  // 걸음 수 측정 서비스 초기화
+  try {
+    await stepCounterManager.initialize();
+    debugPrint('걸음 수 측정 서비스 초기화 성공');
+  } catch (e) {
+    debugPrint('걸음 수 측정 서비스 초기화 오류: $e');
+  }
+
+  // 알림 상태 초기화
+  startedFromNotification = false;
+  initialRoute = '/';
+
   // 네이티브 인텐트 확인 (안드로이드 전용)
   try {
     final intentData = await notificationService.checkInitialIntent();
@@ -100,28 +116,38 @@ void main() async {
       startedFromNotification = true;
       initialRoute = '/alarm';
       debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었습니다. 알람 화면으로 이동합니다.');
+
+      // 알람 상태를 SharedPreferences에 저장
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('started_from_notification', true);
+      await prefs.setString('initial_route', '/alarm');
     }
   } catch (e) {
     debugPrint('인텐트 확인 중 오류 발생: $e');
   }
 
-  // SharedPreferences에서 알림 상태 불러오기
+  // SharedPreferences에서 알림 상태 불러오기 (인텐트에서 확인되지 않은 경우)
   if (!startedFromNotification) {
     try {
       final prefs = await SharedPreferences.getInstance();
-      startedFromNotification =
+      final notificationFlag =
           prefs.getBool('started_from_notification') ?? false;
-      initialRoute = prefs.getString('initial_route');
+      final savedRoute = prefs.getString('initial_route') ?? '/';
 
-      if (startedFromNotification || initialRoute == '/alarm') {
+      debugPrint(
+        'SharedPreferences에서 알림 상태 확인: notificationFlag=$notificationFlag, savedRoute=$savedRoute',
+      );
+
+      // 알림을 통해 시작되었고, 라우트가 알람인 경우에만 알람 화면으로 이동
+      if (notificationFlag && savedRoute == '/alarm') {
         debugPrint('SharedPreferences: 알림을 통해 시작된 것으로 확인됨');
-        initialRoute = '/alarm';
         startedFromNotification = true;
-
-        // 읽은 후 상태 초기화
-        await prefs.setBool('started_from_notification', false);
-        await prefs.remove('initial_route');
+        initialRoute = '/alarm';
       }
+
+      // 상태 확인 후 초기화 (중복 알람 화면 전환 방지)
+      await prefs.setBool('started_from_notification', false);
+      await prefs.remove('initial_route');
     } catch (e) {
       debugPrint('SharedPreferences에서 알림 상태 읽기 실패: $e');
     }
@@ -164,35 +190,12 @@ class MyApp extends StatelessWidget {
       'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
     );
 
-    // 알림을 통해 시작된 경우 항상 알람 화면으로 이동
-    if (startedFromNotification || initialRoute == '/alarm') {
-      debugPrint('알림을 통해 앱이 시작되어 알람 화면으로 이동합니다.');
-
-      // 알람 화면으로 직접 이동하는 MaterialApp 반환
-      return MaterialApp(
-        title: 'buds',
-        navigatorKey: navigatorKey,
-        theme: appTheme,
-        initialRoute: '/alarm', // 항상 알람 화면으로 이동
-        debugShowCheckedModeBanner: false,
-        routes: {
-          '/': (context) => const MainScreen(),
-          '/alarm':
-              (context) => const AlarmScreen(
-                title: '기상 시간입니다',
-                message: '좋은 아침입니다! 일어날 시간이에요.',
-                notificationId: 0,
-              ),
-        },
-      );
-    }
-
-    // 일반 시작(알림 없이 시작)인 경우 기본 화면으로 이동
     return MaterialApp(
       title: 'buds',
       navigatorKey: navigatorKey,
       theme: appTheme,
-      initialRoute: '/',
+      // 알람 관련 상태에 따라 초기 라우트 결정
+      initialRoute: initialRoute,
       debugShowCheckedModeBanner: false,
       routes: {
         '/': (context) => const MainScreen(),
