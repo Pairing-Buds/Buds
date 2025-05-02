@@ -4,6 +4,7 @@ import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
+import 'package:buds/screens/survey/survey_screen.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -52,7 +53,10 @@ class HomeScreen extends StatelessWidget {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                // TODO: 배경음악 끄는 기능 추가
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SurveyScreen()),
+                );
               },
               child: Image.asset(
                 'assets/icons/music_active.png',

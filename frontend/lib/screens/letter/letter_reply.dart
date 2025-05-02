@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/screens/letter/letter_send.dart';
 
 class LetterReplyScreen extends StatelessWidget {
   const LetterReplyScreen({Key? key}) : super(key: key);
@@ -119,22 +120,34 @@ class LetterReplyScreen extends StatelessWidget {
                         const SizedBox(height: 12),
 
                         // 5. 답장 버튼
+                        // 5. 답장 버튼 (수정된 부분)
                         Center(
-                          child: Container(
-                            width: 140,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                '답장하기',
-                                style: TextStyle(color: Colors.black, fontSize: 16),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LetterSendScreen(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 140,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  '답장하기',
+                                  style: TextStyle(color: Colors.black, fontSize: 16),
+                                ),
                               ),
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 6),
                       ],
                     ),
