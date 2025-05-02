@@ -30,7 +30,7 @@ dependencies {
 	/** WEB */
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	/** DB */
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	implementation 'com.mysql:mysql-connector-j'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	/** CONFIGURATION **/
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
