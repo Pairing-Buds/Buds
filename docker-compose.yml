@@ -32,8 +32,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - CHROMADB_URL=http://${CHROMADB_HOST}:${CHROMADB_PORT}
-      - MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/mydb
+      - CHROMA_URL=http://${CHROMA_HOST}:${CHROMA_PORT}
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_PORT=${MYSQL_PORT}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -42,7 +41,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
-      chromadb:
+      chroma:
         condition: service_healthy
       mysql:
         condition: service_healthy
@@ -69,15 +68,15 @@ services:
       retries: 5
 
   # ChromaDB (Vector Database)
-  chromadb:
+  chroma:
     image: ghcr.io/chroma-core/chroma:latest
-    container_name: chromadb
+    container_name: chroma
     ports:
       - "8100:8000"  # 변경된 포트: FastAPI와 포트 충돌 방지
     volumes:
       - chroma-data:/chroma/chroma
     environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_DB_IMPL=duck+parquet
       - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
     restart: unless-stopped
     healthcheck:
