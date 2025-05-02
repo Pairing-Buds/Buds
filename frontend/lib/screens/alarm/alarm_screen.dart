@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/services/notification_service.dart';
-import 'package:buds/main.dart'; // isAlarmActive 접근을 위한 import
+import 'package:buds/main.dart'; // navigatorKey, startedFromNotification, initialRoute 접근을 위한 import
 import 'dart:async'; // Timer 클래스를 위한 import
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 알람이 울릴 때 표시되는 전체 화면
 class AlarmScreen extends StatefulWidget {
@@ -204,7 +205,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   }
 
   // 알람 끄기
-  void _dismissAlarm() {
+  void _dismissAlarm() async {
     // 알람 종료 로그
     debugPrint('======================================');
     debugPrint('사용자가 알람을 종료했습니다.');
@@ -212,14 +213,17 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     debugPrint('======================================');
 
     // 알림 취소
-    NotificationService().cancelAllAlarms();
+    await NotificationService().cancelAllAlarms();
+
+    // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
+    await NotificationService().deactivateAlarm();
 
     // 메인 화면으로 이동
     Navigator.of(context).pop();
   }
 
   // 5분 후 다시 알림
-  void _snoozeAlarm() {
+  void _snoozeAlarm() async {
     // 알람 스누즈 로그
     debugPrint('======================================');
     debugPrint('사용자가 알람을 5분 후로 스누즈했습니다.');
@@ -227,7 +231,10 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     debugPrint('======================================');
 
     // 스누즈 함수 호출
-    NotificationService().snoozeAlarm();
+    await NotificationService().snoozeAlarm();
+
+    // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
+    await NotificationService().deactivateAlarm();
 
     // 메인 화면으로 이동
     Navigator.of(context).pop();

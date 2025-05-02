@@ -69,13 +69,32 @@ class WakeUpSection extends StatelessWidget {
 
         // 테스트 알림 버튼
         const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: () => _sendTestNotification(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                icon: const Icon(Icons.notifications_active),
+                label: const Text('알람 테스트'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => _sendTestNotification(context),
+              ),
+              const SizedBox(width: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.app_registration),
+                label: const Text('인텐트 테스트'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => _testAlarmIntent(context),
+              ),
+            ],
           ),
-          child: const Text('테스트 알림 보내기'),
         ),
       ],
     );
@@ -240,6 +259,35 @@ class WakeUpSection extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('알림 오류: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  // 인텐트 테스트
+  void _testAlarmIntent(BuildContext context) async {
+    try {
+      // NotificationService를 통해 인텐트 테스트 실행
+      await NotificationService().testAlarmIntent();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('인텐트 테스트가 시작되었습니다'),
+            backgroundColor: Colors.purple,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('인텐트 테스트 오류: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('인텐트 테스트 오류: $e'),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 5),
           ),
