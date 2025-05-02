@@ -4,6 +4,7 @@ import 'package:buds/services/notification_service.dart';
 import 'package:buds/main.dart'; // navigatorKey, startedFromNotification, initialRoute 접근을 위한 import
 import 'dart:async'; // Timer 클래스를 위한 import
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:buds/services/lock_screen_manager.dart'; // 잠금화면 관리자 추가
 
 /// 알람이 울릴 때 표시되는 전체 화면
 class AlarmScreen extends StatefulWidget {
@@ -27,6 +28,8 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   late DateTime _currentTime;
   // 타이머
   late Timer _timer;
+  // 잠금화면 관리자
+  final LockScreenManager _lockScreenManager = LockScreenManager();
 
   @override
   void initState() {
@@ -40,6 +43,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
 
     // 앱 라이프사이클 변화 관찰 등록
     WidgetsBinding.instance.addObserver(this);
+
+    // 화면 표시 시 잠금화면 바이패스 활성화
+    _enableLockScreenBypass();
 
     // 알람 화면 시작 로그
     debugPrint('======================================');
@@ -59,6 +65,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     // 앱 라이프사이클 변화 관찰 해제
     WidgetsBinding.instance.removeObserver(this);
 
+    // 화면 종료 시 잠금화면 바이패스 비활성화
+    _disableLockScreenBypass();
+
     // 알람 화면 종료 로그
     debugPrint('======================================');
     debugPrint('알람 화면이 종료되었습니다.');
@@ -68,13 +77,39 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  // 잠금화면 바이패스 활성화
+  Future<void> _enableLockScreenBypass() async {
+    try {
+      await _lockScreenManager.enableLockScreenBypass();
+      debugPrint('알람 화면: 잠금화면 바이패스 활성화 요청 완료');
+    } catch (e) {
+      debugPrint('알람 화면: 잠금화면 바이패스 활성화 오류: $e');
+    }
+  }
+
+  // 잠금화면 바이패스 비활성화
+  Future<void> _disableLockScreenBypass() async {
+    try {
+      await _lockScreenManager.disableLockScreenBypass();
+      debugPrint('알람 화면: 잠금화면 바이패스 비활성화 요청 완료');
+    } catch (e) {
+      debugPrint('알람 화면: 잠금화면 바이패스 비활성화 오류: $e');
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 앱이 포그라운드로 돌아올 때 현재 시간 갱신
+    // 앱 상태 변화에 따른 처리
     if (state == AppLifecycleState.resumed) {
+      // 앱이 다시 활성화될 때 현재 시간 갱신 및 잠금화면 바이패스 활성화
       setState(() {
         _currentTime = DateTime.now();
       });
+      _enableLockScreenBypass();
+      debugPrint('알람 화면: 앱이 재개됨 - 잠금화면 바이패스 활성화');
+    } else if (state == AppLifecycleState.paused) {
+      // 앱이 백그라운드로 갈 때 처리
+      debugPrint('알람 화면: 앱이 일시정지됨');
     }
   }
 
@@ -218,6 +253,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
     await NotificationService().deactivateAlarm();
 
+    // 잠금화면 바이패스 비활성화
+    await _disableLockScreenBypass();
+
     // 메인 화면으로 이동
     Navigator.of(context).pop();
   }
@@ -235,6 +273,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
 
     // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
     await NotificationService().deactivateAlarm();
+
+    // 잠금화면 바이패스 비활성화
+    await _disableLockScreenBypass();
 
     // 메인 화면으로 이동
     Navigator.of(context).pop();

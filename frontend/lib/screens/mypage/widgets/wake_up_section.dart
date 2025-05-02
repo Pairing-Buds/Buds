@@ -4,13 +4,107 @@ import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/services/notification_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async'; // Timer 사용을 위한 import 추가
 
 // main.dart에서 정의한 전역 알림 서비스 인스턴스를 가져오기 위한 import
 import 'package:buds/main.dart';
 
 /// 기상 시간 섹션 위젯
-class WakeUpSection extends StatelessWidget {
+class WakeUpSection extends StatefulWidget {
   const WakeUpSection({Key? key}) : super(key: key);
+
+  @override
+  State<WakeUpSection> createState() => _WakeUpSectionState();
+}
+
+class _WakeUpSectionState extends State<WakeUpSection> {
+  // 알람 활성화 상태
+  bool _isAlarmActive = false;
+  String _alarmStatusText = '알람 상태 확인 중...';
+
+  // 주기적으로 알람 상태를 확인하기 위한 타이머
+  Timer? _statusCheckTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAlarmStatus();
+
+    // 30초마다 알람 상태 확인 (알람 시간이 지난 경우 자동 갱신)
+    _statusCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      _checkAlarmStatus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _statusCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  // 알람 상태 확인
+  Future<void> _checkAlarmStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final alarmHour = prefs.getInt('alarm_hour');
+      final alarmMinute = prefs.getInt('alarm_minute');
+      final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
+
+      if (alarmHour != null &&
+          alarmMinute != null &&
+          alarmScheduledDate != null) {
+        // 알람 시간을 DateTime으로 변환
+        final scheduledDate = DateTime.parse(alarmScheduledDate);
+        final now = DateTime.now();
+
+        // 알람이 미래인지 확인
+        if (scheduledDate.isAfter(now)) {
+          setState(() {
+            _isAlarmActive = true;
+            final hours = scheduledDate.difference(now).inHours;
+            final minutes = scheduledDate.difference(now).inMinutes % 60;
+            _alarmStatusText =
+                hours > 0 ? '$hours시간 $minutes분 후 알람 예정' : '$minutes분 후 알람 예정';
+          });
+        } else {
+          // 알람 시간이 지난 경우 자동으로 알람 상태 초기화
+          setState(() {
+            _isAlarmActive = false;
+            _alarmStatusText = '설정된 알람 없음';
+          });
+
+          // 지난 알람 데이터 삭제
+          await _removeExpiredAlarmData();
+        }
+      } else {
+        setState(() {
+          _isAlarmActive = false;
+          _alarmStatusText = '설정된 알람 없음';
+        });
+      }
+    } catch (e) {
+      debugPrint('알람 상태 확인 오류: $e');
+      setState(() {
+        _isAlarmActive = false;
+        _alarmStatusText = '알람 상태 확인 오류';
+      });
+    }
+  }
+
+  // 지난 알람 데이터 삭제
+  Future<void> _removeExpiredAlarmData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('alarm_hour');
+      await prefs.remove('alarm_minute');
+      await prefs.remove('alarm_scheduled_date');
+      await prefs.remove('alarm_scheduled_at');
+      debugPrint('지난 알람 데이터 삭제됨');
+    } catch (e) {
+      debugPrint('지난 알람 데이터 삭제 실패: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +126,10 @@ class WakeUpSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.3),
+              color:
+                  _isAlarmActive
+                      ? AppColors.primary.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -40,7 +137,11 @@ class WakeUpSection extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.wb_sunny, color: AppColors.primary, size: 40),
+                    Icon(
+                      Icons.wb_sunny,
+                      color: _isAlarmActive ? AppColors.primary : Colors.grey,
+                      size: 40,
+                    ),
                     const SizedBox(width: 18),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,27 +154,55 @@ class WakeUpSection extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
-                          '일어날 예정',
-                          style: TextStyle(fontSize: 15, color: Colors.black87),
+                        Text(
+                          _isAlarmActive ? _alarmStatusText : '알람 설정하기',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color:
+                                _isAlarmActive ? Colors.black87 : Colors.grey,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 16),
+                Icon(
+                  _isAlarmActive ? Icons.alarm_on : Icons.arrow_forward_ios,
+                  size: _isAlarmActive ? 24 : 16,
+                  color: _isAlarmActive ? AppColors.primary : Colors.grey,
+                ),
               ],
             ),
           ),
         ),
 
-        // 테스트 알림 버튼
+        // 테스트 알림 버튼과 알람 상태 관리 버튼
         const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // 알람 체크 버튼
+              ElevatedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: const Text('알람 상태 확인'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  _checkAlarmStatus();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('알람 상태를 확인했습니다.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              // 알람 테스트 버튼
               ElevatedButton.icon(
                 icon: const Icon(Icons.notifications_active),
                 label: const Text('알람 테스트'),
@@ -83,7 +212,28 @@ class WakeUpSection extends StatelessWidget {
                 ),
                 onPressed: () => _sendTestNotification(context),
               ),
+            ],
+          ),
+        ),
+
+        // 알람 제거 및 인텐트 테스트 버튼 추가
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 알람 끄기 버튼
+              ElevatedButton.icon(
+                icon: const Icon(Icons.delete),
+                label: const Text('알람 제거'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => _cancelAllAlarms(context),
+              ),
               const SizedBox(width: 16),
+              // 인텐트 테스트 버튼
               ElevatedButton.icon(
                 icon: const Icon(Icons.app_registration),
                 label: const Text('인텐트 테스트'),
@@ -100,11 +250,49 @@ class WakeUpSection extends StatelessWidget {
     );
   }
 
+  // 모든 알람 취소
+  void _cancelAllAlarms(BuildContext context) async {
+    try {
+      await NotificationService().cancelAllAlarms();
+
+      // 알람 상태 즉시 변경 (UI 반응성 향상)
+      setState(() {
+        _isAlarmActive = false;
+        _alarmStatusText = '설정된 알람 없음';
+      });
+
+      // 백그라운드에서 알람 상태 확인 (데이터 정합성 확보)
+      _checkAlarmStatus();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('모든 알람이 취소되었습니다.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('알람 취소 오류: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('알람 취소 오류: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   void _showTimePickerBottomSheet(
     BuildContext context,
     MyPageProvider provider,
   ) {
     final currentTime = provider.wakeUpTime;
+    TimeOfDay selectedTime = currentTime;
 
     showModalBottomSheet(
       context: context,
@@ -134,10 +322,10 @@ class WakeUpSection extends StatelessWidget {
                   const SizedBox(height: 24),
                   Expanded(
                     child: TimePickerSpinner(
-                      time: provider.wakeUpTime,
+                      time: currentTime,
                       onTimeChange: (time) {
                         setState(() {
-                          provider.wakeUpTime = time;
+                          selectedTime = time;
                         });
                       },
                     ),
@@ -148,7 +336,11 @@ class WakeUpSection extends StatelessWidget {
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        _setWakeUpAlarm(context, provider.wakeUpTime);
+                        // 선택한 시간을 프로바이더에 저장
+                        provider.wakeUpTime = selectedTime;
+
+                        // 알람 설정
+                        _setWakeUpAlarm(context, selectedTime);
                         Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
@@ -208,6 +400,15 @@ class WakeUpSection extends StatelessWidget {
 
       // 알람 예약
       await NotificationService().scheduleWakeUpAlarm(wakeUpTime);
+
+      // 알람 상태 즉시 갱신 (UI 반응성)
+      setState(() {
+        _isAlarmActive = true;
+        _alarmStatusText = '알람 설정됨';
+      });
+
+      // 실제 데이터 확인 (데이터 정합성)
+      _checkAlarmStatus();
 
       // 성공 메시지 표시
       if (context.mounted) {

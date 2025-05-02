@@ -184,18 +184,6 @@ class NotificationService {
     }
   }
 
-  /// 앱 재시작을 위한 알림 상태 저장
-  Future<void> _saveNotificationStateForRestart() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('started_from_notification', true);
-      await prefs.setString('initial_route', '/alarm');
-      debugPrint('재시작용 알림 상태 저장 완료');
-    } catch (e) {
-      debugPrint('재시작용 알림 상태 저장 실패: $e');
-    }
-  }
-
   /// 알림 응답 처리
   void _onNotificationResponse(NotificationResponse response) {
     debugPrint('======================================');
@@ -204,31 +192,54 @@ class NotificationService {
     );
     debugPrint('알림 응답 시간: ${DateTime.now().toString()}');
 
-    // 알림 상태를 SharedPreferences에 저장 (재시작 시 사용)
-    _saveNotificationStateForRestart();
-
-    // 전역 변수에도 직접 설정
-    startedFromNotification = true;
-    initialRoute = '/alarm';
-
     // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
-    if (response.id == 0 ||
-        response.id == 1 ||
-        response.id == 100 ||
-        response.payload == 'alarm' ||
-        response.payload == 'alarm_snooze' ||
-        response.payload == 'alarm_test') {
+    if (_isAlarmNotification(response.id ?? 0, response.payload ?? '')) {
       debugPrint('알람 관련 알림이 탭되었습니다. 알람 화면으로 이동합니다.');
-      debugPrint(
-        '상태 확인: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
-      );
 
-      // 알람 화면으로 즉시 이동
-      navigateToAlarmScreen();
+      // 알림 상태를 SharedPreferences에 저장 (재시작 시 사용)
+      _saveNotificationStateForRestart().then((_) {
+        // 전역 변수에도 직접 설정
+        startedFromNotification = true;
+        initialRoute = '/alarm';
+
+        debugPrint(
+          '상태 확인: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
+        );
+
+        // 알람 화면으로 즉시 이동
+        navigateToAlarmScreen();
+      });
     } else {
       debugPrint('알람 관련 알림이 아닌 일반 알림이 탭되었습니다.');
     }
     debugPrint('======================================');
+  }
+
+  /// 알람 관련 알림인지 확인
+  bool _isAlarmNotification(int id, String payload) {
+    return id == 0 ||
+        id == 1 ||
+        id == 100 ||
+        payload == 'alarm' ||
+        payload == 'alarm_snooze' ||
+        payload == 'alarm_test';
+  }
+
+  /// 앱 재시작을 위한 알림 상태 저장
+  Future<void> _saveNotificationStateForRestart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('started_from_notification', true);
+      await prefs.setString('initial_route', '/alarm');
+
+      // 저장 시간도 함께 기록
+      await prefs.setString('notification_saved_at', DateTime.now().toString());
+      debugPrint('재시작용 알림 상태 저장 완료');
+      return Future.value();
+    } catch (e) {
+      debugPrint('재시작용 알림 상태 저장 실패: $e');
+      return Future.value();
+    }
   }
 
   /// 알람 화면으로 이동
@@ -245,8 +256,18 @@ class NotificationService {
     Future.microtask(() {
       if (navigatorKey.currentState != null) {
         try {
-          // 알람 화면으로 이동
-          navigatorKey.currentState!.pushNamed('/alarm');
+          // 기존 라우트 체크 (이미 알람 화면이 있으면 스택에서 제거 후 새로 추가)
+          final currentRoute =
+              ModalRoute.of(navigatorKey.currentState!.context)?.settings.name;
+          debugPrint('현재 라우트: $currentRoute');
+
+          if (currentRoute == '/alarm') {
+            // 이미 알람 화면에 있으면 새로 고침
+            navigatorKey.currentState!.pushReplacementNamed('/alarm');
+          } else {
+            // 알람 화면으로 이동
+            navigatorKey.currentState!.pushNamed('/alarm');
+          }
           debugPrint('알람 화면 이동 성공');
         } catch (e) {
           debugPrint('알람 화면 이동 오류: $e');
@@ -280,7 +301,7 @@ class NotificationService {
     try {
       // 전역 변수 초기화
       startedFromNotification = false;
-      initialRoute = null;
+      initialRoute = '/'; // null 대신 기본 루트 사용
 
       // SharedPreferences에서 값 초기화
       final prefs = await SharedPreferences.getInstance();
@@ -490,7 +511,6 @@ class NotificationService {
       priority: Priority.high,
       fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
-      // 알림을 탭했을 때 from_notification 플래그가 전달되도록 설정
       actions: <AndroidNotificationAction>[
         const AndroidNotificationAction(
           'dismiss',
@@ -544,8 +564,20 @@ class NotificationService {
       );
       debugPrint('현재 시간으로부터: $hours시간 $minutes분 후');
 
-      // 알림 상태를 미리 저장 (알림 수신 시 사용)
-      await _saveNotificationStateForRestart();
+      // SharedPreferences에 알람 시간 저장
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('alarm_hour', time.hour);
+        await prefs.setInt('alarm_minute', time.minute);
+        await prefs.setString(
+          'alarm_scheduled_date',
+          scheduledDateTime.toString(),
+        );
+        await prefs.setString('alarm_scheduled_at', DateTime.now().toString());
+        debugPrint('알람 시간 SharedPreferences에 저장됨');
+      } catch (e) {
+        debugPrint('알람 시간 저장 실패: $e');
+      }
 
       // 알림 예약
       await _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -634,6 +666,18 @@ class NotificationService {
       await _flutterLocalNotificationsPlugin.cancel(999);
       // 다른 테스트 알람 (ID: 100)
       await _flutterLocalNotificationsPlugin.cancel(100);
+
+      // SharedPreferences에서 알람 관련 데이터 삭제
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('alarm_hour');
+        await prefs.remove('alarm_minute');
+        await prefs.remove('alarm_scheduled_date');
+        await prefs.remove('alarm_scheduled_at');
+        debugPrint('알람 관련 SharedPreferences 데이터 삭제됨');
+      } catch (e) {
+        debugPrint('알람 관련 SharedPreferences 데이터 삭제 실패: $e');
+      }
 
       debugPrint('======================================');
       debugPrint('모든 알람 취소 완료');

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/providers/character_provider.dart';
 import 'widgets/wake_up_section.dart';
+import 'widgets/step_section.dart';
 
 class MyPageScreen extends StatelessWidget {
   const MyPageScreen({Key? key}) : super(key: key);
@@ -52,47 +53,7 @@ class MyPageScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('목표 걸음', style: TextStyle(fontSize: 16)),
-                              SizedBox(height: 4),
-                              Text(
-                                '6,000 보',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('현재', style: TextStyle(fontSize: 16)),
-                              const SizedBox(height: 4),
-                              Text(
-                                '5,849 보',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                    const StepSection(),
                   ],
                 ),
               ),
