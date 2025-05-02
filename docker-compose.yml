@@ -74,10 +74,10 @@ services:
     ports:
       - "8100:8000"  # 변경된 포트: FastAPI와 포트 충돌 방지
     volumes:
-      - chroma-data:/chroma/chroma
+      - chroma-data:/data
     environment:
-      - CHROMA_DB_IMPL=duck+parquet
-      - CHROMA_PERSIST_DIRECTORY=/chroma/chroma
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_PERSIST_DIRECTORY=/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
@@ -98,7 +98,7 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 5s
-      retries: 10
+      retries: 5
 
   # Nginx (Web Server/Proxy)
   nginx:
