@@ -34,4 +34,7 @@ public class Letter extends CreateBaseTime {
     @Column(name = "status", nullable = false)
     private LetterStatus status;
 
+    @Column(name = "is_tag_based", nullable = false)
+    private Boolean isTagBased;
+
 }
