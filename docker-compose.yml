@@ -10,6 +10,7 @@ services:
     environment:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_PORT=${MYSQL_PORT}
@@ -85,14 +86,14 @@ services:
   redis:
     image: redis:7
     container_name: redis
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}", "--user", "Pairing", "on", ">", "${REDIS_PASSWORD}", "~*", "+@all" ]
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 5s
       retries: 10
 
