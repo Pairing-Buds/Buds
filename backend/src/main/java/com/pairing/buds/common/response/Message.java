@@ -21,6 +21,9 @@ public enum Message {
     FAIL_TO_SEND_EMAIL("이메일 발송에 실패했습니다."),
     TOKEN_NOT_FOUND("유효하지 않거나 만료된 인증 토큰입니다."),
     ALREADY_COMPLETED("이미 완료된 요청입니다."),
+    RECEIVER_NOT_FOUND("수신자를 찾을 수 없습니다."),
+    TAGS_NOT_SELECTED("저장된 태그가 없습니다."),
+    LETTER_NOT_FOUND("편지를 찾을 수 없습니다."),
 
     OK("성공"),
     CREATED("성공")

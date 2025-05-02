@@ -7,13 +7,147 @@ import 'package:provider/provider.dart';
 import 'providers/agree_provider.dart';
 import 'providers/character_provider.dart';
 import 'package:buds/screens/main_screen.dart';
+import 'package:buds/services/notification_service.dart';
+import 'package:buds/providers/my_page_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:buds/screens/alarm/alarm_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+// 네비게이션 키 (전역에서 네비게이션 처리를 위함)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// 앱이 알림을 통해 시작되었는지 여부 (전역 변수)
+bool startedFromNotification = false;
+
+// 초기 라우트 (알림으로 시작된 경우 '/'가 아닌 다른 경로로 시작)
+String? initialRoute;
+
+// 백그라운드 알림 이벤트 핸들러
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse notificationResponse) {
+  // 백그라운드에서 실행될 코드
+  // 이 함수는 정적으로 접근 가능하고 NotificationService에서 참조됨
+  debugPrint(
+    '======================================\n'
+    '백그라운드 알림 핸들러 실행됨\n'
+    'ID: ${notificationResponse.id}, 페이로드: ${notificationResponse.payload}\n'
+    '시간: ${DateTime.now().toString()}\n'
+    '======================================',
+  );
+
+  try {
+    // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
+    if (notificationResponse.id == 0 ||
+        notificationResponse.id == 1 ||
+        notificationResponse.id == 100 ||
+        notificationResponse.payload == 'alarm' ||
+        notificationResponse.payload == 'alarm_snooze' ||
+        notificationResponse.payload == 'alarm_test') {
+      // 알림 상태 저장 (SharedPreferences)
+      // 이 코드는 백그라운드에서 실행되므로 SharedPreferences 인스턴스를 비동기적으로 얻어야 함
+      SharedPreferences.getInstance().then((prefs) {
+        // 알림을 통한 시작 상태 저장
+        prefs.setBool('started_from_notification', true).then((_) {
+          debugPrint('백그라운드: started_from_notification = true 저장됨');
+        });
+
+        // 초기 라우트 저장
+        prefs.setString('initial_route', '/alarm').then((_) {
+          debugPrint('백그라운드: initial_route = /alarm 저장됨');
+        });
+      });
+
+      // 전역 변수에도 설정 (앱이 실행 중인 경우 사용됨)
+      startedFromNotification = true;
+      initialRoute = '/alarm';
+
+      debugPrint('백그라운드: 알람 알림 상태 저장 완료');
+    }
+  } catch (e) {
+    debugPrint('백그라운드 알림 처리 오류: $e');
+  }
+}
+
+void main() async {
+  // Flutter 엔진 초기화 보장
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 알림 서비스 초기화
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+
+  // 네이티브 인텐트 확인 (안드로이드 전용)
+  try {
+    final intentData = await notificationService.checkInitialIntent();
+    final bool isAlarm = intentData['is_alarm'] == true;
+    final String action = intentData['action'] as String? ?? '';
+    final int notificationId = intentData['notification_id'] as int? ?? -1;
+
+    debugPrint(
+      '인텐트 확인: action=$action, isAlarm=$isAlarm, notificationId=$notificationId',
+    );
+
+    // 알람 관련 인텐트인지 확인
+    bool isAlarmRelated =
+        isAlarm ||
+        action == 'SELECT_NOTIFICATION' ||
+        action == 'com.buds.app.ALARM_NOTIFICATION' ||
+        notificationId == 0 ||
+        notificationId == 1 ||
+        notificationId == 100;
+
+    if (isAlarmRelated) {
+      startedFromNotification = true;
+      initialRoute = '/alarm';
+      debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었습니다. 알람 화면으로 이동합니다.');
+    }
+  } catch (e) {
+    debugPrint('인텐트 확인 중 오류 발생: $e');
+  }
+
+  // SharedPreferences에서 알림 상태 불러오기
+  if (!startedFromNotification) {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      startedFromNotification =
+          prefs.getBool('started_from_notification') ?? false;
+      initialRoute = prefs.getString('initial_route');
+
+      if (startedFromNotification || initialRoute == '/alarm') {
+        debugPrint('SharedPreferences: 알림을 통해 시작된 것으로 확인됨');
+        initialRoute = '/alarm';
+        startedFromNotification = true;
+
+        // 읽은 후 상태 초기화
+        await prefs.setBool('started_from_notification', false);
+        await prefs.remove('initial_route');
+      }
+    } catch (e) {
+      debugPrint('SharedPreferences에서 알림 상태 읽기 실패: $e');
+    }
+  }
+
+  // 권한 요청 (Android만 사용)
+  await NotificationService().requestPermission();
+
+  // 앱 상태 로깅
+  debugPrint('======================================');
+  debugPrint('앱 시작됨: ${DateTime.now().toString()}');
+  debugPrint('알림을 통한 시작 여부: $startedFromNotification');
+  debugPrint('초기 라우트: $initialRoute');
+  debugPrint('======================================');
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AgreementProvider()),
         ChangeNotifierProvider(create: (_) => CharacterProvider()),
+        ChangeNotifierProvider(
+          create:
+              (context) => MyPageProvider(
+                Provider.of<CharacterProvider>(context, listen: false),
+              ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -25,12 +159,50 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 로깅 추가
+    debugPrint(
+      'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
+    );
+
+    // 알림을 통해 시작된 경우 항상 알람 화면으로 이동
+    if (startedFromNotification || initialRoute == '/alarm') {
+      debugPrint('알림을 통해 앱이 시작되어 알람 화면으로 이동합니다.');
+
+      // 알람 화면으로 직접 이동하는 MaterialApp 반환
+      return MaterialApp(
+        title: 'buds',
+        navigatorKey: navigatorKey,
+        theme: appTheme,
+        initialRoute: '/alarm', // 항상 알람 화면으로 이동
+        debugShowCheckedModeBanner: false,
+        routes: {
+          '/': (context) => const MainScreen(),
+          '/alarm':
+              (context) => const AlarmScreen(
+                title: '기상 시간입니다',
+                message: '좋은 아침입니다! 일어날 시간이에요.',
+                notificationId: 0,
+              ),
+        },
+      );
+    }
+
+    // 일반 시작(알림 없이 시작)인 경우 기본 화면으로 이동
     return MaterialApp(
       title: 'buds',
+      navigatorKey: navigatorKey,
       theme: appTheme,
-      home: const MainScreen(),
-      //home: const LoginMainScreen(),
+      initialRoute: '/',
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/': (context) => const MainScreen(),
+        '/alarm':
+            (context) => const AlarmScreen(
+              title: '기상 시간입니다',
+              message: '좋은 아침입니다! 일어날 시간이에요.',
+              notificationId: 0,
+            ),
+      },
     );
   }
 }
