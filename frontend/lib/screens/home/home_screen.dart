@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:buds/screens/home/widget/shell_screen.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
