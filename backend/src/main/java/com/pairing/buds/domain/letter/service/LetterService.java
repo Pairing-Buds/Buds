@@ -1,9 +1,176 @@
 package com.pairing.buds.domain.letter.service;
 
+import com.pairing.buds.common.exception.ApiException;
+import com.pairing.buds.common.response.Message;
+import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
+import com.pairing.buds.domain.letter.dto.response.ChatUserInfoResDto;
+import com.pairing.buds.domain.letter.dto.response.LetterChatListResDto;
+import com.pairing.buds.domain.letter.dto.response.LetterDetailListResDto;
+import com.pairing.buds.domain.letter.dto.response.LetterDetailResDto;
+import com.pairing.buds.domain.letter.entity.Letter;
+import com.pairing.buds.domain.letter.entity.LetterStatus;
+import com.pairing.buds.domain.letter.repository.LetterRepository;
+import com.pairing.buds.domain.user.entity.Tag;
+import com.pairing.buds.domain.user.entity.TagType;
+import com.pairing.buds.domain.user.entity.User;
+import com.pairing.buds.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class LetterService {
+
+    private final LetterRepository letterRepository;
+    private final UserRepository userRepository;
+
+    /** 편지 랜덤 발송 **/
+    public void sendLetter(Integer userId, SendLetterReqDto dto) {
+        User sender = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        List<User> candidates;
+
+        if(dto.getIsTagBased()) {
+            // 태그 기반 랜덤 발송(1개 이상 일치하는 경우 후보)
+            List<TagType> senderTags = sender.getTags().stream()
+                    .map(Tag::getTagName)
+                    .toList();
+
+            // sender가 태그를 선택하지 않은 경우
+            if (senderTags.isEmpty()) {
+                throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_SELECTED);
+            }
+
+            candidates = userRepository.findRandomReceiverByTags(
+                    sender.getId(),
+                    senderTags,
+                    PageRequest.of(0, 1)
+            );
+
+        } else {
+            // 일반 랜덤 발송
+            candidates = userRepository.findRandomReceiver(sender.getId(), PageRequest.of(0, 1));
+        }
+
+        // 후보가 없으면 예외 처리
+        User receiver = candidates.stream()
+                .findFirst()
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.RECEIVER_NOT_FOUND));
+
+        Letter letter = Letter.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .content(dto.getContent())
+                .status(LetterStatus.UNREAD)
+                .isTagBased(dto.getIsTagBased())
+                .build();
+
+        letterRepository.save(letter);
+    }
+
+    /** 편지 채팅 리스트 조회 **/
+    public LetterChatListResDto getLetterChatList(Integer userId) {
+        User loginUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        // userId 기준 수*발신 편지 조회
+        List<Letter> letters = letterRepository.findAllBySenderIdOrReceiverIdOrderByIdDesc(userId, userId);
+
+        // 상대방별로 주고받은 편지 중 최신 편지 1개 남기기 (LinkedHashMap -> 최신순 유지)
+        Map<Integer, Letter> latestLetterMap = new LinkedHashMap<>();
+
+        for (Letter letter : letters) {
+            User opponent = letter.getSender().getId().equals(userId) ? letter.getReceiver() : letter.getSender();
+            Integer opponentId = opponent.getId();
+
+            // 이미 있으면 스킵
+            if (!latestLetterMap.containsKey(opponentId)) {
+                latestLetterMap.put(opponentId, letter);
+            }
+        }
+
+        List<ChatUserInfoResDto> chatUsers = latestLetterMap.values().stream()
+                .map(letter -> {
+                    User opponent = letter.getSender().getId().equals(userId) ? letter.getReceiver() : letter.getSender();
+                    boolean isReceived = letter.getReceiver().getId().equals(userId);
+
+                    return ChatUserInfoResDto.builder()
+                            .userId(opponent.getId())
+                            .userName(opponent.getUserName())
+                            .lastLetterDate(letter.getCreatedAt().toLocalDate())
+                            .lastLetterStatus(letter.getStatus())
+                            .isReceived(isReceived)
+                            .build();
+                })
+                .toList();
+
+        return LetterChatListResDto.builder()
+                .letterCnt(loginUser.getLetterCnt())
+                .chatList(chatUsers)
+                .build();
+    }
+
+    /** 특정 사용자와의 편지 상세 목록 조회 **/
+    public LetterDetailListResDto getLetterDetailList(Integer userId, Integer opponentId, int page, int size) {
+        User loginUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        User opponent = userRepository.findById(opponentId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        // 두 사용자간 편지 페이지 조회 (최신순)
+        Page<Letter> letterPage = letterRepository.findLettersBetweenUsers(userId, opponentId, PageRequest.of(page, size));
+
+        List<LetterDetailResDto> letters = letterPage.getContent().stream()
+                .map(letter -> {
+
+                    boolean isReceived = letter.getReceiver().getId().equals(userId);
+
+                    return LetterDetailResDto.builder()
+                            .letterId(letter.getId())
+                            .senderName(letter.getSender().getUserName())
+                            .content(letter.getContent())
+                            .createdAt(letter.getCreatedAt().toLocalDate())
+                            .isReceived(isReceived)
+                            .status(letter.getStatus())
+                            .build();
+                })
+                .toList();
+
+        return LetterDetailListResDto.builder()
+                .opponentId(opponent.getId())
+                .opponentName(opponent.getUserName())
+                .currentPage(letterPage.getNumber())
+                .totalPages(letterPage.getTotalPages())
+                .letters(letters)
+                .build();
+    }
+
+    /** 최근 수신 편지 1건 조회 **/
+    public LetterDetailResDto getLatestReceivedLetter(Integer userId) {
+        User loginUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        // 가장 최근 편지 한 건 조회
+        Letter letter = letterRepository.findFirstByReceiver_IdOrderByCreatedAtDesc(loginUser.getId())
+                .orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+
+        return LetterDetailResDto.builder()
+                .letterId(letter.getId())
+                .senderName(letter.getSender().getUserName())
+                .content(letter.getContent())
+                .createdAt(letter.getCreatedAt().toLocalDate())
+                .isReceived(true) // 항상 수신 메시지
+                .status(letter.getStatus())
+                .build();
+    }
+
 }
