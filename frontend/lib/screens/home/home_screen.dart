@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
+import 'package:buds/screens/survey/survey_screen.dart';
+import 'package:buds/screens/home/widgets/speech_bubble.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -49,7 +51,10 @@ class HomeScreen extends StatelessWidget {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                // TODO: 배경음악 끄는 기능 추가
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SurveyScreen()),
+                );
               },
               child: Image.asset(
                 'assets/icons/music_active.png',
@@ -62,7 +67,7 @@ class HomeScreen extends StatelessWidget {
           // 캐릭터 이미지
           Positioned(
             top: MediaQuery.of(context).size.height * 0.435,
-            left: MediaQuery.of(context).size.width * 0.5 - 100, // 화면 가로 가운데에 맞추기 (width 200 고려)
+            left: MediaQuery.of(context).size.width * 0.5 - 100,
             child: Image.asset(
               'assets/images/newmarmet.png',
               width: 200,
@@ -70,13 +75,13 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // 조개 아이콘 클릭시 shell_screen으로 이동
+          // 말풍선 위젯
+          const SpeechBubbleScreen(),
+
+          // 조개 아이콘
           Positioned(
-            top: MediaQuery
-                .of(context)
-                .size
-                .height * 0.575,
-            left: 40, // 왼쪽에서 40px 띄움
+            top: MediaQuery.of(context).size.height * 0.575,
+            left: 40,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -94,10 +99,7 @@ class HomeScreen extends StatelessWidget {
 
           // 편지 아이콘
           Positioned(
-            bottom: MediaQuery
-        .of(context)
-        .size
-        .height * 0.15-100,
+            bottom: MediaQuery.of(context).size.height * 0.15 - 100,
             left: 190,
             right: 0,
             child: Center(

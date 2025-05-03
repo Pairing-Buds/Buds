@@ -8,7 +8,6 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "letters")
@@ -32,6 +31,9 @@ public class Letter extends CreateBaseTime {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private LetterStatus status;
+    private LetterStatus status = LetterStatus.UNREAD;
+
+    @Column(name = "is_tag_based", nullable = false)
+    private Boolean isTagBased;
 
 }

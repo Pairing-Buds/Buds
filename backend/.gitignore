@@ -30,6 +30,7 @@ out/
 resources
 application.yml
 *.idea
+*.idea/**
 
 ### NetBeans ###
 /nbproject/private/

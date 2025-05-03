@@ -3,6 +3,7 @@ package com.pairing.buds.domain.user.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.request.UpdateUserTagsReqDto;
 import com.pairing.buds.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -22,8 +23,16 @@ public class UserController {
     public ResponseDto getTags(@AuthenticationPrincipal Integer userId) {
         return new ResponseDto(StatusCode.OK, userService.getUserTags(userId));
     }
+    /** 전체 태그 조회 **/
+    @GetMapping("/all-tags")
+    public ResponseDto getAllTags(@AuthenticationPrincipal int userId) {
+        return new ResponseDto(StatusCode.OK, userService.getAllTags(userId));
+    }
 
-    /** 사용자 태그 업데이트 **/
+
+
+
+    /** 태그 업데이트(신규 저장 포함) **/
     @PostMapping("/tags")
     public ResponseDto updateUserTags(
             @AuthenticationPrincipal Integer userId,
@@ -31,5 +40,14 @@ public class UserController {
         userService.updateUserTags(userId, dto.getTags());
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
+    /** 설문조사 결과 저장 **/
+    @PostMapping("/survey-result")
+    public ResponseDto saveSurveyResult(
+            @AuthenticationPrincipal Integer userId,
+            @Valid @RequestBody SaveSurveyResultReqDto dto) {
+        userService.saveSurveyResult(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
 
 }

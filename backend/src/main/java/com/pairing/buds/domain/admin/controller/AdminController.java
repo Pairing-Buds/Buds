@@ -37,7 +37,7 @@ public class AdminController {
     @GetMapping("/questions/{questionId}")
     public ResponseDto getQuestionOfUser(
             @AuthenticationPrincipal int adminId,
-            int questionId
+            @PathVariable("questionId") int questionId
     ){
         return new ResponseDto(StatusCode.OK, adminService.getQuestionOfUser(adminId, questionId));
     }
