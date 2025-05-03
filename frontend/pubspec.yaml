@@ -83,7 +83,6 @@ flutter:
         - asset: assets/fonts/GmarketSansTTFMedium.ttf
         - asset: assets/fonts/GmarketSansTTFBold.ttf
           weight: 700
-
     - family: MangoDdobak
       fonts:
         - asset: assets/fonts/MangoDdobak-B.ttf
