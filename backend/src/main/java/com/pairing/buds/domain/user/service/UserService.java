@@ -36,11 +36,7 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
         return user.getTags().stream()
-                .map(tag -> TagResDto.builder()
-                        .tagType(String.valueOf(tag.getTagName()))
-                        .displayName(tag.getTagName().getDisplayName())
-                        .build()
-                )
+                .map(TagResDto::toTagRes)
                 .collect(Collectors.toList());
     }
 
@@ -55,10 +51,9 @@ public class UserService {
 
         // 새로 선택된 enum 목록 Tag 엔티티 생성·추가
         for (TagType type : selected) {
-            Tag tag = Tag.builder()
-                    .user(user)
-                    .tagName(type)
-                    .build();
+            Tag tag = new Tag();
+            tag.setUser(user);
+            tag.setTagName(type);
             user.getTags().add(tag);
         }
 
@@ -90,11 +85,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
-        return MyInfoResDto.builder()
-                .userEmail(user.getUserEmail())
-                .userName(user.getUserName())
-                .letterCnt(user.getLetterCnt())
-                .build();
+        return MyInfoResDto.toMyInfoRes(user);
     }
 
     /** 회원 수정 **/

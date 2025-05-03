@@ -1,5 +1,7 @@
 package com.pairing.buds.common.auth.dto.request;
 
+import com.pairing.buds.domain.user.entity.User;
+import com.pairing.buds.domain.user.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -23,5 +25,15 @@ public class UserSignupReqDto {
     private String password;
 
     private LocalDate birthDate;
+
+    public static User toUser(UserSignupReqDto dto, String encodedPassword) {
+        User user = new User();
+        user.setUserEmail(dto.getUserEmail());
+        user.setPassword(encodedPassword);
+        user.setBirthDate(dto.getBirthDate());
+        user.setRole(UserRole.USER);
+
+        return user;
+    }
 
 }

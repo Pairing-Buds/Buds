@@ -9,7 +9,6 @@ import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.user.entity.SignupStatus;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.entity.UserCharacter;
-import com.pairing.buds.domain.user.entity.UserRole;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import com.pairing.buds.domain.user.service.VerificationService;
 import jakarta.transaction.Transactional;
@@ -39,12 +38,7 @@ public class AuthService {
 
         String encodedPwd = passwordEncoder.encode(dto.getPassword());
 
-        User user = User.builder()
-                .userEmail(dto.getUserEmail())
-                .password(encodedPwd)
-                .birthDate(dto.getBirthDate())
-                .role(UserRole.USER)
-                .build();
+        User user = UserSignupReqDto.toUser(dto, encodedPwd);
 
         userRepository.save(user);
     }
