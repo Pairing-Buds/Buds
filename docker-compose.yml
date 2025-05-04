@@ -19,6 +19,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - KAKAO_API_KEY=${KAKAO_API_KEY}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - LOGGING_LEVEL_ROOT=INFO
     depends_on:
       mysql:
         condition: service_healthy
