@@ -12,4 +12,5 @@ import lombok.Setter;
 public class DiaryReqDto {
     private String diaryType;
     private String content;
+    private String date;
 }
