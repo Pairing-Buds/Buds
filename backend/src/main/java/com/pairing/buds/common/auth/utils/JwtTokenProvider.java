@@ -98,8 +98,7 @@ public class JwtTokenProvider {
     public void addTokensToResponse(HttpServletResponse response, String accessToken, String refreshToken) {
         // 1) Access Token 쿠키 설정
         Cookie accessCookie = new Cookie("access_token", accessToken);
-//        accessCookie.setDomain("localhost");
-        accessCookie.setHttpOnly(true);                  // 자바스크립트 접근 차단
+        accessCookie.setHttpOnly(false);                  // 자바스크립트 접근 차단
         accessCookie.setSecure(false);                    // HTTPS에서만 전송
         accessCookie.setPath("/");                       // 전체 경로에서 접근 가능
         accessCookie.setMaxAge((int) (accessExpiration / 1000));  // 만료 시간(초)
@@ -107,8 +106,7 @@ public class JwtTokenProvider {
 
         // 2) Refresh Token 쿠키 설정
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
-//        refreshCookie.setDomain("localhost");
-        refreshCookie.setHttpOnly(true);
+        refreshCookie.setHttpOnly(false);
         refreshCookie.setSecure(false);
         refreshCookie.setPath("/");
         refreshCookie.setMaxAge((int) (refreshExpiration / 1000));
