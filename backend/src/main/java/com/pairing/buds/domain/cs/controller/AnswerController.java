@@ -24,10 +24,9 @@ public class AnswerController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test42")
-    public ResponseDto test42(){
+    @GetMapping("/final-final-final-test")
+    public ResponseDto finalfinalfianltest(){
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
-
 
 }
