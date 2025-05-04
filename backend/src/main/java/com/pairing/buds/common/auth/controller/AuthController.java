@@ -1,5 +1,6 @@
 package com.pairing.buds.common.auth.controller;
 
+import com.pairing.buds.common.auth.dto.request.PasswordResetReqDto;
 import com.pairing.buds.common.auth.dto.request.UserCompleteReqDto;
 import com.pairing.buds.common.auth.dto.request.UserSignupReqDto;
 import com.pairing.buds.common.auth.service.AuthService;
@@ -25,7 +26,7 @@ public class AuthController {
     private final VerificationService verificationService;
     private final NicknameGenerator ng;
 
-    /** 이메일 인증 메일 요청 **/
+    /** 회원가입 이메일 인증 메일 요청 **/
     @PostMapping("/email/request")
     public ResponseDto requestEmailToken(
             @RequestParam("user-email") @Email String userEmail) {
@@ -60,6 +61,24 @@ public class AuthController {
             @AuthenticationPrincipal Integer userId,
             @Valid @RequestBody UserCompleteReqDto dto) {
         authService.completeSignup(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+    /** 비밀번호 재설정 이메일 인증 메일 요청 */
+    @PostMapping("/email/request/password-reset")
+    public ResponseDto requestPasswordResetEmailToken(
+            @RequestParam("user-email") @Email String userEmail) {
+        emailService.sendPasswordResetEmail(userEmail);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+    /**
+     * 비밀번호 재설정
+     * 기존 이메일 인증 요청 메서드를 통해 인증코드 이메일 전송, verification 거침
+     **/
+    @PostMapping("/reset-password")
+    public ResponseDto resetPassword(@RequestBody PasswordResetReqDto dto) {
+        authService.resetPassword(dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 

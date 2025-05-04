@@ -25,6 +25,7 @@ public enum Message {
     ALREADY_COMPLETED("이미 완료된 요청입니다."),
     RECEIVER_NOT_FOUND("수신자를 찾을 수 없습니다."),
     TAGS_NOT_SELECTED("저장된 태그가 없습니다."),
+    PASSWORD_NOT_MATCHED("비밀번호가 일치하지 않습니다."),
 
     OK("성공"),
     CREATED("성공")

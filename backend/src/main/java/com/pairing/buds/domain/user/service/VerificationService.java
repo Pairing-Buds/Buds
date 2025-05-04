@@ -51,4 +51,14 @@ public class VerificationService {
         redisTemplate.delete(key);
     }
 
+    public String getEmailAndInvalidate(String token) {
+        String key = "email:verify:" + token;
+        String email = redisTemplate.opsForValue().get(key);
+        if (email == null) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.TOKEN_NOT_FOUND);
+        }
+        redisTemplate.delete(key);
+        return email;
+    }
+
 }
