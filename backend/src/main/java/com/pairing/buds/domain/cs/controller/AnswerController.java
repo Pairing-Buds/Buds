@@ -24,14 +24,10 @@ public class AnswerController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test33")
-    public ResponseDto test1(){
+    @GetMapping("/test42")
+    public ResponseDto test42(){
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test3333")
-    public ResponseDto test3333(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
 }
