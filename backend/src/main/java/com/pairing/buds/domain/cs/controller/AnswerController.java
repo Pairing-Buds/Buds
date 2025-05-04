@@ -24,19 +24,11 @@ public class AnswerController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test-final")
+    @GetMapping("/test-final11")
     public ResponseDto testFinal(){
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test-final2")
-    public ResponseDto testFinal2(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
-    @GetMapping("/test-final3")
-    public ResponseDto testFinal3(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
 }
