@@ -38,4 +38,9 @@ public class AnswerController {
     public ResponseDto test4(){
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
+
+    @GetMapping("/test5")
+    public ResponseDto test5(){
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
 }
