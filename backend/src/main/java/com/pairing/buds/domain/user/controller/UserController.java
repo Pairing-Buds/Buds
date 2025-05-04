@@ -4,7 +4,9 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
+import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.UpdateUserTagsReqDto;
+import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +31,6 @@ public class UserController {
         return new ResponseDto(StatusCode.OK, userService.getAllTags(userId));
     }
 
-
-
-
     /** 태그 업데이트(신규 저장 포함) **/
     @PostMapping("/tags")
     public ResponseDto updateUserTags(
@@ -40,6 +39,7 @@ public class UserController {
         userService.updateUserTags(userId, dto.getTags());
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
+
     /** 설문조사 결과 저장 **/
     @PostMapping("/survey-result")
     public ResponseDto saveSurveyResult(
@@ -49,5 +49,30 @@ public class UserController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
+    /** 회원 조회(?) **/
+
+    /** 내 정보 조회 **/
+    @GetMapping("/my-info")
+    public ResponseDto getMyInfo(@AuthenticationPrincipal Integer userId) {
+        return new ResponseDto(StatusCode.OK, userService.getMyInfo(userId));
+    }
+
+    /** 회원 수정 **/
+    @PatchMapping("/my-info")
+    public ResponseDto updateUserInfo(
+            @AuthenticationPrincipal Integer userId,
+            @RequestBody UpdateUserInfoReqDto dto) {
+        userService.updateUserInfo(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+    /** 회원 탈퇴(소프트 삭제) **/
+    @DeleteMapping("/withdrawal")
+    public ResponseDto withdraw(
+            @AuthenticationPrincipal Integer userId,
+            @RequestBody WithdrawUserReqDto dto) {
+        userService.withdrawUser(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
 
 }

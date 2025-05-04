@@ -13,6 +13,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buds/services/step_counter_manager.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:buds/providers/auth_provider.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -75,6 +78,22 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 void main() async {
   // Flutter 엔진 초기화 보장
   WidgetsFlutterBinding.ensureInitialized();
+
+  // .env 파일 로드 시도 (오류 발생해도 앱이 종료되지 않도록 try-catch로 감싸기)
+  try {
+    await dotenv.load(fileName: '.env');
+    debugPrint('API URL: ${dotenv.env['API_URL']}');
+  } catch (e) {
+    debugPrint('환경 변수 로드 오류: $e');
+
+    // 개발 환경인지 확인하고 처리
+    const bool isDevelopment = bool.fromEnvironment('dart.vm.product') == false;
+    if (isDevelopment) {
+      debugPrint('개발 환경에서 실행 중입니다. 환경 변수 파일을 생성해주세요.');
+    } else {
+      debugPrint('프로덕션 환경에서 실행 중입니다. 환경 변수가 설정되지 않았습니다.');
+    }
+  }
 
   // 알림 서비스 초기화
   final notificationService = NotificationService();
@@ -174,14 +193,38 @@ void main() async {
                 Provider.of<CharacterProvider>(context, listen: false),
               ),
         ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // AuthProvider 초기화
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
+
+    setState(() {
+      _isInitialized = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,15 +233,48 @@ class MyApp extends StatelessWidget {
       'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
     );
 
+    // 초기화 중이면 로딩 화면 표시
+    if (!_isInitialized) {
+      return MaterialApp(
+        title: 'buds',
+        theme: appTheme,
+        home: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
+    // 로그인 상태에 따른 초기 라우트 설정
+    final authProvider = Provider.of<AuthProvider>(context);
+    String appInitialRoute = initialRoute;
+
+    // 알림으로 시작된 경우가 아니고, 로그인된 상태라면 메인 화면으로 이동
+    if (!startedFromNotification && authProvider.isLoggedIn) {
+      appInitialRoute = '/main';
+    }
+
     return MaterialApp(
       title: 'buds',
       navigatorKey: navigatorKey,
       theme: appTheme,
-      // 알람 관련 상태에 따라 초기 라우트 결정
-      initialRoute: initialRoute,
+      // 앱 상태에 따라 초기 라우트 결정
+      initialRoute: appInitialRoute,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'), // 한국어
+        Locale('en', 'US'), // 영어
+      ],
       routes: {
-        '/': (context) => const MainScreen(),
+        '/': (context) => const LoginMainScreen(),
+        '/main': (context) => const MainScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',
