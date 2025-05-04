@@ -6,7 +6,7 @@ from core.chatbot import chatbot
 router = APIRouter()
 
 
-@router.post("/api/ask", response_model=MessageResponse)
+@router.post("/ask", response_model=MessageResponse)
 async def ask(message_request: MessageRequest):
     """HTTP POST 방식으로 챗봇에게 메시지를 보내는 엔드포인트"""
     try:
