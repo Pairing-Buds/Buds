@@ -8,3 +8,4 @@ chromadb>=0.4.6
 mysql-connector-python>=8.0.33
 asyncio>=3.4.3
 websockets>=11.0.3
+openai>=0.27.0
