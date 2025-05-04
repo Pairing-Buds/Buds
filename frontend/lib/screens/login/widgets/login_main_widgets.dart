@@ -54,7 +54,7 @@ class ChatContainer extends StatelessWidget {
             color: Colors.pink,
             text: '오늘은 무슨 좋은 일 있었어??',
             isLeft: true,
-            iconPath: 'assets/icons/rabbiticon.png',
+            iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
           const SizedBox(height: 10),
 
@@ -63,7 +63,7 @@ class ChatContainer extends StatelessWidget {
             color: Colors.orange,
             text: '너무 많은 일이 있었어!',
             isLeft: false,
-            iconPath: 'assets/icons/foxicon.png',
+            iconPath: 'assets/icons/characters/foxicon.png',
           ),
           const SizedBox(height: 10),
 
@@ -72,7 +72,7 @@ class ChatContainer extends StatelessWidget {
             color: Colors.pink,
             text: '어떤 일이 있었는데?',
             isLeft: true,
-            iconPath: 'assets/icons/rabbiticon.png',
+            iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
           const SizedBox(height: 10),
 

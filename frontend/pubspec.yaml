@@ -50,6 +50,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   speech_to_text: ^7.0.0
   flutter_dotenv: ^5.2.1
+  dio_cookie_manager: ^3.2.0
+  cookie_jar: ^4.0.8
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +85,7 @@ flutter:
     - assets/icons/
     - assets/icons/badges/
     - assets/icons/letter/
+    - assets/icons/characters/
   fonts:
     - family: GmarketSans
       fonts:

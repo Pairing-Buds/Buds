@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
+import 'package:buds/providers/auth_provider.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({Key? key}) : super(key: key);
@@ -28,12 +31,49 @@ class _LoginFormState extends State<LoginForm> {
         _isLoading = true;
       });
 
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.pushReplacementNamed(context, '/');
-      });
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      // 디버그 로그 추가
+      if (kDebugMode) {
+        print('로그인 시도: $email');
+      }
+
+      // AuthProvider를 통한 로그인
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider
+          .login(email, password)
+          .then((success) {
+            if (success) {
+              // 로그인 성공
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('로그인 성공')));
+
+              // 메인 화면으로 이동
+              Navigator.pushReplacementNamed(context, '/main');
+            } else {
+              // 로그인 실패
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다')),
+              );
+            }
+          })
+          .catchError((error) {
+            // 오류 처리
+            if (kDebugMode) {
+              print('로그인 폼 오류: $error');
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('로그인 실패: ${error.toString()}')),
+            );
+          })
+          .whenComplete(() {
+            // 로딩 상태 해제
+            setState(() {
+              _isLoading = false;
+            });
+          });
     }
   }
 
@@ -200,7 +240,10 @@ class _LoginFormState extends State<LoginForm> {
             children: [
               Text('계정이 없으신가요?', style: TextStyle(color: Colors.brown[600])),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // 회원가입 화면으로 이동
+                  Navigator.pushNamed(context, '/signup');
+                },
                 style: TextButton.styleFrom(foregroundColor: Colors.brown[800]),
                 child: const Text(
                   '회원가입',

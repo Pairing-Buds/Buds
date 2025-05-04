@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buds/services/step_counter_manager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:buds/providers/auth_provider.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -192,14 +193,38 @@ void main() async {
                 Provider.of<CharacterProvider>(context, listen: false),
               ),
         ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // AuthProvider 초기화
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    await authProvider.initialize();
+
+    setState(() {
+      _isInitialized = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,12 +233,35 @@ class MyApp extends StatelessWidget {
       'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
     );
 
+    // 초기화 중이면 로딩 화면 표시
+    if (!_isInitialized) {
+      return MaterialApp(
+        title: 'buds',
+        theme: appTheme,
+        home: Scaffold(
+          backgroundColor: AppColors.background,
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
+    // 로그인 상태에 따른 초기 라우트 설정
+    final authProvider = Provider.of<AuthProvider>(context);
+    String appInitialRoute = initialRoute;
+
+    // 알림으로 시작된 경우가 아니고, 로그인된 상태라면 메인 화면으로 이동
+    if (!startedFromNotification && authProvider.isLoggedIn) {
+      appInitialRoute = '/main';
+    }
+
     return MaterialApp(
       title: 'buds',
       navigatorKey: navigatorKey,
       theme: appTheme,
-      // 알람 관련 상태에 따라 초기 라우트 결정
-      initialRoute: initialRoute,
+      // 앱 상태에 따라 초기 라우트 결정
+      initialRoute: appInitialRoute,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
