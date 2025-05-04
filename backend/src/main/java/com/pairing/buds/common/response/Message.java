@@ -10,6 +10,7 @@ public enum Message {
     ANSWER_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
     LETTER_FAVORITE_NOT_FOUND("해당 스크랩을 찾을 수 없습니다."),
     LETTER_NOT_FOUND("해당 편지를 찾을 수 없습니다."),
+    QUOTE_NOT_FOUND("명언을 찾을 수 없습니다."),
     USER_ALREADY_EXISTS("이미 존재하는 사용자입니다."),
     SLEEP_NOT_FOUND("존재하지 않는 기상 입니다"),
     SERVER_ERROR("서버 오류가 발생했습니다"),
