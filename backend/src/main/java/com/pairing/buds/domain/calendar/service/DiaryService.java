@@ -33,6 +33,11 @@ public class DiaryService {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.TYPE_NOT_FOUND);
         }
 
+        // 날짜 검증
+        if (diaryReqDto.getDate() == null || diaryReqDto.getDate().trim().isEmpty()) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.DATE_IS_NOT_NULL);
+        }
+
         Diary diary = Diary.builder()
                 .user(user)
                 .diaryType(RecordType.valueOf(diaryReqDto.getDiaryType()))
