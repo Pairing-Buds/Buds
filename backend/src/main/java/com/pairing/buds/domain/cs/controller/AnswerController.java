@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 
 @RestController
-@RequestMapping("/answer")
+@RequestMapping("/answers")
 @RequiredArgsConstructor
 public class AnswerController {
 
+    @GetMapping("/test")
+    public ResponseDto test(){
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
 }
