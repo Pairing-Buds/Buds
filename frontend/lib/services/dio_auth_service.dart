@@ -161,11 +161,36 @@ class DioAuthService {
       );
 
       if (response is Response && response.data != null) {
-        return User.fromJson(response.data);
+        final responseData = response.data as Map<String, dynamic>;
+
+        if (kDebugMode) {
+          print('getUserProfile 응답: $responseData');
+        }
+
+        // 서버 응답 구조 확인
+        if (responseData['statusCode'] == 'OK' &&
+            responseData['resMsg'] != null) {
+          // resMsg 필드에서 데이터 추출하여 사용자 정보 생성
+          final userData = responseData['resMsg'] as Map<String, dynamic>;
+
+          return User(
+            id: 0, // API에서 userId를 제공하지 않음
+            email: userData['userEmail'] ?? '',
+            name: userData['userName'] ?? '',
+            profileImageUrl: null,
+            createdAt: DateTime.now(),
+          );
+        }
+
+        // 기존 방식으로 시도
+        return User.fromJson(responseData);
       }
 
       throw Exception('프로필 데이터를 찾을 수 없습니다');
     } catch (e) {
+      if (kDebugMode) {
+        print('프로필 조회 실패: $e');
+      }
       throw Exception('프로필 조회 실패: $e');
     }
   }
