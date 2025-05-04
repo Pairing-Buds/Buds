@@ -16,6 +16,7 @@ import com.pairing.buds.domain.letter.dto.response.LetterDetailListResDto;
 import com.pairing.buds.domain.letter.dto.response.LetterDetailResDto;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.letter.entity.LetterFavorite;
+import com.pairing.buds.domain.letter.entity.LetterFavoriteId;
 import com.pairing.buds.domain.letter.entity.LetterStatus;
 import com.pairing.buds.domain.letter.repository.LetterFavoriteRepository;
 import com.pairing.buds.domain.letter.repository.LetterRepository;
@@ -83,6 +84,7 @@ public class LetterService {
         Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
 
         LetterFavorite letterFavorite = new LetterFavorite();
+        letterFavorite.setId(new LetterFavoriteId(userId, letterId));
         letterFavorite.setUser(user);
         letterFavorite.setLetter(letter);
 
