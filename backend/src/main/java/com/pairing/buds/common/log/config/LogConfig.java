@@ -6,10 +6,9 @@ import com.pairing.buds.common.response.Message;
 import jakarta.persistence.Column;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -21,12 +20,41 @@ import org.springframework.stereotype.Component;
 public class LogConfig { /** Log Aspect **/
 
     private final LogService logService;
+    private final ThreadLocal<Long> startTime = new ThreadLocal<Long>();
 
     @Pointcut(value = """ 
             execution(* com.pairing.buds.*..service..*(..))
             && !execution(* com.pairing.buds.common.log.service..*(..))
             """)
     public void pointCutForLogging(){}
+
+    @Before("pointCutForLogging()")
+    public void logBefore(JoinPoint joinPoint){
+        startTime.set(System.currentTimeMillis());
+    }
+
+    @AfterReturning("pointCutForLogging()")
+    public void logAfterReturning(JoinPoint joinPoint){
+        Long start = startTime.get();
+        long elapse = System.currentTimeMillis() - start;
+
+        String sourceLocation = joinPoint.getSourceLocation().toString();
+        String completion = "SUCCESS";
+        String statusMessage = "OK";
+        logService.logging(sourceLocation, completion, elapse, statusMessage);
+    }
+
+    @AfterThrowing("pointCutForLogging()")
+    public void logAfter(JoinPoint joinPoint){
+        Long start = startTime.get();
+        long elapse = System.currentTimeMillis() - start;
+
+        String sourceLocation = joinPoint.getSourceLocation().toString();
+        String completion = "SUCCESS";
+        String statusMessage = ""; // 에러 처리로 수정 요망
+        logService.logging(sourceLocation, completion, elapse, statusMessage);
+    }
+
 
     @Around("pointCutForLogging()")
     public Object adviceForHasReturnValue(ProceedingJoinPoint joinPoint ) throws Throwable {
