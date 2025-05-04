@@ -24,43 +24,10 @@ public class AnswerController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test2")
-    public ResponseDto test2(){
+    @GetMapping("/test-final")
+    public ResponseDto testFinal(){
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    @GetMapping("/test3")
-    public ResponseDto test3(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 
-    @GetMapping("/test4")
-    public ResponseDto test4(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/test5")
-    public ResponseDto test5(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/test6")
-    public ResponseDto test6(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/test7")
-    public ResponseDto test7(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/test8")
-    public ResponseDto test8(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/test9")
-    public ResponseDto test9(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
 }
