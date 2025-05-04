@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -35,6 +37,7 @@ public class DiaryService {
                 .user(user)
                 .diaryType(RecordType.valueOf(diaryReqDto.getDiaryType()))
                 .content(diaryReqDto.getContent())
+                .date(java.sql.Date.valueOf(LocalDate.parse(diaryReqDto.getDate())))
                 .build();
 
         diaryRepository.save(diary);
@@ -45,7 +48,7 @@ public class DiaryService {
         Diary diary = diaryRepository.findById(diaryNo).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.DIARY_NOT_FOUND));
 
         // 로그인한 유저와 일기를 작성한 유저가 다르면 예외 처리
-        if(diary.getUser().getId().equals(userId)){
+        if(!diary.getUser().getId().equals(userId)){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_EQUAL);
         }
 
