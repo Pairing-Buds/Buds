@@ -32,7 +32,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - CHROMA_URL=http://${CHROMA_HOST}:${CHROMA_PORT}
       - MYSQL_HOST=${MYSQL_HOST}
       - MYSQL_PORT=${MYSQL_PORT}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
@@ -40,9 +39,10 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CHROMA_OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./ai/chroma_data:/app/chroma_data  # ChromaDB 데이터를 볼륨으로 마운트
     depends_on:
-      chroma:
-        condition: service_healthy
       mysql:
         condition: service_healthy
 
@@ -64,24 +64,6 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD}"]
       interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # ChromaDB (Vector Database)
-  chroma:
-    image: ghcr.io/chroma-core/chroma:latest
-    container_name: chroma
-    ports:
-      - "8100:8000"  # 변경된 포트: FastAPI와 포트 충돌 방지
-    volumes:
-      - chroma-data:/data
-    environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
-      - CHROMA_PERSIST_DIRECTORY=/data
-    restart: unless-stopped
-    healthcheck:
-      test: [ "CMD", "ls", "/data" ]
-      interval: 10s
       timeout: 5s
       retries: 5
 
