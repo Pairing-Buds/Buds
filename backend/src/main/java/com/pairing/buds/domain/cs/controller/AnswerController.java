@@ -21,6 +21,7 @@ public class AnswerController {
 
     @GetMapping("/test")
     public ResponseDto test(){
+
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 }
