@@ -13,6 +13,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buds/services/step_counter_manager.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -75,6 +77,22 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 void main() async {
   // Flutter 엔진 초기화 보장
   WidgetsFlutterBinding.ensureInitialized();
+
+  // .env 파일 로드 시도 (오류 발생해도 앱이 종료되지 않도록 try-catch로 감싸기)
+  try {
+    await dotenv.load(fileName: '.env');
+    debugPrint('API URL: ${dotenv.env['API_URL']}');
+  } catch (e) {
+    debugPrint('환경 변수 로드 오류: $e');
+
+    // 개발 환경인지 확인하고 처리
+    const bool isDevelopment = bool.fromEnvironment('dart.vm.product') == false;
+    if (isDevelopment) {
+      debugPrint('개발 환경에서 실행 중입니다. 환경 변수 파일을 생성해주세요.');
+    } else {
+      debugPrint('프로덕션 환경에서 실행 중입니다. 환경 변수가 설정되지 않았습니다.');
+    }
+  }
 
   // 알림 서비스 초기화
   final notificationService = NotificationService();
@@ -197,8 +215,18 @@ class MyApp extends StatelessWidget {
       // 알람 관련 상태에 따라 초기 라우트 결정
       initialRoute: initialRoute,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', 'KR'), // 한국어
+        Locale('en', 'US'), // 영어
+      ],
       routes: {
-        '/': (context) => const MainScreen(),
+        '/': (context) => const LoginMainScreen(),
+        '/main': (context) => const MainScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',
