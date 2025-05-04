@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
@@ -20,14 +21,14 @@ public class Log extends CreateBaseTime {
     @Column(name = "log_id")
     private Long id;
 
-    @Column(name = "source_description", nullable = false, length = 150)
+    @Column(name = "source_description", nullable = false)
     private String sourceDescription;
 
     @Column(name = "completion", nullable = false, length = 10)
-    private boolean completion = true;
+    private String completion = "SUCCESS";
 
-    @Column(name = "response_time", nullable = false, length = 10, updatable = false)
-    private int responseTime;
+    @Column(name = "response_time", nullable = false, updatable = false)
+    private long responseTime;
 
     @Column(name = "status_message")
     private String statusMessage;

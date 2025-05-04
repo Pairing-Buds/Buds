@@ -22,26 +22,32 @@ public class LogConfig { /** Log Aspect **/
 
     private final LogService logService;
 
-    @Pointcut(value = "execution(* com.pairing.buds.*..service..*(..)) ")
+    @Pointcut(value = """ 
+            execution(* com.pairing.buds.*..service..*(..))
+            && !execution(* com.pairing.buds.common.log.service..*(..))
+            """)
     public void pointCutForLogging(){}
 
     @Around("pointCutForLogging()")
-    public Object adviceForHasReturnValue(ProceedingJoinPoint joinPoint ){
-        long startTime = System.nanoTime();
+    public Object adviceForHasReturnValue(ProceedingJoinPoint joinPoint ) throws Throwable {
+        long startTime = System.currentTimeMillis();
         String sourceDescription = joinPoint.toShortString();
 
         // 사용자 정보 (아이디, 이메일, 성별, 나이, 이름, ip 등) 추출
 
         Object result;
-        try{
+        String completion = "SUCCESS";
+        String statusMessage = "OK";
+        try {
             result = joinPoint.proceed();
-            long completionTime = System.nanoTime() - startTime;
+        }catch(Exception e){
+            completion = "FAIL";
+            result = e.getMessage();
+            statusMessage = e.getMessage();
+        }finally{
+            long completionTime = System.currentTimeMillis() - startTime;
             // 소스 상세, 성공 여부, 응답 시간, 에러 메시지
-            logService.logging(sourceDescription, true, completionTime, "");
-        } catch (Throwable t) {
-            long completionTime = System.nanoTime() - startTime;
-            logService.logging(sourceDescription, false, completionTime, t.getMessage());
-            throw new RuntimeException();
+            logService.logging(sourceDescription, completion, completionTime, statusMessage);
         }
         return result;
     }
