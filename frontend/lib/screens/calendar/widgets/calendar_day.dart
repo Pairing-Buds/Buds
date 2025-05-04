@@ -17,14 +17,14 @@ class CalendarDay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final thisDate = DateTime(today.year, today.month, day);
+    final nowKST = DateTime.now().toUtc().add(const Duration(hours: 9));
+    final thisDate = DateTime(nowKST.year, nowKST.month, day);
 
-    final isToday = thisDate.year == today.year &&
-        thisDate.month == today.month &&
-        thisDate.day == today.day;
+    final isToday = thisDate.year == nowKST.year &&
+        thisDate.month == nowKST.month &&
+        thisDate.day == nowKST.day;
 
-    final isPastOrToday = thisDate.isBefore(today) || isToday;
+    final isPastOrToday = thisDate.isBefore(nowKST) || isToday;
 
     return GestureDetector(
       onTap: () {

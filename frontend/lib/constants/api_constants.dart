@@ -35,6 +35,9 @@ class ApiConstants {
   static String get diariesUrl => '$baseUrl/diaries';
   static String get diaryDetailUrl => '$baseUrl/diaries/'; // ID를 뒤에 붙여서 사용
 
+  // 캘린더 관련 엔드포인트
+  static String get calendarDiaryUrl => '$baseUrl/calendars/'; // 뒤에 yyyy-MM 붙이기
+
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
   static const receiveTimeout = 30000; // 밀리초
