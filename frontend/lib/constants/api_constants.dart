@@ -24,7 +24,7 @@ class ApiConstants {
   static String get logoutUrl => '$baseUrl/auth/logout';
 
   // 사용자 관련 엔드포인트
-  static String get userProfileUrl => '$baseUrl/users/profile';
+  static String get userProfileUrl => '$baseUrl/users/my-info';
 
   // 일기 관련 엔드포인트
   static String get diariesUrl => '$baseUrl/diaries';
