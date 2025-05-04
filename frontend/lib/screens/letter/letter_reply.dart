@@ -2,9 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/screens/letter/letter_send.dart';
+import 'package:buds/services/letter_service.dart';
 
-class LetterReplyScreen extends StatelessWidget {
-  const LetterReplyScreen({Key? key}) : super(key: key);
+class LetterReplyScreen extends StatefulWidget {
+  final int letterId;
+  final bool isScraped;
+
+  const LetterReplyScreen({
+    Key? key,
+    required this.letterId,
+    this.isScraped = false,
+  }) : super(key: key);
+
+  @override
+  State<LetterReplyScreen> createState() => _LetterReplyScreenState();
+}
+
+class _LetterReplyScreenState extends State<LetterReplyScreen> {
+  late bool _isScraped;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isScraped = widget.isScraped;
+  }
+
+  Future<void> _toggleScrap() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Call the API to toggle scrap status
+      final success = await LetterService().toggleScrap(widget.letterId);
+
+      if (success) {
+        setState(() {
+          _isScraped = !_isScraped;
+        });
+      } else {
+        // Show error snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('스크랩 상태 변경에 실패했습니다.')),
+        );
+      }
+    } catch (e) {
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했습니다: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +175,6 @@ class LetterReplyScreen extends StatelessWidget {
                         const SizedBox(height: 12),
 
                         // 5. 답장 버튼
-                        // 5. 답장 버튼 (수정된 부분)
                         Center(
                           child: GestureDetector(
                             onTap: () {
@@ -152,14 +206,28 @@ class LetterReplyScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // 스크랩 아이콘 (상단에 포지션)
+                  // 스크랩 아이콘 (상단에 포지션) - 클릭 가능하도록 수정
                   Positioned(
                     top: 0,
                     left: 20,
-                    child: Image.asset(
-                      'assets/icons/letter/scrap_inactive.png',
-                      width: 30,
-                      height: 30,
+                    child: GestureDetector(
+                      onTap: _toggleScrap,
+                      child: _isLoading
+                          ? const SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                        ),
+                      )
+                          : Image.asset(
+                        _isScraped
+                            ? 'assets/icons/letter/scrap_active.png'
+                            : 'assets/icons/letter/scrap_inactive.png',
+                        width: 30,
+                        height: 30,
+                      ),
                     ),
                   ),
                 ],

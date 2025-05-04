@@ -1,141 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/letter/letter_send.dart';
 import 'package:buds/screens/letter/letter_reply.dart';
+import 'package:buds/screens/letter/letter_send.dart';
+import 'package:buds/services/letter_service.dart';
 
 class LetterList extends StatelessWidget {
   const LetterList({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final titles = [
-      '용감한 너구리',
-      '행복한 오리',
-      '배부른 개구리',
-      '자상한 도마뱀',
-      '친절한 여우',
-      '귀여운 토끼',
-      '위풍당당 너구리',
-      '수줍은 펭귄',
-    ];
+    return FutureBuilder<List<Letter>>(
+      future: LetterService().fetchLetters(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('오류: ${snapshot.error}'));
+        }
 
-    final dates = [
-      '2025.04.21',
-      '2025.04.20',
-      '2025.04.19',
-      '2025.04.18',
-      '2025.04.17',
-      '2025.04.16',
-      '2025.04.15',
-      '2025.04.14',
-    ];
+        final letters = snapshot.data ?? [];
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.8,
-      child: Container(
-        // width: double.infinity,
-        margin: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 2),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 2,
-              offset: const Offset(1, -1),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // 스크롤 가능한 편지 목록
-            Expanded(
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: titles.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 20),
-                itemBuilder: (context, index) {
-                  final isActive = index < 5;
-                  final isSent = index == 2;
-
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Opacity(
-                          opacity: isActive ? 1.0 : 0.4,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                titles[index],
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  // fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                dates[index],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+        return Container(
+          margin: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 2,
+                offset: const Offset(1, -1),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  itemCount: letters.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 20),
+                  itemBuilder: (context, index) {
+                    final letter = letters[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LetterReplyScreen(
+                              letterId: letter.userId,
+                              isScraped: false, // 기본값으로 시작
+                            ),
                           ),
-                        ),
+                        );
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  letter.userName,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  letter.lastLetterDate,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  letter.lastLetterStatus == "UNREAD" ? "읽지 않음" : "읽음",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: letter.lastLetterStatus == "UNREAD"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Image.asset(
+                            letter.received
+                                ? 'assets/icons/letter/reply.png'
+                                : 'assets/icons/letter/send.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                        ],
                       ),
-                      Opacity(
-                        opacity: isActive ? 1.0 : 0.3,
-                        child: Image.asset(
-                          isSent
-                              ? 'assets/icons/letter/send.png'
-                              : 'assets/icons/letter/reply.png',
-                          width: 36,
-                          height: 36,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // 하단 고정 버튼
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LetterReplyScreen(),
-                      // builder: (context) => const LetterSendScreen(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-
+                    );
+                  },
                 ),
-                child: const Text('익명의 편지 보내기'),
               ),
-            ),
-
-            // 하단 네비게이션 바와 겹치지 않게 여백 추가
-            SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 10),
-          ],
-        ),
-      ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LetterSendScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('익명의 편지 보내기'),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 10),
+            ],
+          ),
+        );
+      },
     );
   }
 }
