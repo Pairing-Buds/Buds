@@ -12,6 +12,23 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   Map<String, dynamic>? get userData => _userData;
 
+  // 추가: 사용자가 익명인지 확인하는 getter
+  bool get isAnonymousUser {
+    if (_userData == null) {
+      if (kDebugMode) {
+        print('isAnonymousUser: userData가 null입니다.');
+      }
+      return false;
+    }
+
+    if (kDebugMode) {
+      print('isAnonymousUser 확인 중: ${_userData}');
+      print('사용자 이름: ${_userData!['name']}');
+    }
+
+    return _userData!['name'] == '익명';
+  }
+
   // 초기화 - 앱 시작 시 호출
   Future<void> initialize() async {
     try {
@@ -47,6 +64,32 @@ class AuthProvider extends ChangeNotifier {
       }
       _isLoggedIn = false;
       notifyListeners();
+    }
+  }
+
+  // 사용자 정보 새로고침
+  Future<void> refreshUserData() async {
+    try {
+      if (!_isLoggedIn) {
+        if (kDebugMode) {
+          print('사용자가 로그인되어 있지 않습니다. 정보를 가져올 수 없습니다.');
+        }
+        return;
+      }
+
+      final user = await _authService.getUserProfile();
+      _userData = user.toJson();
+
+      if (kDebugMode) {
+        print('사용자 정보 새로고침 완료: ${user.email}, 이름: ${user.name}');
+      }
+
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) {
+        print('사용자 정보 새로고침 오류: $e');
+      }
+      throw e; // 오류를 다시 던져서 호출자가 처리할 수 있게 함
     }
   }
 

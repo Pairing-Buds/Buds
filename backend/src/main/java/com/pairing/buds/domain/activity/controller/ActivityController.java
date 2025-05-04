@@ -24,6 +24,13 @@ public class ActivityController {
     ){
         return new ResponseDto(StatusCode.OK, activityService.findFriendByTag(userId));
     }
+    /** 명언 조회 **/
+    @GetMapping("/quote")
+    public ResponseDto getQuoteByRandom(
+            @AuthenticationPrincipal int userId
+    ){
+        return new ResponseDto(StatusCode.OK, activityService.getQuoteByRandom(userId));
+    }
 
 
     /** 기상 시간 등록 **/
@@ -91,6 +98,14 @@ public class ActivityController {
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody DeleteWakeTimeReqDto dto){
         activityService.deleteWakeTime(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+
+    /** 명언 저장 API**/
+    @PostMapping("/quote")
+    public ResponseDto createQuote(
+            @AuthenticationPrincipal int userId){
+        activityService.createQuote();
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
