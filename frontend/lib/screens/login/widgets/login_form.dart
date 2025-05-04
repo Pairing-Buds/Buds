@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
+import 'package:buds/screens/login/password_reset_email_screen.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({Key? key}) : super(key: key);
@@ -232,7 +233,12 @@ class _LoginFormState extends State<LoginForm> {
           TextButton(
             onPressed: () {
               // 비밀번호 재설정 화면으로 이동
-              // TODO: 비밀번호 재설정 화면 구현
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PasswordResetEmailScreen(),
+                ),
+              );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.brown[600]),
             child: const Text('비밀번호를 잊으셨나요?'),
