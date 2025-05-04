@@ -21,7 +21,13 @@ class DioApiService {
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: Duration(milliseconds: ApiConstants.connectionTimeout),
         receiveTimeout: Duration(milliseconds: ApiConstants.receiveTimeout),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          // 추가 기본 헤더
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Connection': 'keep-alive',
+        },
       ),
     );
 
@@ -119,11 +125,16 @@ class DioApiService {
   Future<dynamic> get(
     String path, {
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
-      final response = await _dio.get(path, queryParameters: queryParameters);
+      final response = await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      );
 
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioError(e);
       rethrow;
@@ -135,15 +146,17 @@ class DioApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
       );
 
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioError(e);
       rethrow;
@@ -155,15 +168,17 @@ class DioApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
       final response = await _dio.put(
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
       );
 
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioError(e);
       rethrow;
@@ -175,15 +190,17 @@ class DioApiService {
     String path, {
     dynamic data,
     Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
       final response = await _dio.delete(
         path,
         data: data,
         queryParameters: queryParameters,
+        options: options,
       );
 
-      return response.data;
+      return response;
     } on DioException catch (e) {
       _handleDioError(e);
       rethrow;

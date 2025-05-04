@@ -19,7 +19,7 @@ class ApiConstants {
   }
 
   // 인증 관련 엔드포인트
-  static String get loginUrl => '$baseUrl/auth/login';
+  static String get loginUrl => '$baseUrl/login';
   static String get registerUrl => '$baseUrl/auth/sign-up';
   static String get logoutUrl => '$baseUrl/auth/logout';
 
