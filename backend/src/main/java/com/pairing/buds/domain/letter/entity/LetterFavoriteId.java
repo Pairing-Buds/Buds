@@ -10,8 +10,9 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 @Builder
-public class LetterFavoriteId {
+public class LetterFavoriteId implements Serializable {
 
     @Column(name = "letter_id", nullable = false)
     private Integer letterId;

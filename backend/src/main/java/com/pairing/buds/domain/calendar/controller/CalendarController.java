@@ -9,10 +9,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/calendars")
 @RequiredArgsConstructor
+@RequestMapping("/calendars")
 public class CalendarController {
-    private CalendarService calendarService;
+
+    private final CalendarService calendarService;
 
     /** 달별 뱃지 조회 **/
     @GetMapping("/{date}")
@@ -33,3 +34,4 @@ public class CalendarController {
     }
 
 }
+

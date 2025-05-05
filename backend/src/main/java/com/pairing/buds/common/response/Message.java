@@ -10,6 +10,7 @@ public enum Message {
     ANSWER_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
     LETTER_FAVORITE_NOT_FOUND("해당 스크랩을 찾을 수 없습니다."),
     LETTER_NOT_FOUND("해당 편지를 찾을 수 없습니다."),
+    QUOTE_NOT_FOUND("명언을 찾을 수 없습니다."),
     USER_ALREADY_EXISTS("이미 존재하는 사용자입니다."),
     SLEEP_NOT_FOUND("존재하지 않는 기상 입니다"),
     SERVER_ERROR("서버 오류가 발생했습니다"),
@@ -25,6 +26,8 @@ public enum Message {
     ALREADY_COMPLETED("이미 완료된 요청입니다."),
     RECEIVER_NOT_FOUND("수신자를 찾을 수 없습니다."),
     TAGS_NOT_SELECTED("저장된 태그가 없습니다."),
+    PASSWORD_NOT_MATCHED("비밀번호가 일치하지 않습니다."),
+    DATE_IS_NOT_NULL("날짜는 필수 입력 항목입니다."),
 
     OK("성공"),
     CREATED("성공")

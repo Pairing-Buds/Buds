@@ -6,7 +6,6 @@ class AppConstants {
   static const appVersion = '1.0.0';
 
   // 로컬 저장소 키
-  static const tokenKey = 'auth_token';
   static const userDataKey = 'user_data';
   static const isDarkModeKey = 'is_dark_mode';
 

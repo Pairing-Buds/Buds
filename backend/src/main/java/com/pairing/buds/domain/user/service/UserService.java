@@ -4,6 +4,9 @@ import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
+import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
+import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
+import com.pairing.buds.domain.user.dto.response.MyInfoResDto;
 import com.pairing.buds.domain.user.dto.response.TagResDto;
 import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
@@ -12,6 +15,7 @@ import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +27,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -31,11 +36,7 @@ public class UserService {
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
         return user.getTags().stream()
-                .map(tag -> TagResDto.builder()
-                        .tagType(String.valueOf(tag.getTagName()))
-                        .displayName(tag.getTagName().getDisplayName())
-                        .build()
-                )
+                .map(TagResDto::toTagRes)
                 .collect(Collectors.toList());
     }
 
@@ -50,21 +51,20 @@ public class UserService {
 
         // 새로 선택된 enum 목록 Tag 엔티티 생성·추가
         for (TagType type : selected) {
-            Tag tag = Tag.builder()
-                    .user(user)
-                    .tagName(type)
-                    .build();
+            Tag tag = new Tag();
+            tag.setUser(user);
+            tag.setTagName(type);
             user.getTags().add(tag);
         }
 
         userRepository.save(user);
     }
-    
+
     /** 전체 태그 조회 **/
     public String[] getAllTags(int userId) {
         return new String[]{"취업", "자격증", "운동", "패션", "음악", "독서", "요리", "게임", "만화"};
     }
-    
+
     /** 설문조사 결과 저장 **/
     public void saveSurveyResult(int userId, SaveSurveyResultReqDto dto) {
         int seclusionScore = dto.getSeclusionScore();
@@ -79,4 +79,39 @@ public class UserService {
         User updatedUser = SaveSurveyResultReqDto.toUser(user, dto);
         userRepository.save(updatedUser);
     }
+
+    /** 내 정보 조회 **/
+    public MyInfoResDto getMyInfo(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        return MyInfoResDto.toMyInfoRes(user);
+    }
+
+    /** 회원 수정 **/
+    @Transactional
+    public void updateUserInfo(Integer userId, UpdateUserInfoReqDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        user.setUserCharacter(dto.getUserCharacter());
+        userRepository.save(user);
+    }
+
+    /** 회원 탈퇴 */
+    @Transactional
+    public void withdrawUser(Integer userId, WithdrawUserReqDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        // 입력 비밀번호 검증
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.PASSWORD_NOT_MATCHED);
+        }
+
+        // 탈퇴 처리 (소프트 삭제)
+        user.setIsActive(false);
+        userRepository.save(user);
+    }
+
 }
