@@ -10,7 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DiaryReqDto {
-    private String diaryType;
-    private String content;
+    private String active_diary;
+    private String emotion_diary;
     private String date;
 }

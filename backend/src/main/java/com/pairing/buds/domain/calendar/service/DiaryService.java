@@ -26,26 +26,35 @@ public class DiaryService {
     public void addDiary(Integer userId, DiaryReqDto diaryReqDto) {
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
-        // 유효한 타입인지 확인
-        try {
-            RecordType.valueOf(diaryReqDto.getDiaryType());
-        } catch (Exception e) {
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.TYPE_NOT_FOUND);
-        }
-
         // 날짜 검증
         if (diaryReqDto.getDate() == null || diaryReqDto.getDate().trim().isEmpty()) {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.DATE_IS_NOT_NULL);
         }
 
-        Diary diary = Diary.builder()
-                .user(user)
-                .diaryType(RecordType.valueOf(diaryReqDto.getDiaryType()))
-                .content(diaryReqDto.getContent())
-                .date(java.sql.Date.valueOf(LocalDate.parse(diaryReqDto.getDate())))
-                .build();
+        // 활동 일기 저장
+        if(diaryReqDto.getActive_diary() != null && !diaryReqDto.getActive_diary().trim().isEmpty()){
+            Diary diary = Diary.builder()
+                    .user(user)
+                    .diaryType(RecordType.ACTIVE)
+                    .content(diaryReqDto.getActive_diary())
+                    .date(java.sql.Date.valueOf(LocalDate.parse(diaryReqDto.getDate())))
+                    .build();
 
-        diaryRepository.save(diary);
+            diaryRepository.save(diary);
+        }
+
+        // 감정 일기 저장
+        if(diaryReqDto.getEmotion_diary() != null && !diaryReqDto.getEmotion_diary().trim().isEmpty()){
+            Diary diary = Diary.builder()
+                    .user(user)
+                    .diaryType(RecordType.EMOTION)
+                    .content(diaryReqDto.getEmotion_diary())
+                    .date(java.sql.Date.valueOf(LocalDate.parse(diaryReqDto.getDate())))
+                    .build();
+
+            diaryRepository.save(diary);
+        }
+
     }
 
     /** 일기 삭제 **/
