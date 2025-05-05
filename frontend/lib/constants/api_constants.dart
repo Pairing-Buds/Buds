@@ -23,6 +23,11 @@ class ApiConstants {
   static String get registerUrl => '$baseUrl/auth/sign-up';
   static String get logoutUrl => '$baseUrl/auth/logout';
 
+  // 비밀번호 재설정 관련 엔드포인트
+  static String get requestPasswordResetUrl =>
+      '$baseUrl/auth/email/request/password-reset';
+  static String get resetPasswordUrl => '$baseUrl/auth/reset-password';
+
   // 사용자 관련 엔드포인트
   static String get userProfileUrl => '$baseUrl/users/my-info';
 

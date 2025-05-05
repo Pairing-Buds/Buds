@@ -210,4 +210,121 @@ class DioAuthService {
       return false;
     }
   }
+
+  // 비밀번호 재설정 이메일 요청
+  Future<bool> requestPasswordReset(String email) async {
+    try {
+      if (kDebugMode) {
+        print('비밀번호 재설정 이메일 요청: $email');
+        print(
+          '요청 URL: ${ApiConstants.requestPasswordResetUrl}?user-email=$email',
+        );
+      }
+
+      // 1. 쿼리 파라미터만 사용
+      final queryParams = {'user-email': email};
+
+      // 2. 요청 본문은 비워두기
+      final data = {};
+
+      if (kDebugMode) {
+        print('쿼리 파라미터: $queryParams');
+        print('요청 데이터: $data');
+      }
+
+      final response = await _apiService.post(
+        ApiConstants.requestPasswordResetUrl.replaceFirst(
+          ApiConstants.baseUrl,
+          '',
+        ),
+        queryParameters: queryParams,
+        data: data,
+        options: Options(
+          validateStatus: (status) {
+            return status! < 500; // 500 에러도 처리하도록 변경
+          },
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+      if (kDebugMode) {
+        print('비밀번호 재설정 이메일 요청 응답: ${response.data}');
+        print('응답 상태 코드: ${response.statusCode}');
+        if (response is Response) {
+          print('응답 헤더: ${response.headers}');
+        }
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+
+        // OK가 아니더라도 응답이 왔다면 서버 메시지 확인
+        if (statusCode != 'OK') {
+          final resMsg =
+              responseData['resMsg'] as String? ?? '알 수 없는 오류가 발생했습니다.';
+          if (kDebugMode) {
+            print('비밀번호 재설정 이메일 요청 실패: $resMsg');
+          }
+          throw Exception(resMsg);
+        }
+
+        return statusCode == 'OK';
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('비밀번호 재설정 이메일 요청 오류: $e');
+      }
+      throw Exception('비밀번호 재설정 이메일 요청 실패: $e');
+    }
+  }
+
+  // 비밀번호 재설정 (토큰 + 새 비밀번호)
+  Future<bool> resetPassword(String token, String newPassword) async {
+    try {
+      if (kDebugMode) {
+        print('비밀번호 재설정 요청: token=$token');
+      }
+
+      final response = await _apiService.post(
+        ApiConstants.resetPasswordUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: {'token': token, 'newPassword': newPassword},
+        options: Options(
+          validateStatus: (status) {
+            return status! < 500; // 500 에러도 처리하도록 변경
+          },
+        ),
+      );
+
+      if (kDebugMode) {
+        print('비밀번호 재설정 응답: ${response.data}');
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+
+        // OK가 아니더라도 응답이 왔다면 서버 메시지 확인
+        if (statusCode != 'OK') {
+          final resMsg =
+              responseData['resMsg'] as String? ?? '알 수 없는 오류가 발생했습니다.';
+          if (kDebugMode) {
+            print('비밀번호 재설정 실패: $resMsg');
+          }
+          throw Exception(resMsg);
+        }
+
+        return statusCode == 'OK';
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('비밀번호 재설정 오류: $e');
+      }
+      throw Exception('비밀번호 재설정 실패: $e');
+    }
+  }
 }

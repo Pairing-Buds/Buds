@@ -9,13 +9,17 @@ class MainTitleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double titleFontSize = screenWidth < 360 ? 15 : 18;
+    final double logoFontSize = screenWidth < 360 ? 60 : 70;
+
     return Column(
       children: [
         // 상단 텍스트
-        const Text(
+        Text(
           '누군가와 대화 하는 즐거움',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -28,9 +32,12 @@ class MainTitleWidget extends StatelessWidget {
             // 새 이미지
             // Image.asset('assets/icons/buds_icon.png', width: 50, height: 50),
             // const SizedBox(width: 20),
-            const Text(
+            Text(
               'Buds',
-              style: TextStyle(fontSize: 70, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: logoFontSize,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -45,9 +52,18 @@ class ChatContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final double spacing = screenWidth < 360 ? 5.0 : 8.0;
+
+    // 채팅 컨테이너 주변에 패딩 추가
     return Container(
-      width: 280,
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      decoration: BoxDecoration(
+        // color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // 대화 버블 1 - 토끼
           ChatBubble(
@@ -56,7 +72,7 @@ class ChatContainer extends StatelessWidget {
             isLeft: true,
             iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: spacing),
 
           // 대화 버블 2 - 여우
           ChatBubble(
@@ -65,7 +81,7 @@ class ChatContainer extends StatelessWidget {
             isLeft: false,
             iconPath: 'assets/icons/characters/foxicon.png',
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: spacing),
 
           // 대화 버블 3 - 토끼
           ChatBubble(
@@ -74,24 +90,6 @@ class ChatContainer extends StatelessWidget {
             isLeft: true,
             iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
-          const SizedBox(height: 10),
-
-          // 대화 버블 4 - 개구리
-          // ChatBubble(
-          //   color: Colors.green,
-          //   text: '나도 듣고 싶어!',
-          //   isLeft: true,
-          //   iconPath: 'assets/icons/frogicon.png',
-          // ),
-          // const SizedBox(height: 10),
-
-          // 대화 버블 5 - 여우
-          // ChatBubble(
-          //   color: Colors.orange,
-          //   text: '새로운 친구들을 많이 만났어요',
-          //   isLeft: false,
-          //   iconPath: 'assets/icons/foxicon.png',
-          // ),
         ],
       ),
     );
@@ -104,8 +102,12 @@ class StartButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonWidth = screenWidth < 360 ? 220.0 : 250.0;
+    final buttonHeight = screenWidth < 360 ? 50.0 : 55.0;
+
     return SizedBox(
-      width: 250,
+      width: buttonWidth,
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -115,7 +117,7 @@ class StartButton extends StatelessWidget {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
-          minimumSize: const Size(180, 55),
+          minimumSize: Size(buttonWidth, buttonHeight),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
@@ -134,6 +136,9 @@ class LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSize = screenWidth < 360 ? 12.0 : 14.0;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -141,10 +146,10 @@ class LoginButton extends StatelessWidget {
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       },
-      child: const Text(
+      child: Text(
         '기존 계정으로 로그인',
         style: TextStyle(
-          fontSize: 14,
+          fontSize: fontSize,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
         ),

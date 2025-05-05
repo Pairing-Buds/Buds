@@ -134,4 +134,36 @@ class AuthProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  // 비밀번호 재설정 이메일 요청
+  Future<bool> requestPasswordReset(String email) async {
+    try {
+      if (kDebugMode) {
+        print('비밀번호 재설정 이메일 요청 시작: $email');
+      }
+
+      return await _authService.requestPasswordReset(email);
+    } catch (e) {
+      if (kDebugMode) {
+        print('비밀번호 재설정 이메일 요청 오류: $e');
+      }
+      return false;
+    }
+  }
+
+  // 비밀번호 재설정
+  Future<bool> resetPassword(String token, String newPassword) async {
+    try {
+      if (kDebugMode) {
+        print('비밀번호 재설정 시작');
+      }
+
+      return await _authService.resetPassword(token, newPassword);
+    } catch (e) {
+      if (kDebugMode) {
+        print('비밀번호 재설정 오류: $e');
+      }
+      return false;
+    }
+  }
 }
