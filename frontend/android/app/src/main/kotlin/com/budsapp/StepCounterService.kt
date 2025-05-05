@@ -1,4 +1,4 @@
-package com.example.buds
+package com.budsapp
 
 import android.app.*
 import android.content.Context
@@ -24,8 +24,8 @@ class StepCounterService : Service(), SensorEventListener {
         private const val CHANNEL_ID = "step_counter_channel"
         
         // MethodChannel 메서드 이름 상수
-        const val METHOD_CHANNEL_NAME = "com.example.buds/stepcounter"
-        const val EVENT_CHANNEL_NAME = "com.example.buds/stepcounter_events"
+        const val METHOD_CHANNEL_NAME = "com.budsapp/stepcounter"
+        const val EVENT_CHANNEL_NAME = "com.budsapp/stepcounter_events"
         
         // SharedPreferences 키 값
         private const val PREFS_NAME = "StepCounterPrefs"
