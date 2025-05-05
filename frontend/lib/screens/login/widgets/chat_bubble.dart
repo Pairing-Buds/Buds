@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// 채팅 버블 위젯
 class ChatBubble extends StatelessWidget {
   final Color color;
   final String text;
@@ -18,12 +19,16 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Row(
       mainAxisAlignment:
           isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
       children: [
         Container(
+          constraints: BoxConstraints(maxWidth: screenWidth * 0.7),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color:
                 backgroundColor ??

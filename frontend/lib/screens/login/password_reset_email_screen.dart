@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:buds/screens/login/password_reset_screen.dart';
+import 'widgets/password_reset_widgets.dart';
 
 /// 비밀번호 재설정 이메일 입력 화면
 class PasswordResetEmailScreen extends StatefulWidget {
@@ -96,111 +97,12 @@ class _PasswordResetEmailScreenState extends State<PasswordResetEmailScreen> {
               horizontal: 24.0,
               vertical: 16.0,
             ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          '가입하신 이메일 주소를 입력해주세요.',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          '비밀번호 재설정을 위한 링크가 전송됩니다.',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: '이메일',
-                      labelStyle: TextStyle(color: Colors.brown[600]),
-                      prefixIcon: Icon(Icons.email, color: Colors.brown[400]),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.brown[200]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.brown[400]!),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.redAccent),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '이메일을 입력해주세요';
-                      }
-                      if (!value.contains('@')) {
-                        return '유효한 이메일 주소를 입력해주세요';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
-                    ),
-                  ],
-
-                  const SizedBox(height: 32),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _requestPasswordReset,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.brown[800],
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child:
-                          _isLoading
-                              ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  color: Colors.white,
-                                ),
-                              )
-                              : const Text(
-                                '비밀번호 재설정 링크 받기',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                    ),
-                  ),
-                ],
-              ),
+            child: PasswordResetEmailForm(
+              formKey: _formKey,
+              emailController: _emailController,
+              isLoading: _isLoading,
+              errorMessage: _errorMessage,
+              onSubmit: _requestPasswordReset,
             ),
           ),
         ),
