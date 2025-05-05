@@ -44,14 +44,15 @@ public class LogConfig { /** Log Aspect **/
         logService.logging(sourceLocation, completion, elapse, statusMessage);
     }
 
-    @AfterThrowing("pointCutForLogging()")
-    public void logAfter(JoinPoint joinPoint){
+    @AfterThrowing(value = "pointCutForLogging()", throwing = "throwable")
+    public void logAfter(JoinPoint joinPoint, Throwable throwable
+    ){
         Long start = startTime.get();
         long elapse = System.currentTimeMillis() - start;
 
         String sourceLocation = joinPoint.getSourceLocation().toString();
         String completion = "SUCCESS";
-        String statusMessage = ""; // 에러 처리로 수정 요망
+        String statusMessage = throwable.getMessage(); // 에러 처리로 수정 요망
         logService.logging(sourceLocation, completion, elapse, statusMessage);
     }
 
