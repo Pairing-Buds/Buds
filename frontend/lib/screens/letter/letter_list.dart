@@ -1,8 +1,9 @@
+// letter_list.dart
 import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
+import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 import 'package:buds/screens/letter/letter_reply.dart';
-import 'package:buds/screens/letter/letter_send.dart';
-import 'package:buds/services/letter_service.dart';
+import 'package:buds/services/dio_letter_service.dart';
+import 'package:buds/config/theme.dart';
 
 class LetterList extends StatelessWidget {
   const LetterList({super.key});
@@ -10,7 +11,7 @@ class LetterList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Letter>>(
-      future: LetterService().fetchLetters(),
+      future: DioLetterService().fetchLetters(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -50,7 +51,7 @@ class LetterList extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (context) => LetterReplyScreen(
                               letterId: letter.userId,
-                              isScraped: false, // 기본값으로 시작
+                              isScraped: false,
                             ),
                           ),
                         );
@@ -108,7 +109,7 @@ class LetterList extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const LetterSendScreen(),
+                        builder: (context) => const LetterAnonymityScreen(),
                       ),
                     );
                   },
