@@ -2,14 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/screens/letter/letter_list.dart';
+import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 
-class LetterScreen extends StatelessWidget {
+class LetterScreen extends StatefulWidget {
   const LetterScreen({super.key});
+
+  @override
+  State<LetterScreen> createState() => _LetterScreenState();
+}
+
+class _LetterScreenState extends State<LetterScreen> {
+  int letterCount = 0;
+
+  void updateLetterCount(int count) {
+    setState(() {
+      letterCount = count;
+    });
+  }
+
+  void navigateToWrite() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LetterAnonymityScreen()),
+    ).then((_) {
+      setState(() {}); // 돌아왔을 때 리스트 새로고침
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF9F9F9),
+      backgroundColor: const Color(0xFFF9F9F9),
       appBar: const CustomAppBar(
         title: '편지함',
         leftIconPath: 'assets/icons/bottle_icon.png',
@@ -36,7 +59,7 @@ class LetterScreen extends StatelessWidget {
                   ),
                 ),
                 Transform.translate(
-                  offset: const Offset(0, 8), // y값 증가 → 아래로 이동
+                  offset: const Offset(0, 8),
                   child: Image.asset(
                     'assets/images/marmet_cutting_head.png',
                     width: 100,
@@ -51,27 +74,26 @@ class LetterScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              children: const [
-                Text(
+              children: [
+                const Text(
                   '편지 목록',
                   style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                Spacer(),
+                const Spacer(),
                 Text(
-                  '나의 편지 15',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  '나의 편지 $letterCount',
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 12),
 
           // 편지 목록 컴포넌트
-          const Expanded(
+          Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: LetterList(), // ← 여기에 추가
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: LetterList(onCountFetched: updateLetterCount, onWritePressed: navigateToWrite),
             ),
           ),
         ],
