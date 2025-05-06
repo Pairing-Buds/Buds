@@ -89,7 +89,7 @@ class DioAuthService {
     }
   }
 
-  // 회원가입
+  // 기존 회원가입 메소드 복원
   Future<User> register(
     String name,
     String email,
@@ -138,6 +138,108 @@ class DioAuthService {
     } catch (e) {
       print('회원가입 프로세스 오류 세부 정보: $e');
       throw Exception('회원가입 실패: $e');
+    }
+  }
+
+  // 캐릭터와 닉네임을 사용한 회원가입
+  Future<User> registerWithCharacter(
+    String email,
+    String password,
+    String nickname,
+    String character,
+  ) async {
+    try {
+      final data = {
+        'userEmail': email,
+        'password': password,
+        'username': nickname,
+        'userCharacter': character,
+      };
+
+      print('캐릭터 회원가입 요청 데이터: $data');
+
+      final response = await _apiService.post(
+        ApiConstants.registerUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: data,
+      );
+
+      print('캐릭터 회원가입 응답 데이터: ${response.data}');
+
+      // 응답 검증
+      if (response is Response && response.data == null) {
+        throw Exception('서버 응답이 없습니다');
+      }
+
+      final responseData = response is Response ? response.data : response;
+
+      // 상태 코드 확인
+      final statusCode = responseData['statusCode'];
+      final resMsg = responseData['resMsg'];
+
+      if (statusCode != 'CREATED' && statusCode != 'OK') {
+        throw Exception('회원가입 실패: $resMsg');
+      }
+
+      // 추가: 회원가입 완료 API 호출 (닉네임과 캐릭터 정보 전송)
+      if (kDebugMode) {
+        print('회원가입 완료 API 호출 시도: nickname=$nickname, character=$character');
+      }
+
+      final completeSignUpResult = await completeSignUp(nickname, character);
+
+      if (kDebugMode) {
+        print('회원가입 완료 API 호출 결과: $completeSignUpResult');
+      }
+
+      // 회원가입 성공 시 기본 User 객체 반환
+      return User(
+        id: 0,
+        email: email,
+        name: nickname,
+        profileImageUrl: null,
+        createdAt: DateTime.now(),
+      );
+    } catch (e) {
+      print('캐릭터 회원가입 프로세스 오류 세부 정보: $e');
+      throw Exception('회원가입 실패: $e');
+    }
+  }
+
+  // 회원가입 완료 API (닉네임과 캐릭터 정보 전송)
+  Future<bool> completeSignUp(String userName, String userCharacter) async {
+    try {
+      final data = {'userName': userName, 'userCharacter': userCharacter};
+
+      if (kDebugMode) {
+        print('회원가입 완료 요청 데이터: $data');
+        print(
+          '회원가입 완료 API 엔드포인트 (상대): ${ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, '')}',
+        );
+        print('회원가입 완료 API 엔드포인트 (전체): ${ApiConstants.signUpCompleteUrl}');
+      }
+
+      final response = await _apiService.patch(
+        ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: data,
+      );
+
+      if (kDebugMode) {
+        print('회원가입 완료 응답: ${response.data}');
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+
+        return statusCode == 'OK';
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('회원가입 완료 요청 오류: $e');
+      }
+      throw Exception('회원가입 완료 요청 실패: $e');
     }
   }
 

@@ -2,15 +2,27 @@
 import 'package:flutter/material.dart';
 import 'package:buds/services/dio_auth_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
+import '../services/dio_api_service.dart';
+import '../constants/api_constants.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;
   Map<String, dynamic>? _userData;
 
+  // 로그인 처리 중 상태
+  bool _isLoading = false;
+
+  // 이메일 인증 코드
+  String _verificationCode = '';
+
   final DioAuthService _authService = DioAuthService();
+  final DioApiService _apiService = DioApiService();
 
   bool get isLoggedIn => _isLoggedIn;
   Map<String, dynamic>? get userData => _userData;
+  bool get isLoading => _isLoading;
+  String get verificationCode => _verificationCode;
 
   // 추가: 사용자가 익명인지 확인하는 getter
   bool get isAnonymousUser {
@@ -27,6 +39,12 @@ class AuthProvider extends ChangeNotifier {
     }
 
     return _userData!['name'] == '익명';
+  }
+
+  // 로딩 상태 설정
+  void setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
   }
 
   // 초기화 - 앱 시작 시 호출
@@ -95,6 +113,8 @@ class AuthProvider extends ChangeNotifier {
 
   // 로그인 처리
   Future<bool> login(String email, String password) async {
+    setLoading(true);
+
     try {
       if (kDebugMode) {
         print('로그인 시도: $email');
@@ -110,15 +130,20 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      _isLoggedIn = false;
       if (kDebugMode) {
         print('로그인 오류: $e');
       }
       return false;
+    } finally {
+      setLoading(false);
     }
   }
 
   // 로그아웃 처리
   Future<void> logout() async {
+    setLoading(true);
+
     try {
       // 서버에 로그아웃 요청
       await _authService.logout();
@@ -126,16 +151,16 @@ class AuthProvider extends ChangeNotifier {
       if (kDebugMode) {
         print('로그아웃 요청 오류: $e');
       }
+    } finally {
+      // 로컬 상태 초기화
+      _isLoggedIn = false;
+      _userData = null;
+      notifyListeners();
+      setLoading(false);
     }
-
-    // 로컬 상태 초기화
-    _isLoggedIn = false;
-    _userData = null;
-
-    notifyListeners();
   }
 
-  // 비밀번호 재설정 이메일 요청
+  // 비밀번호 재설정 이메일 요청 - 기존 메소드
   Future<bool> requestPasswordReset(String email) async {
     try {
       if (kDebugMode) {
@@ -151,7 +176,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 비밀번호 재설정
+  // 비밀번호 재설정 - 기존 메소드
   Future<bool> resetPassword(String token, String newPassword) async {
     try {
       if (kDebugMode) {
@@ -164,6 +189,43 @@ class AuthProvider extends ChangeNotifier {
         print('비밀번호 재설정 오류: $e');
       }
       return false;
+    }
+  }
+
+  // 이메일 인증 코드 저장
+  void setVerificationCode(String code) {
+    _verificationCode = code;
+    notifyListeners();
+  }
+
+  // 캐릭터 선택 회원가입 (추가 메소드)
+  Future<bool> signUpWithCharacter(
+    String email,
+    String password,
+    String nickname,
+    String character,
+  ) async {
+    setLoading(true);
+
+    try {
+      final response = await _authService.registerWithCharacter(
+        email,
+        password,
+        nickname,
+        character,
+      );
+      if (kDebugMode) {
+        print('캐릭터 선택 회원가입 응답: $response');
+      }
+
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('캐릭터 선택 회원가입 오류: $e');
+      }
+      throw e;
+    } finally {
+      setLoading(false);
     }
   }
 }

@@ -21,6 +21,7 @@ class ApiConstants {
   // 인증 관련 엔드포인트
   static String get loginUrl => '$baseUrl/login';
   static String get registerUrl => '$baseUrl/auth/sign-up';
+  static String get signUpCompleteUrl => '$baseUrl/auth/sign-up/complete';
   static String get logoutUrl => '$baseUrl/auth/logout';
 
   // 비밀번호 재설정 관련 엔드포인트
@@ -30,6 +31,7 @@ class ApiConstants {
 
   // 사용자 관련 엔드포인트
   static String get userProfileUrl => '$baseUrl/users/my-info';
+  static String get randomNicknameUrl => '$baseUrl/auth/random-nickname';
 
   // 일기 관련 엔드포인트
   static String get diariesUrl => '$baseUrl/diaries';

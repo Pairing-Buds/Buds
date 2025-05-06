@@ -7,19 +7,19 @@ class CharacterData {
   static String getImage(int index) {
     switch (index) {
       case 0:
-        return 'assets/images/duck.png'; // 오리
+        return 'assets/icons/characters/duck.png'; // 오리
       case 1:
-        return 'assets/images/fox.png'; // 여우
+        return 'assets/icons/characters/fox.png'; // 여우
       case 2:
-        return 'assets/images/frog.png'; // 개구리
+        return 'assets/icons/characters/frog.png'; // 개구리
       case 3:
-        return 'assets/images/lizard.png'; // 도마뱀
+        return 'assets/icons/characters/lizard.png'; // 도마뱀
       case 4:
-        return 'assets/images/newmarmet.png'; // 마멋
+        return 'assets/icons/characters/newmarmet.png'; // 마멋
       case 5:
-        return 'assets/images/rabit.png'; // 토끼
+        return 'assets/icons/characters/rabit.png'; // 토끼
       default:
-        return 'assets/images/duck.png';
+        return 'assets/icons/characters/duck.png';
     }
   }
 

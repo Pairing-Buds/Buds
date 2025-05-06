@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/character_provider.dart';
+import '../../providers/auth_provider.dart';
 import 'package:buds/config/theme.dart';
 import 'widgets/character_selection_manager.dart';
 import 'package:buds/screens/main_screen.dart';
+import 'widgets/nickname_dialog.dart';
+import 'package:flutter/foundation.dart';
+import '../../services/dio_auth_service.dart';
 
 /// 캐릭터 선택 화면
 class CharacterSelectScreen extends StatefulWidget {
-  const CharacterSelectScreen({super.key});
+  final String? email;
+  final String? password;
+
+  const CharacterSelectScreen({super.key, this.email, this.password});
 
   @override
   State<CharacterSelectScreen> createState() => _CharacterSelectScreenState();
@@ -16,6 +23,7 @@ class CharacterSelectScreen extends StatefulWidget {
 class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
   int _currentPage = 1000;
   int? _flippedCardIndex;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,12 +34,25 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
           return Scaffold(
             backgroundColor: Colors.white,
             appBar: _buildAppBar(),
-            body: CharacterSelectionManager(
-              currentPage: _currentPage,
-              flippedCardIndex: _flippedCardIndex,
-              onPageChanged: _handlePageChanged,
-              onCardFlip: _handleCardFlip,
-              onCharacterSelect: _handleCharacterSelect,
+            body: Stack(
+              children: [
+                CharacterSelectionManager(
+                  currentPage: _currentPage,
+                  flippedCardIndex: _flippedCardIndex,
+                  onPageChanged: _handlePageChanged,
+                  onCardFlip: _handleCardFlip,
+                  onCharacterSelect: _handleCharacterSelect,
+                ),
+                if (_isProcessing)
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         },
@@ -80,14 +101,159 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
 
     setState(() => _flippedCardIndex = null);
 
-    _showSelectionMessage(characterProvider);
-    _navigateToMainScreen();
+    // 닉네임 선택 다이얼로그 표시
+    _showNicknameDialog();
   }
 
-  void _showSelectionMessage(CharacterProvider provider) {
+  Future<void> _showNicknameDialog() async {
+    final characterProvider = Provider.of<CharacterProvider>(
+      context,
+      listen: false,
+    );
+
+    // 첫 랜덤 닉네임 요청
+    await characterProvider.requestRandomNickname();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => NicknameDialog(
+            initialNickname: characterProvider.nickname,
+            onRefresh: () async {
+              await characterProvider.requestRandomNickname();
+              return characterProvider.nickname;
+            },
+            onConfirm: (nickname) {
+              characterProvider.setNickname(nickname);
+              _processCharacterSelection(
+                nickname,
+                characterProvider.selectedCharacterName!,
+              );
+            },
+          ),
+    );
+  }
+
+  Future<void> _processCharacterSelection(
+    String nickname,
+    String character,
+  ) async {
+    // 회원가입 중인 경우 (이메일, 비밀번호가 전달된 경우)
+    if (widget.email != null && widget.password != null) {
+      setState(() => _isProcessing = true);
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+        // 캐릭터 정보로 회원가입 완료
+        await authProvider.signUpWithCharacter(
+          widget.email!,
+          widget.password!,
+          nickname,
+          character,
+        );
+
+        if (kDebugMode) {
+          print('회원가입 성공: $nickname, $character');
+        }
+
+        // 명시적으로 회원가입 완료 API 호출
+        final authService = DioAuthService();
+        if (kDebugMode) {
+          print(
+            '명시적 회원가입 완료 API 호출 시도: nickname=$nickname, character=$character',
+          );
+        }
+        final completeResult = await authService.completeSignUp(
+          nickname,
+          character,
+        );
+        if (kDebugMode) {
+          print('명시적 회원가입 완료 API 호출 결과: $completeResult');
+        }
+
+        // 자동 로그인 시도
+        await authProvider.login(widget.email!, widget.password!);
+
+        _showSelectionMessage(nickname, character);
+        _navigateToMainScreen();
+      } catch (e) {
+        if (kDebugMode) {
+          print('캐릭터 선택 및 회원가입 완료 오류: $e');
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('회원가입 중 오류가 발생했습니다: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    } else {
+      // 단순 캐릭터 선택인 경우 (이미 로그인된 경우)
+      try {
+        setState(() => _isProcessing = true);
+        final authService = DioAuthService();
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+        if (kDebugMode) {
+          print(
+            '익명 사용자 캐릭터/닉네임 설정 시도: nickname=$nickname, character=$character',
+          );
+        }
+
+        // 1. 캐릭터/닉네임 정보 서버에 전송
+        final completeResult = await authService.completeSignUp(
+          nickname,
+          character,
+        );
+
+        if (kDebugMode) {
+          print('캐릭터/닉네임 설정 결과: $completeResult');
+        }
+
+        // 2. 사용자 정보 새로고침 (업데이트된 정보 가져오기)
+        await authProvider.refreshUserData();
+
+        if (kDebugMode) {
+          print('사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}');
+        }
+
+        _showSelectionMessage(nickname, character);
+        _navigateToMainScreen();
+      } catch (e) {
+        if (kDebugMode) {
+          print('캐릭터/닉네임 설정 오류: $e');
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
+      }
+    }
+  }
+
+  void _showSelectionMessage(String nickname, String character) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(provider.getSelectionMessage()),
+        content: Text('${nickname}님, ${character}와(과) 함께하게 되었습니다!'),
         backgroundColor: AppColors.primary,
       ),
     );
