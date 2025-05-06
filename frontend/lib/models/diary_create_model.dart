@@ -10,8 +10,8 @@ class DiaryCreateRequest {
   });
 
   Map<String, dynamic> toJson() => {
-    'emotionDiary': emotionDiary,
-    'activeDiary': activeDiary,
+    'emotion_diary': emotionDiary,
+    'active_diary': activeDiary,
     'date': date,
   };
 }

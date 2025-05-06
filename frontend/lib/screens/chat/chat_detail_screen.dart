@@ -75,7 +75,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const DiaryDetailScreen(),
+                          builder: (_) => DiaryDetailScreen(selectedDate: DateTime.now()),
                         ),
                       );
                     },
