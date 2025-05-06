@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../config/theme.dart'; // AppColors.primary 같은 색상 정의 사용
+import '../../../config/theme.dart';
 
 class DiaryCard extends StatelessWidget {
   final DateTime date;
@@ -10,6 +10,8 @@ class DiaryCard extends StatelessWidget {
   final bool showRecordButton;
   final bool hasShadow;
   final VoidCallback? onEditPressed;
+  final ValueChanged<String>? onEmotionChanged;
+  final ValueChanged<String>? onActivityChanged;
 
   const DiaryCard({
     Key? key,
@@ -21,6 +23,8 @@ class DiaryCard extends StatelessWidget {
     this.showRecordButton = false,
     this.hasShadow = false,
     this.onEditPressed,
+    this.onEmotionChanged,
+    this.onActivityChanged,
   }) : super(key: key);
 
   @override
@@ -55,10 +59,12 @@ class DiaryCard extends StatelessWidget {
             ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: badgeIcons.map((path) => Padding(
+            children: badgeIcons
+                .map((path) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Image.asset(path, width: 55, height: 55),
-            )).toList(),
+            ))
+                .toList(),
           ),
           const SizedBox(height: 12),
           Center(
@@ -69,17 +75,31 @@ class DiaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           _buildLabel('감정일기'),
-          const SizedBox(height: 6),
-          Text(
+          const SizedBox(height: 12),
+          onEmotionChanged != null
+              ? TextField(
+            onChanged: onEmotionChanged,
+            maxLines: 4,
+            decoration: _inputDecoration('오늘의 감정을 입력해주세요'),
+            controller: TextEditingController(text: emotionContent),
+          )
+              : Text(
             emotionContent,
             style: const TextStyle(fontSize: 14, height: 1.6),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           _DashedLine(),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
           _buildLabel('활동일기'),
           const SizedBox(height: 12),
-          Text(
+          onActivityChanged != null
+              ? TextField(
+            onChanged: onActivityChanged,
+            maxLines: 4,
+            decoration: _inputDecoration('오늘의 활동을 입력해주세요'),
+            controller: TextEditingController(text: activityContent),
+          )
+              : Text(
             activityContent,
             style: const TextStyle(fontSize: 14, height: 1.6),
           ),
@@ -89,9 +109,7 @@ class DiaryCard extends StatelessWidget {
               child: SizedBox(
                 width: 240,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: 기록하기 버튼 눌렀을 때 액션
-                  },
+                  onPressed: () {}, // 외부에서 처리
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
@@ -100,7 +118,8 @@ class DiaryCard extends StatelessWidget {
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: const Text('기록하기', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  child: const Text('기록하기',
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
               ),
             ),
@@ -130,9 +149,23 @@ class DiaryCard extends StatelessWidget {
     const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
     return weekdays[weekday - 1];
   }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+      filled: true,
+      fillColor: Colors.grey.shade100,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.all(16),
+    );
+  }
 }
 
-// 점선 구분선 위젯
+// 점선 구분선
 class _DashedLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/diary_model.dart';
 import '../../config/theme.dart';
-import 'package:buds/screens/calendar/calendar_screen.dart';
+import '../../models/diary_model.dart';
+import '../../services/diary_service.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
-import 'package:buds/widgets/toast_bar.dart';
 
-class DiaryListScreen extends StatelessWidget {
+class DiaryListScreen extends StatefulWidget {
   final DateTime selectedDate;
 
   const DiaryListScreen({
@@ -14,134 +13,158 @@ class DiaryListScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-        Toast(context, '일기가 저장되었습니다.', icon: Icon(Icons.book, color: Colors.yellow));
-    });
+  State<DiaryListScreen> createState() => _DiaryListScreenState();
+}
 
-    return Scaffold(
-        backgroundColor: Colors.white,
-      body: SafeArea(
-      child: Column(
-        children: [
-          // 상단 헤더
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Stack(
-              alignment: Alignment.center,
+class _DiaryListScreenState extends State<DiaryListScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _itemKeys = {};
+  late Future<List<DiaryDay>> _diaryDaysFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _diaryDaysFuture = DiaryService().getDiaryByMonth(_formatDate(widget.selectedDate));
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+  }
+
+  void _scrollToSelectedDate() {
+    final key = _itemKeys[widget.selectedDate.toIso8601String().substring(0, 10)];
+    if (key != null && key.currentContext != null) {
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 400),
+        alignment: 0.2,
+      );
+    } else {
+      print('❌ 스크롤할 키 없음: ${widget.selectedDate.toIso8601String().substring(0, 10)}');
+      print('✅ 등록된 키들: ${_itemKeys.keys}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<DiaryDay>>(
+      future: _diaryDaysFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final diaryDays = snapshot.data!;
+        final visibleDays = diaryDays
+            .where((day) => day.diaryList.isNotEmpty)
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date)); // 최신순 정렬
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
               children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => CalendarScreen()),
-                      );
-                    },
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    '${selectedDate.year}년 ${selectedDate.month}월',
-                    style: const TextStyle(
-                      fontSize: 18,
+                _buildHeader(context),
+                const SizedBox(height: 6),
+                Expanded(
+                  child: visibleDays.isEmpty
+                      ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/marmet_head.png',
+                          width: 100,
+                          height: 100,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          '작성된 일기가 없어요',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ],
                     ),
+                  )
+                      : Stack(
+                    children: [
+                      ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        itemCount: visibleDays.length,
+                        itemBuilder: (context, index) {
+                          final day = visibleDays[index];
+                          final key = GlobalKey();
+                          final dateKey = DateTime.parse(day.date).toIso8601String().substring(0, 10);
+                          _itemKeys[dateKey] = key;
+
+                          return Container(
+                            key: key,
+                            margin: const EdgeInsets.only(bottom: 24),
+                            child: DiaryCard(
+                              date: DateTime.parse(day.date),
+                              badgeIcons: day.badgeList
+                                  .map((b) => 'assets/icons/badges/$b.png')
+                                  .toList(),
+                              emotionContent: day.diaryList
+                                  .where((e) => e.diaryType == 'EMOTION')
+                                  .map((e) => e.content)
+                                  .join('\n'),
+                              activityContent: day.diaryList
+                                  .where((e) => e.diaryType == 'ACTIVE')
+                                  .map((e) => e.content)
+                                  .join('\n'),
+                              showEditButton: false,
+                              showRecordButton: false,
+                              hasShadow: true,
+                            ),
+                          );
+                        },
+                      ),
+                      Builder(
+                        builder: (_) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            Future.delayed(Duration.zero, () {
+                              if (mounted) _scrollToSelectedDate();
+                            });
+                          });
+                          return const SizedBox.shrink();
+                        },
+                      )
+                    ],
                   ),
                 ),
               ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+              onPressed: () {
+                Navigator.pop(context);
+              },
             ),
           ),
           Center(
-            child: Container(
-              width: 110,
-              height: 6,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          SizedBox(height: 6),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(32),
-              children: [
-                _buildDiaryCard(
-                  date: DateTime(2025, 4, 19),
-                  moodIcons: ['😎', '😊', '🏠'],
-                  content:
-                  '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
-                  additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
-                ),
-                SizedBox(height: 32),
-                _buildDiaryCard(
-                  date: DateTime(2025, 4, 20),
-                  moodIcons: ['⏰', '📝'],
-                  content:
-                  '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
-                  additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
-                ),
-                SizedBox(height: 16),
-                _buildDiaryCard(
-                  date: DateTime(2025, 4, 20),
-                  moodIcons: ['⏰', '📝'],
-                  content:
-                  '이사한 친구 집들이를 갔다. 후식으로 디저트 먹었는데 우리집 근처에도 팔았으면 좋겠다.',
-                  additionalNote: '3000보 달성!\n친구 집까지 이동했다.',
-                ),
-              ],
+            child: Text(
+              '${widget.selectedDate.year}년 ${widget.selectedDate.month}월',
+              style: const TextStyle(fontSize: 18),
             ),
           ),
         ],
       ),
-      ),
     );
-  }
-  Widget _buildDiaryCard({
-    required DateTime date,
-    required List<String> moodIcons,
-    required String content,
-    String? additionalNote,
-  }) {
-    return DiaryCard(
-      date: date,
-      badgeIcons: [
-        'assets/icons/badges/3000.png',
-      ],
-      emotionContent: content,
-      activityContent: additionalNote ?? '',
-      showEditButton: false,
-      showRecordButton: false,
-      hasShadow: true,
-    );
-  }
-
-
-  Widget badgeLabel(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  String _twoDigits(int n) => n.toString().padLeft(2, '0');
-
-  String _weekdayKor(int weekday) {
-    const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-    return weekdays[weekday - 1];
   }
 }

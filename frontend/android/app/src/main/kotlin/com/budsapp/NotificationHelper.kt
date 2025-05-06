@@ -1,4 +1,4 @@
-package com.example.buds
+package com.budsapp
 
 import android.app.PendingIntent
 import android.content.Context
@@ -10,7 +10,7 @@ object NotificationHelper {
     // 알람 알림을 위한 PendingIntent 생성
     fun createAlarmNotificationIntent(context: Context, notificationId: Int): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
-            action = "com.buds.app.ALARM_NOTIFICATION"
+            action = "com.budsapp.ALARM_NOTIFICATION"
             putExtra("notification_id", notificationId)
             putExtra("is_alarm", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

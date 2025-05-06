@@ -1,5 +1,4 @@
-// 일기 관련 API 서비스
-
+import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 import '../models/diary_model.dart';
 import 'dio_api_service.dart';
@@ -7,83 +6,64 @@ import 'dio_api_service.dart';
 class DiaryService {
   final DioApiService _apiService = DioApiService();
 
-  // 일기 목록 조회
-  Future<List<Diary>> getDiaries({int page = 1, int limit = 10}) async {
+  Future<List<DiaryDay>> getDiaryByMonth(String date) async {
     try {
-      final response = await _apiService.get(
-        ApiConstants.diariesUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        queryParameters: {'page': page, 'limit': limit},
-      );
+      final response = await _apiService.get('/calendars/day/$date');
+      final data = response.data;
 
-      final List<dynamic> diaryList = response['data'];
-      return diaryList.map((json) => Diary.fromJson(json)).toList();
+      if (data['statusCode'] != 'OK') {
+        throw Exception('일기 데이터 조회 실패');
+      }
+
+      final List<dynamic> resMsg = data['resMsg'];
+      return resMsg.map((e) => DiaryDay.fromJson(e)).toList();
     } catch (e) {
-      throw Exception('일기 목록 조회 실패: $e');
+      throw Exception('일기 API 오류: $e');
     }
   }
 
-  // 일기 상세 조회
-  Future<Diary> getDiaryDetail(String id) async {
+  Future<Map<String, String>> generateDiary(int userId) async {
     try {
-      final response = await _apiService.get(
-        '${ApiConstants.diaryDetailUrl.replaceFirst(ApiConstants.baseUrl, '')}$id',
+      final dio = Dio(); // 별도 FastAPI 호출이므로 직접 사용
+      final response = await dio.post(
+        'http://k12c105.p.ssafy.io/fastapi/diary/generate',
+        queryParameters: {'user_id': userId},
       );
 
-      return Diary.fromJson(response['data']);
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        return {
+          'emotion_diary': response.data['emotion_diary'],
+          'active_diary': response.data['active_diary'],
+        };
+      } else {
+        throw Exception('일기 생성 실패');
+      }
     } catch (e) {
-      throw Exception('일기 상세 조회 실패: $e');
+      throw Exception('일기 생성 오류: $e');
     }
   }
 
-  // 일기 작성
-  Future<Diary> createDiary(String title, String content, String mood) async {
-    try {
-      final data = {'title': title, 'content': content, 'mood': mood};
-
-      final response = await _apiService.post(
-        ApiConstants.diariesUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        data: data,
-      );
-
-      return Diary.fromJson(response['data']);
-    } catch (e) {
-      throw Exception('일기 작성 실패: $e');
-    }
-  }
-
-  // 일기 수정
-  Future<Diary> updateDiary(
-    String id, {
-    String? title,
-    String? content,
-    String? mood,
+  Future<bool> createDiary({
+    required String emotionDiary,
+    required String activeDiary,
+    required String date,
   }) async {
     try {
-      final data = {};
-
-      if (title != null) data['title'] = title;
-      if (content != null) data['content'] = content;
-      if (mood != null) data['mood'] = mood;
-
-      final response = await _apiService.put(
-        '${ApiConstants.diaryDetailUrl.replaceFirst(ApiConstants.baseUrl, '')}$id',
-        data: data,
+      final response = await _apiService.post(
+        '/diaries',
+        data: {
+          'emotion_diary': emotionDiary,
+          'active_diary': activeDiary,
+          'date': date,
+        },
       );
 
-      return Diary.fromJson(response['data']);
+      return response.data['statusCode'] == 'OK' &&
+          response.data['resMsg'] == 'CREATED';
     } catch (e) {
-      throw Exception('일기 수정 실패: $e');
+      throw Exception('일기 저장 실패: $e');
     }
   }
 
-  // 일기 삭제
-  Future<void> deleteDiary(String id) async {
-    try {
-      await _apiService.delete(
-        '${ApiConstants.diaryDetailUrl.replaceFirst(ApiConstants.baseUrl, '')}$id',
-      );
-    } catch (e) {
-      throw Exception('일기 삭제 실패: $e');
-    }
-  }
+
 }

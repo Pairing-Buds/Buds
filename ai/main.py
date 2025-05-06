@@ -13,8 +13,12 @@ load_dotenv()
 
 # 로깅 설정
 logging.basicConfig(
-    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO")),
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("app.log")
+    ]
 )
 
 # FastAPI 앱 초기화
@@ -30,11 +34,17 @@ app.add_middleware(
 )
 
 # 라우터 및 WebSocket 설정
-from api.routes import router
+from api.chat import router as chat_router
 from api.websocket import websocket_endpoint
+from api.diary import router as diary_router
 
-app.include_router(router)
-app.add_websocket_route("/ws/{user_id}", websocket_endpoint)
+app.include_router(chat_router)
+app.include_router(diary_router)
+
+# WebSocket 엔드포인트 추가
+@app.websocket("/ws/{user_id}")
+async def websocket_route(websocket, user_id: int):
+    await websocket_endpoint(websocket, user_id)
 
 # 기본 루트 엔드포인트
 @app.get("/")

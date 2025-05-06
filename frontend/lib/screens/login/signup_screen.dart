@@ -6,6 +6,7 @@ import 'package:buds/models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'login_screen.dart';
 
 import 'widgets/signup_form_widgets.dart';
 
@@ -113,51 +114,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
 
       try {
-        debugPrint('회원가입 API 호출 시작');
-        debugPrint(
-          '요청 데이터: 이메일=${_emailController.text}, 생년월일=${_birthDateController.text}',
-        );
-
-        // 회원가입 API 호출
-        final user = await _authService.register(
-          '', // name 파라미터는 API에서 사용하지 않음
-          _emailController.text,
-          _passwordController.text,
-          birthDate: _birthDateController.text,
-        );
-
-        debugPrint('회원가입 API 응답: $user');
+        debugPrint('이메일, 비밀번호 유효성 확인 완료');
+        debugPrint('캐릭터 선택 화면으로 이동');
 
         if (!mounted) return;
 
         // 성공 메시지 표시
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('회원가입이 완료되었습니다.'),
+            content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
             backgroundColor: AppColors.primary,
           ),
         );
 
-        debugPrint('캐릭터 선택 화면으로 이동');
+        // 회원 가입 처리 (나중에 로그인 시 캐릭터 선택으로 넘어감)
+        await _authService.register(
+          '', // 이름은 비워두고
+          _emailController.text,
+          _passwordController.text,
+          birthDate: _birthDateController.text,
+        );
 
-        // 회원가입 후 바로 로그인 시도
-        try {
-          debugPrint('자동 로그인 시도');
-          await _authService.login(
-            _emailController.text,
-            _passwordController.text,
-          );
-          debugPrint('자동 로그인 성공');
-        } catch (loginError) {
-          debugPrint('자동 로그인 실패: $loginError');
-          // 로그인 실패해도 계속 진행 (사용자는 나중에 로그인 가능)
-        }
-
-        // 캐릭터 선택 화면으로 이동
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const CharacterSelectScreen(),
-          ),
+        // 로그인 화면으로 이동
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } catch (e) {
         debugPrint('회원가입 실패 오류: $e');

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/screens/home/shell_screen_stt.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
@@ -19,7 +19,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const StartChattingScreen()),
+                  MaterialPageRoute(builder: (context) => const ChatDetailScreen()),
                 );
               },
               child: Image.asset(
@@ -69,7 +69,7 @@ class HomeScreen extends StatelessWidget {
             top: MediaQuery.of(context).size.height * 0.435,
             left: MediaQuery.of(context).size.width * 0.5 - 100,
             child: Image.asset(
-              'assets/images/newmarmet.png',
+              'assets/icons/characters/newmarmet.png',
               width: 200,
               height: 200,
             ),
@@ -86,7 +86,9 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShellScreenSTT()),
+                  MaterialPageRoute(
+                    builder: (context) => const ShellScreenSTT(),
+                  ),
                 );
               },
               child: Image.asset(
@@ -107,7 +109,9 @@ class HomeScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LetterScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LetterScreen(),
+                    ),
                   );
                 },
                 child: Image.asset(
