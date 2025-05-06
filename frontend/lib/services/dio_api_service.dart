@@ -213,6 +213,28 @@ class DioApiService {
     }
   }
 
+  // PATCH 요청
+  Future<dynamic> patch(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      );
+
+      return response;
+    } on DioException catch (e) {
+      _handleDioError(e);
+      rethrow;
+    }
+  }
+
   // DioException 처리
   void _handleDioError(DioException e) {
     if (kDebugMode) {
