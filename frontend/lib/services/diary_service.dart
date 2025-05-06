@@ -3,6 +3,9 @@
 import '../constants/api_constants.dart';
 import '../models/diary_model.dart';
 import 'dio_api_service.dart';
+import 'package:dio/dio.dart';
+import '../constants/api_constants.dart';
+import '../models/diary_create_model.dart';
 
 class DiaryService {
   final DioApiService _apiService = DioApiService();
@@ -36,18 +39,18 @@ class DiaryService {
   }
 
   // 일기 작성
-  Future<Diary> createDiary(String title, String content, String mood) async {
+  Future<bool> createDiary(DiaryCreateRequest request) async {
     try {
-      final data = {'title': title, 'content': content, 'mood': mood};
-
       final response = await _apiService.post(
         ApiConstants.diariesUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        data: data,
+        data: request.toJson(),
       );
 
-      return Diary.fromJson(response['data']);
+      final data = response.data;
+      return data['statusCode'] == 'OK' && data['resMsg'] == 'CREATED';
     } catch (e) {
-      throw Exception('일기 작성 실패: $e');
+      print('일기 작성 실패: $e');
+      return false;
     }
   }
 

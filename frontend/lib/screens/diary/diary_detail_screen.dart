@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/theme.dart'; // AppColors.primary 등
 import 'package:buds/screens/diary/widgets/diary_card.dart';
 import 'package:buds/widgets/common_dialog.dart';
+import 'package:buds/services/diary_service.dart';
 
 class DiaryDetailScreen extends StatelessWidget {
   final DateTime? diaryDate;
@@ -47,10 +48,21 @@ class DiaryDetailScreen extends StatelessWidget {
                   confirmText: '삭제',
                   confirmColor: Colors.redAccent,
                   onCancel: () => Navigator.pop(context),
-                  onConfirm: () {
-                    Navigator.pop(context); // 닫기
-                    Navigator.pop(context); // DiaryDetailScreen 닫기
-                  },
+                    onConfirm: () async {
+                      try {
+                        await DiaryService().deleteDiary('4'); // 실제 다이어리 ID로 교체
+                        Navigator.pop(context); // 다이얼로그 닫기
+                        Navigator.pop(context); // 현재 스크린 닫기
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('일기가 삭제되었습니다.')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('삭제 중 오류 발생')),
+                        );
+                      }
+                    }
                 ),
               );
             },
@@ -88,10 +100,20 @@ class DiaryDetailScreen extends StatelessWidget {
                       confirmText: '수정하기',
                       confirmColor: AppColors.primary,
                       onCancel: () => Navigator.pop(context),
-                      onConfirm: () {
-                        Navigator.pop(context);
-                        // TODO: 수정 화면 이동 or 수정 처리
-                      },
+                        onConfirm: () async {
+                          Navigator.pop(context); // 다이얼로그 닫기
+
+                          final updatedDiary = await DiaryService().updateDiary(
+                            '4', // 실제 다이어리 ID로 교체
+                            title: '수정된 제목',
+                            content: '$emotionContent\n\n$activityContent', // 수정 내용 전달
+                            mood: 'HAPPY', // 필요 시
+                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('일기가 수정되었습니다.')),
+                          );
+                        }
                     ),
                   );
                 },

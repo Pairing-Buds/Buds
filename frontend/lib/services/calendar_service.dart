@@ -1,34 +1,35 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:buds/models/badge_model.dart';
 import 'package:buds/constants/api_constants.dart';
+import 'package:buds/services/dio_api_service.dart';
 
 class CalendarService {
-  static Future<Map<int, List<BadgeModel>>> fetchMonthlyBadges(String date, int userId) async {
-    final uri = Uri.parse('${ApiConstants.calendarDiaryUrl}$date');
+  static final DioApiService _dioApiService = DioApiService();
 
-    final response = await http.get(uri, headers: {
-      'userId': userId.toString(),
-    });
+  static Future<Map<int, List<BadgeModel>>> fetchMonthlyBadges(String date) async {
+    final path = '/calendars/$date';
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      final badgeMap = <int, List<BadgeModel>>{};
+    final response = await _dioApiService.get(path);
+    final data = response.data;
 
-      for (var item in data) {
-        final day = DateTime.parse(item['date']).day;
-
-        final diaryList = item['diaryList'] as List;
-        final badgeList = diaryList
-            .map((d) => BadgeModel.fromDiaryType(d['diaryType']))
-            .toList();
-
-        badgeMap[day] = badgeList;
-      }
-
-      return badgeMap;
-    } else {
-      throw Exception('캘린더 일기 기반 뱃지 조회 실패: ${response.statusCode}');
+    if (data['statusCode'] != 'OK') {
+      throw Exception('캘린더 배지 조회 실패');
     }
+
+    final resMsg = data['resMsg'] as List<dynamic>;
+    final badgeMap = <int, List<BadgeModel>>{};
+
+    for (var item in resMsg) {
+      final day = DateTime.parse(item['date']).day;
+
+      // badge가 null이면 스킵
+      if (item['badge'] == null) continue;
+
+      final badgeName = item['badge'] as String;
+      badgeMap[day] = [
+        BadgeModel(imagePath: 'assets/icons/badges/$badgeName.png')
+      ];
+    }
+
+    return badgeMap;
   }
 }

@@ -1,35 +1,44 @@
-import 'package:buds/config/theme.dart';
+// calendar_day.dart
 import 'package:flutter/material.dart';
-import 'package:buds/models/badge_model.dart';
 import 'package:buds/screens/diary/diary_list_screen.dart';
+import 'package:buds/config/theme.dart';
+import 'package:buds/models/badge_model.dart';
 
 class CalendarDay extends StatelessWidget {
   final int day;
   final List<BadgeModel> badges;
-  final bool isHighlighted;
+  final DateTime currentMonth;
 
   const CalendarDay({
     Key? key,
     required this.day,
     required this.badges,
-    this.isHighlighted = false,
+    required this.currentMonth,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     final nowKST = DateTime.now().toUtc().add(const Duration(hours: 9));
-    final thisDate = DateTime(nowKST.year, nowKST.month, day);
+    final today = DateTime(nowKST.year, nowKST.month, nowKST.day);
+    final thisDate = DateTime(currentMonth.year, currentMonth.month, day);
 
-    final isToday = thisDate.year == nowKST.year &&
-        thisDate.month == nowKST.month &&
-        thisDate.day == nowKST.day;
+    final isToday = thisDate == today;
+    final isPastOrToday = thisDate.isBefore(today) || thisDate == today;
+    final isSameMonth = thisDate.month == today.month && thisDate.year == today.year;
 
-    final isPastOrToday = thisDate.isBefore(nowKST) || isToday;
+    final dateCircleSize = screenWidth * 0.085;
+    final badgeSize = screenWidth * 0.12;
+
+    final textColor = isToday
+        ? Colors.white
+        : (isPastOrToday ? Colors.grey.shade700 : Colors.grey.shade400);
+    final effectiveColor = isSameMonth ? textColor : (thisDate.isBefore(today) ? Colors.grey.shade700 : Colors.grey.shade400);
 
     return GestureDetector(
       onTap: () {
-        final today = DateTime.now();
-        final thisDate = DateTime(today.year, today.month, day); // 오늘 연, 월, 일로 구성
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -37,63 +46,73 @@ class CalendarDay extends StatelessWidget {
           ),
         );
       },
-    child:  Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          height: 40,
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: isToday ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                day.toString(),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isToday
-                      ? Colors.white
-                      : (isPastOrToday ? Colors.grey.shade700 : Colors.grey.shade400),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: dateCircleSize + 4,
+            child: Center(
+              child: Container(
+                width: dateCircleSize,
+                height: dateCircleSize,
+                decoration: BoxDecoration(
+                  color: isToday ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  day.toString(),
+                  style: TextStyle(
+                    fontSize: screenHeight * 0.016,
+                    color: effectiveColor,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          height: 45,
-          child: badges.isNotEmpty
-              ? Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: badges.map((badge) {
-              return _buildBadgeImage(badge);
-            }).toList(),
-          )
-              : const SizedBox(),
-        ),
-      ],
-    ),
+         // SizedBox(height: screenHeight * 0.005),
+          SizedBox(
+            height: screenHeight * 0.06,
+            child: badges.isNotEmpty
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: badges.map((badge) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Image.asset(
+                        badge.imagePath,
+                        width: screenWidth * 0.12,
+                        height: screenWidth * 0.12,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
     );
   }
-  Widget _buildBadgeImage(BadgeModel badge) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Image.asset(
-        badge.imagePath,
-        width: 45,
-        height: 45,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: 45,
-            height: 45,
-            decoration: const BoxDecoration(
-              color: Colors.amber,
-              shape: BoxShape.circle,
-            ),
-          );
-        },
+
+  Widget _buildBadgeImage(BadgeModel badge, double size) {
+    return Flexible(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0.5),
+        child: FittedBox(
+          fit: BoxFit.contain,
+          child: Image.asset(
+            badge.imagePath,
+            width: size,
+            height: size,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
       ),
     );
   }

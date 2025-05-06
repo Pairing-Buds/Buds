@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../config/theme.dart'; // AppColors.primary 같은 색상 정의 사용
+import 'package:buds/models/diary_create_model.dart';
+import 'package:buds/services/diary_service.dart';
 
 class DiaryCard extends StatelessWidget {
   final DateTime date;
@@ -89,8 +91,25 @@ class DiaryCard extends StatelessWidget {
               child: SizedBox(
                 width: 240,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: 기록하기 버튼 눌렀을 때 액션
+                  onPressed: () async {
+                    final newDiary = DiaryCreateRequest(
+                      emotionDiary: emotionContent,
+                      activeDiary: activityContent,
+                      date: date.toIso8601String().split('T')[0], // yyyy-MM-dd
+                    );
+
+                    final success = await DiaryService().createDiary(newDiary);
+
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('일기가 성공적으로 작성되었습니다.')),
+                      );
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('일기 작성에 실패했습니다.')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
