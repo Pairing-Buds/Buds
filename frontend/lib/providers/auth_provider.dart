@@ -197,35 +197,4 @@ class AuthProvider extends ChangeNotifier {
     _verificationCode = code;
     notifyListeners();
   }
-
-  // 캐릭터 선택 회원가입 (추가 메소드)
-  Future<bool> signUpWithCharacter(
-    String email,
-    String password,
-    String nickname,
-    String character,
-  ) async {
-    setLoading(true);
-
-    try {
-      final response = await _authService.registerWithCharacter(
-        email,
-        password,
-        nickname,
-        character,
-      );
-      if (kDebugMode) {
-        print('캐릭터 선택 회원가입 응답: $response');
-      }
-
-      return true;
-    } catch (e) {
-      if (kDebugMode) {
-        print('캐릭터 선택 회원가입 오류: $e');
-      }
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  }
 }

@@ -11,10 +11,7 @@ import '../../services/dio_auth_service.dart';
 
 /// 캐릭터 선택 화면
 class CharacterSelectScreen extends StatefulWidget {
-  final String? email;
-  final String? password;
-
-  const CharacterSelectScreen({super.key, this.email, this.password});
+  const CharacterSelectScreen({super.key});
 
   @override
   State<CharacterSelectScreen> createState() => _CharacterSelectScreenState();
@@ -99,7 +96,8 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     );
     characterProvider.selectCharacter(index);
 
-    setState(() => _flippedCardIndex = null);
+    // 선택된 카드 인덱스 저장 (카드가 열린 상태 유지)
+    setState(() => _flippedCardIndex = index);
 
     // 닉네임 선택 다이얼로그 표시
     _showNicknameDialog();
@@ -141,111 +139,51 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     String nickname,
     String character,
   ) async {
-    // 회원가입 중인 경우 (이메일, 비밀번호가 전달된 경우)
-    if (widget.email != null && widget.password != null) {
+    // 이제 단일 경로만 있음 - 로그인된 사용자의 캐릭터/닉네임 설정
+    try {
       setState(() => _isProcessing = true);
-      try {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authService = DioAuthService();
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        // 캐릭터 정보로 회원가입 완료
-        await authProvider.signUpWithCharacter(
-          widget.email!,
-          widget.password!,
-          nickname,
-          character,
-        );
-
-        if (kDebugMode) {
-          print('회원가입 성공: $nickname, $character');
-        }
-
-        // 명시적으로 회원가입 완료 API 호출
-        final authService = DioAuthService();
-        if (kDebugMode) {
-          print(
-            '명시적 회원가입 완료 API 호출 시도: nickname=$nickname, character=$character',
-          );
-        }
-        final completeResult = await authService.completeSignUp(
-          nickname,
-          character,
-        );
-        if (kDebugMode) {
-          print('명시적 회원가입 완료 API 호출 결과: $completeResult');
-        }
-
-        // 자동 로그인 시도
-        await authProvider.login(widget.email!, widget.password!);
-
-        _showSelectionMessage(nickname, character);
-        _navigateToMainScreen();
-      } catch (e) {
-        if (kDebugMode) {
-          print('캐릭터 선택 및 회원가입 완료 오류: $e');
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('회원가입 중 오류가 발생했습니다: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isProcessing = false);
-        }
+      if (kDebugMode) {
+        print('캐릭터/닉네임 설정 시도: nickname=$nickname, character=$character');
       }
-    } else {
-      // 단순 캐릭터 선택인 경우 (이미 로그인된 경우)
-      try {
-        setState(() => _isProcessing = true);
-        final authService = DioAuthService();
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        if (kDebugMode) {
-          print(
-            '익명 사용자 캐릭터/닉네임 설정 시도: nickname=$nickname, character=$character',
-          );
-        }
+      // 1. 캐릭터/닉네임 정보 서버에 전송
+      final completeResult = await authService.completeSignUp(
+        nickname,
+        character,
+      );
 
-        // 1. 캐릭터/닉네임 정보 서버에 전송
-        final completeResult = await authService.completeSignUp(
-          nickname,
-          character,
+      if (kDebugMode) {
+        print('캐릭터/닉네임 설정 결과: $completeResult');
+      }
+
+      // 2. 사용자 정보 새로고침 (업데이트된 정보 가져오기)
+      await authProvider.refreshUserData();
+
+      if (kDebugMode) {
+        print('사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}');
+      }
+
+      _showSelectionMessage(nickname, character);
+      _navigateToMainScreen();
+    } catch (e) {
+      if (kDebugMode) {
+        print('캐릭터/닉네임 설정 오류: $e');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
-
-        if (kDebugMode) {
-          print('캐릭터/닉네임 설정 결과: $completeResult');
-        }
-
-        // 2. 사용자 정보 새로고침 (업데이트된 정보 가져오기)
-        await authProvider.refreshUserData();
-
-        if (kDebugMode) {
-          print('사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}');
-        }
-
-        _showSelectionMessage(nickname, character);
-        _navigateToMainScreen();
-      } catch (e) {
-        if (kDebugMode) {
-          print('캐릭터/닉네임 설정 오류: $e');
-        }
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isProcessing = false);
-        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
       }
     }
   }
