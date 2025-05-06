@@ -7,7 +7,6 @@ import openai
 from db.mysql import mysql_db
 from db.chroma import chroma_db
 from core.prompts import generate_system_prompt
-from pydantic_settings import BaseSettings
 import base64
 
 
@@ -34,8 +33,7 @@ class Chatbot:
         try:
             # 1. 사용자 프로필 가져오기
             user_profile = mysql_db.get_user_profile(user_id)
-            if not user_profile:
-                raise ValueError(f"사용자 ID {user_id}에 대한 프로필을 찾을 수 없습니다.")
+            # 오류 발생 시 ValueError가 발생하여 except 블록으로 이동
 
             # 2. 유사한 대화 컨텍스트 검색
             context = chroma_db.get_similar_conversations(user_id, message)
@@ -53,14 +51,16 @@ class Chatbot:
                 HumanMessage(content=f"Context: {context}\nUser: {message}")
             ])
 
-            # 5. 대화 내용 저장
-            chroma_db.save_conversation(user_id, message, response.content)
-
             return response.content
+
+        except ValueError as e:
+            # 사용자 프로필 조회 실패 (로그인되지 않은 사용자 등)
+            logging.error(f"사용자 정보 오류: {str(e)}")
+            raise ValueError(f"사용자 인증 오류: {str(e)}")
 
         except Exception as e:
             logging.error(f"챗봇 응답 생성 중 오류: {str(e)}")
-            raise
+            raise ValueError(f"서비스 오류: {str(e)}")
 
     def generate_response(self, message, user_id=None):
         """
@@ -70,30 +70,8 @@ class Chatbot:
         """
         try:
             # OpenAI API 직접 호출로 응답 생성
-            response = openai.ChatCompletion.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "당신은 사용자와 대화하는 친절하고 공감적인 챗봇입니다."},
-                    {"role": "user", "content": message}
-                ],
-                temperature=0.1
-            )
-
-            # 응답 추출
-            result = response.choices[0].message.content.strip()
-
-            # 대화 내용 저장 (user_id가 제공된 경우)
-            if user_id:
-                chroma_db.save_conversation(user_id, message, result)
-
-            return result
-
-        except Exception as e:
-            # 오류 발생 시 기본 응답
-            logging.error(f"응답 생성 오류: {str(e)}")
-
-            # 최신 OpenAI API 형식 시도
             try:
+                # 최신 OpenAI API 형식 시도
                 response = openai.chat.completions.create(
                     model="gpt-4o",
                     messages=[
@@ -105,15 +83,26 @@ class Chatbot:
 
                 # 응답 추출
                 result = response.choices[0].message.content.strip()
+            except AttributeError:
+                # 이전 OpenAI API 형식 시도
+                response = openai.ChatCompletion.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "당신은 사용자와 대화하는 친절하고 공감적인 챗봇입니다."},
+                        {"role": "user", "content": message}
+                    ],
+                    temperature=0.1
+                )
 
-                # 대화 내용 저장 (user_id가 제공된 경우)
-                if user_id:
-                    chroma_db.save_conversation(user_id, message, result)
+                # 응답 추출
+                result = response.choices[0].message.content.strip()
 
-                return result
+            return result
 
-            except:
-                return "죄송합니다. 응답을 생성하는 동안 오류가 발생했습니다."
+        except Exception as e:
+            # 오류 발생 시 기본 응답
+            logging.error(f"응답 생성 오류: {str(e)}")
+            return "죄송합니다. 응답을 생성하는 동안 오류가 발생했습니다."
 
     def generate_emotion_diary(self, chat_history):
         """
@@ -168,25 +157,31 @@ class Chatbot:
             # 3. OpenAI Whisper API를 사용하여 음성을 텍스트로 변환
             try:
                 with open(temp_audio_path, 'rb') as audio_file:
-                    transcript = openai.Audio.transcribe(
-                        file=audio_file,
-                        model="whisper-1",
-                        language="ko"  # 한국어 지정 (다른 언어도 가능)
-                    )
+                    try:
+                        # 최신 OpenAI API 형식 시도
+                        transcript = openai.audio.transcriptions.create(
+                            file=audio_file,
+                            model="whisper-1",
+                            language="ko"  # 한국어 지정 (다른 언어도 가능)
+                        )
+                        transcribed_text = transcript.text
+                    except AttributeError:
+                        # 이전 OpenAI API 형식 시도
+                        transcript = openai.Audio.transcribe(
+                            file=audio_file,
+                            model="whisper-1",
+                            language="ko"  # 한국어 지정 (다른 언어도 가능)
+                        )
+                        transcribed_text = transcript["text"]
 
-                # 4. 텍스트 추출
-                transcribed_text = transcript["text"]
-
-                # 5. 임시 파일 삭제
+                # 4. 임시 파일 삭제
                 os.unlink(temp_audio_path)
 
-                # 6. 텍스트로 변환된 음성 메시지로 응답 생성
-                response = self.generate_response(transcribed_text, user_id)
-
+                # 5. 응답 생성은 하지 않음 (websocket에서 처리)
                 return {
                     "success": True,
                     "transcribed_text": transcribed_text,
-                    "response": response
+                    "response": ""
                 }
 
             except Exception as e:
@@ -204,6 +199,51 @@ class Chatbot:
                     os.unlink(temp_audio_path)
                 except:
                     pass
+
+    async def process_continuous_voice(self, audio_data_b64, user_id):
+        """
+        연속 음성 스트림을 처리하는 메서드
+
+        Base64로 인코딩된 오디오 데이터를 받아 텍스트로 변환한 후 처리합니다.
+        VAD(Voice Activity Detection)를 사용하여 음성 활동을 감지합니다.
+        """
+        try:
+            # 기존의 generate_voice_response 메서드를 활용하여 음성을 텍스트로 변환
+            voice_result = self.generate_voice_response(audio_data_b64, user_id)
+
+            if not voice_result["success"]:
+                return {
+                    "success": False,
+                    "error": voice_result.get("error", "음성 인식 실패"),
+                    "response": "음성을 인식하는 데 문제가 있었습니다."
+                }
+
+            transcribed_text = voice_result["transcribed_text"]
+
+            # 빈 텍스트인 경우 처리하지 않음
+            if not transcribed_text.strip():
+                return {
+                    "success": True,
+                    "transcribed_text": "",
+                    "response": ""
+                }
+
+            # 응답 생성
+            response = await self.get_response(user_id, transcribed_text)
+
+            return {
+                "success": True,
+                "transcribed_text": transcribed_text,
+                "response": response
+            }
+
+        except Exception as e:
+            logging.error(f"연속 음성 처리 중 오류: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e),
+                "response": "음성 처리 중 오류가 발생했습니다."
+            }
 
 
 # 전역 Chatbot 인스턴스

@@ -1,4 +1,4 @@
-package com.example.buds
+package com.budsapp
 
 import android.content.Context
 import android.content.Intent
@@ -21,9 +21,9 @@ import android.Manifest
 import android.app.ActivityManager
 
 class MainActivity : FlutterActivity() {
-    private val BATTERY_CHANNEL = "com.buds.app/battery_optimization"
-    private val NOTIFICATION_INTENT_CHANNEL = "com.buds.app/notification_intent"
-    private val LOCK_SCREEN_CHANNEL = "com.buds.app/lock_screen_settings"
+    private val BATTERY_CHANNEL = "com.budsapp/battery_optimization"
+    private val NOTIFICATION_INTENT_CHANNEL = "com.budsapp/notification_intent"
+    private val LOCK_SCREEN_CHANNEL = "com.budsapp/lock_screen_settings"
     
     // 걸음 수 서비스 관련 상수
     private val STEP_COUNTER_PERMISSION_REQUEST_CODE = 1001
@@ -127,7 +127,7 @@ class MainActivity : FlutterActivity() {
                 // 테스트용 알람 인텐트 생성
                 try {
                     val testIntent = Intent(this, MainActivity::class.java)
-                    testIntent.action = "com.buds.app.ALARM_NOTIFICATION"
+                    testIntent.action = "com.budsapp.ALARM_NOTIFICATION"
                     testIntent.putExtra("notification_id", 888)
                     testIntent.putExtra("is_alarm", true)
                     testIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -229,7 +229,7 @@ class MainActivity : FlutterActivity() {
     private fun isAlarmIntent(intent: Intent?): Boolean {
         val action = intent?.action
         val isAlarm = intent?.getBooleanExtra("is_alarm", false) ?: false
-        val isAlarmAction = action == "com.buds.app.ALARM_NOTIFICATION"
+        val isAlarmAction = action == "com.budsapp.ALARM_NOTIFICATION"
         // SELECT_NOTIFICATION 액션인 경우도 알람 인텐트로 판단 (알림을 통해 앱이 시작된 경우)
         val isFromNotification = action == "SELECT_NOTIFICATION" || action == "android.intent.action.MAIN" && intent.hasCategory("android.intent.category.LAUNCHER") && intent.getBooleanExtra("from_notification", false)
         
@@ -252,98 +252,52 @@ class MainActivity : FlutterActivity() {
         if (isAlarm) {
             enableLockScreenBypass()
             wasFromAlarmIntent = true
-            println("MainActivity.onNewIntent: 알람 인텐트 감지, 잠금화면 바이패스 활성화")
-        }
-    }
-    
-    // 앱이 일시정지될 때 호출 (화면이 꺼질 때 등)
-    override fun onPause() {
-        super.onPause()
-        // 현재 상태 저장 (알람 인텐트로 시작되었는지)
-        val prefs = getSharedPreferences("com.buds.app.PREFS", Context.MODE_PRIVATE)
-        prefs.edit().putBoolean("was_from_alarm_intent", wasFromAlarmIntent).apply()
-        println("MainActivity.onPause: 알람 상태 저장 was_from_alarm_intent=$wasFromAlarmIntent")
-    }
-    
-    // 앱이 재개될 때 호출 (화면이 다시 켜질 때 등)
-    override fun onResume() {
-        super.onResume()
-        
-        // 알람 인텐트로 시작되었었는지 확인
-        val prefs = getSharedPreferences("com.buds.app.PREFS", Context.MODE_PRIVATE)
-        val wasFromAlarm = prefs.getBoolean("was_from_alarm_intent", false)
-        
-        // 화면이 꺼졌다가 다시 켜졌을 때, 알람 인텐트로 시작된 것이 아니면 
-        // 잠금화면 바이패스 비활성화 (정상적으로 잠금화면이 표시되도록)
-        if (!wasFromAlarm) {
+            println("MainActivity(onNewIntent): 알람 인텐트로 감지되어 잠금화면 바이패스 활성화")
+        } else {
+            // 알람 인텐트가 아닌 경우 기본 동작으로 설정
             disableLockScreenBypass()
             wasFromAlarmIntent = false
-            println("MainActivity.onResume: 일반 상태로 복귀, 잠금화면 바이패스 비활성화")
-        } else {
-            println("MainActivity.onResume: 알람 인텐트로부터 복귀, 잠금화면 바이패스 상태 유지")
+            println("MainActivity(onNewIntent): 일반 인텐트로 감지되어 잠금화면 바이패스 비활성화")
         }
     }
-
-    // 배터리 최적화 무시 요청 메서드
+    
+    // 배터리 최적화 무시 기능 요청
     private fun requestBatteryOptimizationDisable(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val packageName = packageName
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
             
-            // 이미 배터리 최적화에서 제외되어 있는지 확인
             if (!pm.isIgnoringBatteryOptimizations(packageName)) {
                 try {
-                    // 배터리 최적화 무시 요청 인텐트 생성
-                    val intent = Intent()
-                    intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                    intent.data = Uri.parse("package:$packageName")
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    // 배터리 최적화 무시 설정으로 이동
+                    val intent = Intent().apply {
+                        action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        data = Uri.parse("package:$packageName")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
                     startActivity(intent)
                     return true
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    return false
                 }
+            } else {
+                // 이미 배터리 최적화 무시 상태
+                return true
             }
-            return true
         }
+        
         return false
     }
     
-    // 걸음 수 측정 서비스 시작
-    private fun startStepCounterService() {
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
-    }
-    
-    // 걸음 수 측정 서비스 중지
-    private fun stopStepCounterService() {
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        stopService(serviceIntent)
-    }
-    
-    // 권한 확인
+    // 걸음 수 측정 권한 확인
     private fun checkPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACTIVITY_RECOGNITION
-        ) == PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+        }
+        return true
     }
     
-    // 권한 요청
-    private fun requestPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-            STEP_COUNTER_PERMISSION_REQUEST_CODE
-        )
-    }
-    
-    // 권한 확인 및 요청
+    // 권한 확인 및 요청 (필요한 경우)
     private fun checkAndRequestPermission(): Boolean {
         if (!checkPermission()) {
             requestPermission()
@@ -352,25 +306,67 @@ class MainActivity : FlutterActivity() {
         return true
     }
     
+    // 걸음 수 측정 권한 요청
+    private fun requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                STEP_COUNTER_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+    
     // 권한 요청 결과 처리
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
         if (requestCode == STEP_COUNTER_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // 권한이 부여되면 서비스 시작
+                // 권한이 승인된 경우 서비스 시작
                 startStepCounterService()
             }
         }
     }
     
-    // 걸음 수 측정 서비스가 실행 중인지 확인
+    // 걸음 수 측정 서비스 시작
+    private fun startStepCounterService() {
+        if (isStepCounterServiceRunning()) return // 이미 실행 중인 경우 중복 실행 방지
+        
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+        println("MainActivity: 걸음 수 측정 서비스 시작됨")
+    }
+    
+    // 걸음 수 측정 서비스 중지
+    private fun stopStepCounterService() {
+        val serviceIntent = Intent(this, StepCounterService::class.java)
+        stopService(serviceIntent)
+        println("MainActivity: 걸음 수 측정 서비스 중지됨")
+    }
+    
+    // 서비스 실행 상태 확인
     private fun isStepCounterServiceRunning(): Boolean {
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
-            if (StepCounterService::class.java.name == service.service.className) {
-                return true
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        
+        if (activityManager.getRunningServices(Int.MAX_VALUE) != null) {
+            for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+                if (StepCounterService::class.java.name == service.service.className) {
+                    if (service.foreground) {
+                        return true
+                    }
+                }
             }
         }
+        
         return false
     }
-}
+    
+    companion object {
+        const val NOTIFICATION_CHANNEL_ID = "com.budsapp.StepCounter"
+    }
+} 

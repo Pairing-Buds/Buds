@@ -89,7 +89,10 @@ class _LoginFormState extends State<LoginForm> {
             } else {
               // 로그인 실패
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다')),
+                const SnackBar(
+                  content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다'),
+                  backgroundColor: Colors.red,
+                ),
               );
             }
           })
@@ -98,8 +101,23 @@ class _LoginFormState extends State<LoginForm> {
             if (kDebugMode) {
               print('로그인 폼 오류: $error');
             }
+
+            // 오류 메시지 추출 및 표시
+            String errorMessage = '로그인 실패: 서버 연결 오류';
+
+            if (error.toString().contains('401')) {
+              errorMessage = '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다';
+            } else if (error.toString().contains('500')) {
+              errorMessage = '로그인 실패: 서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            } else if (error.toString().contains('인증 쿠키 없음')) {
+              errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('로그인 실패: ${error.toString()}')),
+              SnackBar(
+                content: Text(errorMessage),
+                backgroundColor: Colors.red,
+              ),
             );
           })
           .whenComplete(() {

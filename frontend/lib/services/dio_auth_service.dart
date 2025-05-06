@@ -46,41 +46,55 @@ class DioAuthService {
         }
       }
 
-      // 응답 데이터에서 사용자 정보 추출 또는 기본 사용자 객체 생성
-      User user;
-
-      if (response is Response && response.data is Map<String, dynamic>) {
-        final responseData = response.data as Map<String, dynamic>;
-
-        // 응답에 사용자 정보가 있는 경우
-        if (responseData['user'] != null) {
-          user = User.fromJson(responseData['user']);
-        } else {
-          // 사용자 정보가 없는 경우 기본 객체 생성
-          user = User(
-            id: 0,
-            email: email,
-            name: email.split('@')[0], // 이메일에서 추출한 기본 이름
-            profileImageUrl: null,
-            createdAt: DateTime.now(),
-          );
+      // 상태 코드 확인 - 401 Unauthorized 또는 다른 오류 상태 코드 확인
+      if (response is Response && response.statusCode != 200) {
+        if (kDebugMode) {
+          print('로그인 실패: 상태 코드 ${response.statusCode}');
+          print('오류 메시지: ${response.data}');
         }
-      } else {
-        // 응답이 예상과 다른 경우 기본 객체 생성
-        user = User(
+        throw Exception('로그인 실패: 인증 오류 (${response.statusCode})');
+      }
+
+      // 쿠키 확인 - 로그인 성공 시 쿠키가 있어야 함
+      if (response is Response &&
+          (response.headers['set-cookie'] == null ||
+              response.headers['set-cookie']!.isEmpty)) {
+        if (kDebugMode) {
+          print('로그인 실패: 인증 쿠키가 없습니다');
+        }
+        throw Exception('로그인 실패: 인증 쿠키 없음');
+      }
+
+      if (kDebugMode) {
+        print('로그인 성공, 사용자 정보 조회 시작');
+      }
+
+      // 로그인 성공 후 사용자 정보 조회
+      try {
+        // getUserProfile 메서드를 호출하여 최신 사용자 정보 조회
+        final user = await getUserProfile();
+
+        if (kDebugMode) {
+          print('로그인 성공 및 사용자 정보 조회 완료: ${user.email}, 이름: ${user.name}');
+        }
+
+        return user;
+      } catch (profileError) {
+        // 사용자 정보 조회 실패 시 기본 정보로 대체
+        if (kDebugMode) {
+          print('로그인은 성공했으나 사용자 정보 조회 실패: $profileError');
+          print('기본 사용자 정보로 대체합니다.');
+        }
+
+        // 기본 사용자 객체 생성
+        return User(
           id: 0,
           email: email,
-          name: email.split('@')[0],
+          name: email.split('@')[0], // 이메일에서 추출한 기본 이름
           profileImageUrl: null,
           createdAt: DateTime.now(),
         );
       }
-
-      if (kDebugMode) {
-        print('로그인 성공: ${user.email}');
-      }
-
-      return user;
     } catch (e) {
       if (kDebugMode) {
         print('로그인 요청 오류: $e');
@@ -89,7 +103,7 @@ class DioAuthService {
     }
   }
 
-  // 회원가입
+  // 기존 회원가입
   Future<User> register(
     String name,
     String email,
@@ -138,6 +152,44 @@ class DioAuthService {
     } catch (e) {
       print('회원가입 프로세스 오류 세부 정보: $e');
       throw Exception('회원가입 실패: $e');
+    }
+  }
+
+  // 회원가입 완료 API (닉네임과 캐릭터 정보 전송)
+  Future<bool> completeSignUp(String userName, String userCharacter) async {
+    try {
+      final data = {'userName': userName, 'userCharacter': userCharacter};
+
+      if (kDebugMode) {
+        print('회원가입 완료 요청 데이터: $data');
+        print(
+          '회원가입 완료 API 엔드포인트 (상대): ${ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, '')}',
+        );
+        print('회원가입 완료 API 엔드포인트 (전체): ${ApiConstants.signUpCompleteUrl}');
+      }
+
+      final response = await _apiService.patch(
+        ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: data,
+      );
+
+      if (kDebugMode) {
+        print('회원가입 완료 응답: ${response.data}');
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+
+        return statusCode == 'OK';
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('회원가입 완료 요청 오류: $e');
+      }
+      throw Exception('회원가입 완료 요청 실패: $e');
     }
   }
 
