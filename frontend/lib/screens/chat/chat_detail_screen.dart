@@ -1,12 +1,14 @@
-import 'package:buds/widgets/custom_app_bar.dart';
+// ChatDetailScreen.dart (voice + text 통합)
 import 'package:flutter/material.dart';
+import 'package:buds/services/chat_service.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/diary/diary_detail_screen.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:intl/intl.dart';
+import 'package:buds/screens/chat/widgets/typing_indicator.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChatDetailScreen extends StatefulWidget {
-  final String message;
-
-  const ChatDetailScreen({super.key, required this.message});
+  const ChatDetailScreen({super.key});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -14,104 +16,287 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ChatService _chatService = ChatService();
+  final ScrollController _scrollController = ScrollController();
+  final int userId = 20;
+  List<Map<String, dynamic>> _chatHistory = [];
+  bool _isWaitingForBot = false;
+  bool _hasStarted = false;
+  bool _isListening = false;
+  String _recognizedText = '';
+  late stt.SpeechToText _speech;
 
-  void _handleSend() {
+  @override
+  void initState() {
+    super.initState();
+    _speech = stt.SpeechToText();
+    _loadChatHistory();
+  }
+
+  Future<void> _loadChatHistory() async {
+    final history = await _chatService.getChatHistory(userId: userId);
+
+    history.sort((a, b) {
+      final timeA = DateTime.parse(a['created_at']);
+      final timeB = DateTime.parse(b['created_at']);
+      return timeA.compareTo(timeB);
+    });
+
+    setState(() {
+      _chatHistory = history;
+      _hasStarted = history.isNotEmpty;
+    });
+
+    _scrollToBottom();
+  }
+
+  void _handleSend() async {
     if (_controller.text.isNotEmpty) {
+      final userMessage = _controller.text;
       setState(() {
-        print('보낸 메시지: ${_controller.text}');
+        _hasStarted = true;
+        _chatHistory.add({
+          'message': userMessage,
+          'is_user': true,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+        _isWaitingForBot = true;
+        _chatHistory.add({
+          'message': 'LOADING',
+          'is_user': false,
+          'created_at': DateTime.now().toIso8601String(),
+        });
         _controller.clear();
       });
+
+      _scrollToBottom();
+
+      final botMessage = await _chatService.sendMessage(
+        userId: userId,
+        message: userMessage,
+        isVoice: false,
+      );
+
+      setState(() {
+        _chatHistory.removeLast();
+        _chatHistory.add({
+          'message': botMessage,
+          'is_user': false,
+          'created_at': DateTime.now().toIso8601String(),
+        });
+        _isWaitingForBot = false;
+      });
+
+      _scrollToBottom();
     }
+  }
+
+  Future<void> _startListening() async {
+    bool available = await _speech.initialize();
+    if (available) {
+      setState(() => _isListening = true);
+      _speech.listen(
+        onResult: (result) {
+          setState(() {
+            _recognizedText = result.recognizedWords;
+          });
+          if (result.finalResult && _recognizedText.isNotEmpty) {
+            _controller.text = _recognizedText;
+            _handleSend();
+            _speech.stop();
+          }
+        },
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final sideMargin = screenWidth * 0.11;
-
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
-      appBar: const CustomAppBar(),
+      resizeToAvoidBottomInset: true,
+      appBar: const CustomAppBar(
+        title: null,
+        showBackButton: true,
+      ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: sideMargin),
-              child: Row(
-                children: const [
-                  Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      '2025년 4월 20일',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            _buildChatBubble('오늘은 힘든 하루였구나.\n나랑 더 얘기해볼래?', isBot: true),
-            _buildChatBubble(widget.message, isBot: false),
-
-            const Spacer(),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 0, 40, 40),
-              child: TextField(
-                controller: _controller,
-                style: const TextStyle(color: Colors.black),
-                decoration: InputDecoration(
-                  hintText: '답장하기',
-                  hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                  suffixIcon: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => DiaryDetailScreen(selectedDate: DateTime.now()),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Image.asset(
-                        'assets/icons/chat.png',
-                        width: 30,
-                      ),
-                    ),
-                  ),
-                  suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: _hasStarted ? _buildChatView() : _buildStartView(),
       ),
     );
   }
 
+  Widget _buildStartView() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Spacer(),
+        Opacity(
+          opacity: 0.5,
+          child: Image.asset(
+            'assets/images/marmet_head.png',
+            width: 240,
+          ),
+        ),
+        const Spacer(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 0, 40, 40),
+          child: TextField(
+            controller: _controller,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              hintText: '답장하기',
+              hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
+              filled: true,
+              fillColor: const Color(0xFFF5F5F5),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  if (_controller.text.isEmpty) {
+                    _startListening();
+                  } else {
+                    _handleSend();
+                  }
+                },
+                child: const Icon(Icons.mic, color: Colors.black),
+              ),
+              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChatView() {
+    final latestDate = _chatHistory.isNotEmpty && _chatHistory.last['created_at'] != null
+        ? DateFormat('yyyy년 M월 d일').format(DateTime.parse(_chatHistory.last['created_at']))
+        : '';
+
+    return Column(
+      children: [
+        if (latestDate.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+            child: Row(
+              children: [
+                const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(latestDate),
+                ),
+                const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+              ],
+            ),
+          ),
+        Expanded(
+          child: NotificationListener<OverscrollIndicatorNotification>(
+            onNotification: (overscroll) {
+              overscroll.disallowIndicator();
+              return true;
+            },
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _chatHistory.length,
+              itemBuilder: (context, index) {
+                final chat = _chatHistory[index];
+                return _buildChatBubble(
+                  chat['message'],
+                  isBot: !(chat['is_user'] ?? false),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: TextField(
+            controller: _controller,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              hintText: '답장하기',
+              hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
+              filled: true,
+              fillColor: const Color(0xFFF5F5F5),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GestureDetector(
+                    onTap: _startListening,
+                    child: const Icon(Icons.mic, color: Colors.grey),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _handleSend,
+                    child: const Icon(Icons.send, color: Colors.black),
+                  ),
+                ],
+              ),
+              suffixIconConstraints: const BoxConstraints(minWidth: 80, minHeight: 20),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildChatBubble(String text, {required bool isBot}) {
+    if (text == 'LOADING') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(right: 8),
+              child: Image(
+                image: AssetImage('assets/images/marmet_head.png'),
+                width: 28,
+                height: 28,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.44),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(0),
+                  topRight: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: const TypingIndicator(),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: isBot ? MainAxisAlignment.start : MainAxisAlignment.end,

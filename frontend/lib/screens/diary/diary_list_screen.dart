@@ -31,7 +31,7 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}';
   }
 
-  void _scrollToSelectedDate(List<DiaryDay> filteredDiaryDays) {
+  void _scrollToSelectedDate() {
     final key = _itemKeys[widget.selectedDate.toIso8601String().substring(0, 10)];
     if (key != null && key.currentContext != null) {
       Scrollable.ensureVisible(
@@ -39,6 +39,9 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
         duration: const Duration(milliseconds: 400),
         alignment: 0.2,
       );
+    } else {
+      print('❌ 스크롤할 키 없음: ${widget.selectedDate.toIso8601String().substring(0, 10)}');
+      print('✅ 등록된 키들: ${_itemKeys.keys}');
     }
   }
 
@@ -51,12 +54,11 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final diaryDays = snapshot.data!
+        final diaryDays = snapshot.data!;
+        final visibleDays = diaryDays
             .where((day) => day.diaryList.isNotEmpty)
             .toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
-
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToSelectedDate(diaryDays));
+          ..sort((a, b) => b.date.compareTo(a.date)); // 최신순 정렬
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -66,35 +68,70 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
                 _buildHeader(context),
                 const SizedBox(height: 6),
                 Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    itemCount: diaryDays.length,
-                    itemBuilder: (context, index) {
-                      final day = diaryDays[index];
-                      final key = GlobalKey();
-                      _itemKeys[day.date] = key;
-
-                      return Container(
-                        key: key,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: DiaryCard(
-                          date: DateTime.parse(day.date),
-                          badgeIcons: day.badgeList.map((b) => 'assets/icons/badges/$b.png').toList(),
-                          emotionContent: day.diaryList
-                              .where((e) => e.diaryType == 'EMOTION')
-                              .map((e) => e.content)
-                              .join('\n'),
-                          activityContent: day.diaryList
-                              .where((e) => e.diaryType == 'ACTIVE')
-                              .map((e) => e.content)
-                              .join('\n'),
-                          showEditButton: false,
-                          showRecordButton: false,
-                          hasShadow: true,
+                  child: visibleDays.isEmpty
+                      ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/marmet_head.png',
+                          width: 100,
+                          height: 100,
                         ),
-                      );
-                    },
+                        const SizedBox(height: 16),
+                        const Text(
+                          '작성된 일기가 없어요',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                      : Stack(
+                    children: [
+                      ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        itemCount: visibleDays.length,
+                        itemBuilder: (context, index) {
+                          final day = visibleDays[index];
+                          final key = GlobalKey();
+                          final dateKey = DateTime.parse(day.date).toIso8601String().substring(0, 10);
+                          _itemKeys[dateKey] = key;
+
+                          return Container(
+                            key: key,
+                            margin: const EdgeInsets.only(bottom: 24),
+                            child: DiaryCard(
+                              date: DateTime.parse(day.date),
+                              badgeIcons: day.badgeList
+                                  .map((b) => 'assets/icons/badges/$b.png')
+                                  .toList(),
+                              emotionContent: day.diaryList
+                                  .where((e) => e.diaryType == 'EMOTION')
+                                  .map((e) => e.content)
+                                  .join('\n'),
+                              activityContent: day.diaryList
+                                  .where((e) => e.diaryType == 'ACTIVE')
+                                  .map((e) => e.content)
+                                  .join('\n'),
+                              showEditButton: false,
+                              showRecordButton: false,
+                              hasShadow: true,
+                            ),
+                          );
+                        },
+                      ),
+                      Builder(
+                        builder: (_) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            Future.delayed(Duration.zero, () {
+                              if (mounted) _scrollToSelectedDate();
+                            });
+                          });
+                          return const SizedBox.shrink();
+                        },
+                      )
+                    ],
                   ),
                 ),
               ],

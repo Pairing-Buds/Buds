@@ -79,9 +79,7 @@ class VoiceChattingScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ChatDetailScreen(
-                            message: '집에 있는데 집에 가고 싶어',
-                          ),
+                          builder: (_) => const ChatDetailScreen(),
                         ),
                       );
                     },

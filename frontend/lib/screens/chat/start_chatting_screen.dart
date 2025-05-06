@@ -19,7 +19,7 @@ class _StartScreenState extends State<StartChattingScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ChatDetailScreen(message: _controller.text),
+          builder: (_) => ChatDetailScreen(),
         ),
       );
     }
