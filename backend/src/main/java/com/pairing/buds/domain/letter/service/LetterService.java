@@ -190,6 +190,10 @@ public class LetterService {
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
+        if (sender.getLetterCnt() <= 0) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.OUT_OF_LETTER_TOKEN);
+        }
+
         List<User> candidates;
 
         if(dto.getIsTagBased()) {
@@ -225,6 +229,9 @@ public class LetterService {
         letter.setContent(dto.getContent());
         letter.setIsTagBased(dto.getIsTagBased());
 
+        sender.setLetterCnt(sender.getLetterCnt() - 1);
+
+        userRepository.save(sender);
         letterRepository.save(letter);
     }
 
