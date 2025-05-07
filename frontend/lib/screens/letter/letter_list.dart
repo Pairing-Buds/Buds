@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
+import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 import 'package:buds/screens/letter/letter_reply.dart';
-import 'package:buds/screens/letter/letter_send.dart';
-import 'package:buds/services/letter_service.dart';
+import 'package:buds/services/dio_letter_service.dart';
+import 'package:buds/config/theme.dart';
 
-class LetterList extends StatelessWidget {
-  const LetterList({super.key});
+class LetterList extends StatefulWidget {
+  final Function(int) onCountFetched;
+  final VoidCallback onWritePressed;
+
+  const LetterList({super.key, required this.onCountFetched, required this.onWritePressed});
+
+  @override
+  State<LetterList> createState() => _LetterListState();
+}
+
+class _LetterListState extends State<LetterList> {
+  bool _countReported = false;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Letter>>(
-      future: LetterService().fetchLetters(),
+      future: DioLetterService().fetchLetters(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -21,8 +31,15 @@ class LetterList extends StatelessWidget {
 
         final letters = snapshot.data ?? [];
 
+        if (!_countReported) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onCountFetched(letters.length);
+            _countReported = true;
+          });
+        }
+
         return Container(
-          margin: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+          margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 2),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -48,9 +65,9 @@ class LetterList extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LetterReplyScreen(
+                            builder: (_) => LetterReplyScreen(
                               letterId: letter.userId,
-                              isScraped: false, // 기본값으로 시작
+                              isScraped: false,
                             ),
                           ),
                         );
@@ -62,17 +79,11 @@ class LetterList extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  letter.userName,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
+                                Text(letter.userName, style: const TextStyle(fontSize: 16)),
                                 const SizedBox(height: 4),
                                 Text(
                                   letter.lastLetterDate,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -104,14 +115,7 @@ class LetterList extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LetterSendScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: widget.onWritePressed,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black,
