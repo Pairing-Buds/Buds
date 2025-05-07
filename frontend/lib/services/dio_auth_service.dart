@@ -379,4 +379,51 @@ class DioAuthService {
       throw Exception('비밀번호 재설정 실패: $e');
     }
   }
+
+  // 회원 탈퇴
+  Future<bool> withdrawUser(String password) async {
+    try {
+      if (kDebugMode) {
+        print('회원 탈퇴 요청: password=****');
+        print('탈퇴 URL: /users/withdrawal');
+      }
+
+      final data = {'password': password};
+
+      final response = await _apiService.delete(
+        '/users/withdrawal',
+        data: data,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (kDebugMode) {
+        print('회원 탈퇴 응답: ${response.data}');
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+        if (statusCode == 'OK' || response.statusCode == 200) {
+          return true;
+        } else {
+          final resMsg = responseData['resMsg'] as String? ?? '알 수 없는 오류';
+          throw Exception(resMsg);
+        }
+      }
+      throw Exception('회원 탈퇴 실패: 서버 응답 오류');
+    } catch (e) {
+      if (kDebugMode) {
+        print('회원 탈퇴 요청 오류: $e');
+      }
+      throw Exception('회원 탈퇴 실패: $e');
+    }
+  }
+
+  // 모든 쿠키 삭제
+  Future<void> clearCookies() async {
+    await _apiService.clearCookies();
+  }
 }
