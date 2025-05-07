@@ -10,6 +10,7 @@ import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
