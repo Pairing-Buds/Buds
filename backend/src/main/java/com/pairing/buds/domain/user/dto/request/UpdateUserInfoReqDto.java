@@ -1,8 +1,7 @@
 package com.pairing.buds.domain.user.dto.request;
 
-import com.pairing.buds.domain.user.entity.UserCharacter;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Getter
@@ -13,7 +12,7 @@ import lombok.*;
 @Valid
 public class UpdateUserInfoReqDto {
 
-    @NotNull
-    private UserCharacter userCharacter;
+    @NotBlank(message = "캐릭터를 선택해주세요.")
+    private String userCharacter;
 
 }
