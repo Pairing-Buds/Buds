@@ -41,6 +41,9 @@ from api.diary import router as diary_router
 app.include_router(chat_router)
 app.include_router(diary_router)
 
+# Prometheus 메트릭 설정
+Instrumentator().instrument(app).expose(app)
+
 # WebSocket 엔드포인트 추가
 @app.websocket("/ws/{user_id}")
 async def websocket_route(websocket, user_id: int):
