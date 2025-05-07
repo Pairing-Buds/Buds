@@ -19,6 +19,9 @@ public class Admin extends CreateBaseTime {
     @Column(name = "admin_id")
     private Integer id;
 
+    @Column(name = "admin_email")
+    private String email;
+
     @Column(name = "password", nullable = false)
     private String password;
 
