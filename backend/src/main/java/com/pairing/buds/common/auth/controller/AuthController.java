@@ -82,4 +82,10 @@ public class AuthController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
+    /** (임시) userId 조회 **/
+    @GetMapping("/userid")
+    public ResponseDto getUserId(@AuthenticationPrincipal Integer userId) {
+        return new ResponseDto(StatusCode.OK, userId);
+    }
+
 }

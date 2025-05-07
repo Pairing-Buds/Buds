@@ -11,6 +11,7 @@ import com.pairing.buds.domain.user.dto.response.TagResDto;
 import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
+import com.pairing.buds.domain.user.entity.UserCharacter;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +95,18 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
-        user.setUserCharacter(dto.getUserCharacter());
+        String desc = dto.getUserCharacter();
+        if (desc != null && !desc.isBlank()) {
+            UserCharacter character;
+            try {
+                // 한글(description) → Enum 변환
+                character = UserCharacter.fromDescription(desc);
+            } catch (IllegalArgumentException e) {
+                throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+            }
+            user.setUserCharacter(character);
+        }
+
         userRepository.save(user);
     }
 
@@ -103,6 +115,11 @@ public class UserService {
     public void withdrawUser(Integer userId, WithdrawUserReqDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
+
+        // 이미 완료된 탈퇴 계정 검증
+        if (user.getIsActive()) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.USER_ALREADY_DELETED);
+        }
 
         // 입력 비밀번호 검증
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {

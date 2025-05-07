@@ -57,8 +57,25 @@ public class AuthService {
             );
         }
 
+        String desc = dto.getUserCharacter();
+        if (desc == null || desc.isBlank()) {
+            throw new ApiException(
+                    StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER
+            );
+        }
+
+        UserCharacter character;
+        try {
+            character = UserCharacter.fromDescription(desc);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 한글 값이 들어왔을 때
+            throw new ApiException(
+                    StatusCode.BAD_REQUEST, Message.INVALID_USER_CHARACTER
+            );
+        }
+
         user.setUserName(dto.getUserName());
-        user.setUserCharacter(UserCharacter.valueOf(dto.getUserCharacter()));
+        user.setUserCharacter(character);
         user.setIsCompleted(SignupStatus.DONE);
 
         userRepository.save(user);
