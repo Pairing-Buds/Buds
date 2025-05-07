@@ -7,6 +7,7 @@ import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'widgets/wake_up_section.dart';
 import 'widgets/step_section.dart';
+import 'package:buds/screens/mypage/withdraw_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({Key? key}) : super(key: key);
@@ -137,16 +138,28 @@ class _MyPageScreenState extends State<MyPageScreen> {
                         // border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Column(
+                      child: Column(
                         children: [
                           Text(
                             '고객센터에 문의하기',
                             style: TextStyle(fontSize: 25, color: Colors.grey),
                           ),
                           SizedBox(height: 24),
-                          Text(
-                            '회원 탈퇴하기',
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                          InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const WithdrawScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '회원 탈퇴하기',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                         ],
                       ),
