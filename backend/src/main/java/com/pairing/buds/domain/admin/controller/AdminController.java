@@ -3,6 +3,8 @@ package com.pairing.buds.domain.admin.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.req.InActiveUserReqDto;
 import com.pairing.buds.domain.admin.service.AdminService;
 import com.pairing.buds.domain.cs.dto.answer.req.CreateAnswerReqDto;
 import com.pairing.buds.domain.cs.dto.answer.req.DeleteAnswerReqDto;
@@ -59,6 +61,24 @@ public class AdminController {
             @Valid @RequestBody PatchAnswerReqDto dto
     ){
         adminService.patchAnswer(adminId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    /** 회원 활성화 **/
+    @PatchMapping("")
+    public ResponseDto activeUser(
+            @AuthenticationPrincipal int adminId,
+            @Valid @RequestBody ActiveUserReqDto dto
+    ){
+        adminService.activeUser(adminId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    /** 회원 비활성화 **/
+    @PatchMapping("")
+    public ResponseDto inactiveUser(
+            @AuthenticationPrincipal int adminId,
+            @Valid @RequestBody InActiveUserReqDto dto
+    ){
+        adminService.inactiveUser(adminId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 

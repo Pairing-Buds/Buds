@@ -4,6 +4,8 @@ import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.req.InActiveUserReqDto;
 import com.pairing.buds.domain.admin.entity.Admin;
 import com.pairing.buds.domain.admin.repository.AdminRepository;
 import com.pairing.buds.domain.cs.dto.answer.req.CreateAnswerReqDto;
@@ -89,6 +91,28 @@ public class AdminService {
         Answer answerToSave = PatchAnswerReqDto.patchAnswer(answer, content);
         answerRepository.save(answerToSave);
     }
+    /** 회원 활성화 **/
+    public void activeUser(int adminId, ActiveUserReqDto dto) {
+        int userId = dto.getUserId();
+        log.info("adminId : {}, userId : {}", adminId ,userId);
+
+        if(adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        User activatedUser = ActiveUserReqDto.toActiveUser(user);
+        userRepository.save(activatedUser);
+    }
+    /** 회원 비활성화 **/
+    public void inactiveUser(int adminId, InActiveUserReqDto dto) {
+        int userId = dto.getUserId();
+        log.info("adminId : {}, userId : {}", adminId ,userId);
+
+        if(adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        User inActivatedUser = InActiveUserReqDto.toInActiveUser(user);
+        userRepository.save(inActivatedUser);
+    }
+
+
 
     /** 답변 삭제 **/
     public void deleteAnswer(int adminId, @Valid DeleteAnswerReqDto dto) {
@@ -100,5 +124,7 @@ public class AdminService {
         Answer answerToDelete = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
         answerRepository.delete(answerToDelete); // 에러 시 OptimisticLockingFailureException 발생
     }
+
+
 
 }

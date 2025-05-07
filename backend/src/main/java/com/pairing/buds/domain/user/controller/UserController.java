@@ -67,6 +67,7 @@ public class UserController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
+
     /** 회원 탈퇴(소프트 삭제) **/
     @DeleteMapping("/withdrawal")
     public ResponseDto withdraw(
