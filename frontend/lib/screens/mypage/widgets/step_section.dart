@@ -144,22 +144,68 @@ class _StepSectionState extends State<StepSection> {
   // 걸음 수 서비스 시작
   Future<void> _startStepCounterService() async {
     try {
-      await _stepCounterManager.startService();
-      // 서비스 시작 후 즉시 걸음 수 갱신
-      await _refreshStepCount();
+      debugPrint('StepSection: 서비스 시작 시도...');
+      final success = await _stepCounterManager.startService();
+
+      if (success) {
+        debugPrint('StepSection: 서비스 시작 성공');
+        // 서비스 시작 후 즉시 걸음 수 갱신
+        await _refreshStepCount();
+      } else {
+        debugPrint('StepSection: 서비스 시작 실패');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('걸음 수 측정 서비스를 시작할 수 없습니다. 권한을 확인해주세요.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     } catch (e) {
       debugPrint('StepSection: 서비스 시작 오류 - $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('걸음 수 측정 서비스 시작 중 오류가 발생했습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
   // 걸음 수 서비스 중지
   Future<void> _stopStepCounterService() async {
     try {
-      await _stepCounterManager.stopService();
-      // 서비스 상태 즉시 반영
-      _checkServiceRunning();
+      debugPrint('StepSection: 서비스 중지 시도...');
+      final success = await _stepCounterManager.stopService();
+
+      if (success) {
+        debugPrint('StepSection: 서비스 중지 성공');
+        // 서비스 상태 즉시 반영
+        _checkServiceRunning();
+      } else {
+        debugPrint('StepSection: 서비스 중지 실패');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('걸음 수 측정 서비스를 중지할 수 없습니다.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     } catch (e) {
       debugPrint('StepSection: 서비스 중지 오류 - $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('걸음 수 측정 서비스 중지 중 오류가 발생했습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
