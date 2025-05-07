@@ -264,5 +264,8 @@ networks:
 
 volumes:
   mysql-data:
-  chroma-data:
   redis-data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+  filebeat_data:
