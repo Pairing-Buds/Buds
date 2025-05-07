@@ -1,13 +1,11 @@
-package com.pairing.buds.common.log.entity;
+package com.pairing.buds.common.tune.entity;
 
 import com.pairing.buds.common.basetime.CreateBaseTime;
-import com.pairing.buds.common.response.Message;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter

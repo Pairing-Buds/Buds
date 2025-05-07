@@ -12,6 +12,11 @@ import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.QuoteRepository;
 import com.pairing.buds.domain.activity.repository.SleepRepository;
 import com.pairing.buds.domain.activity.repository.UserActivityRepository;
+import com.pairing.buds.domain.calendar.entity.Badge;
+import com.pairing.buds.domain.calendar.entity.BadgeType;
+import com.pairing.buds.domain.calendar.entity.Calendar;
+import com.pairing.buds.domain.calendar.entity.RecordType;
+import com.pairing.buds.domain.calendar.repository.CalendarRepository;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.user.dto.response.UserDto;
 import com.pairing.buds.domain.user.entity.Tag;
@@ -40,6 +45,7 @@ public class ActivityService {
     private final SleepRepository sleepRepository;
     private final UserActivityRepository userActivityRepository;
     private final QuoteRepository quoteRepository;
+    private final CalendarRepository calendarRepository;
 
     /** 기상 시간 등록 **/
     @Transactional
@@ -93,6 +99,19 @@ public class ActivityService {
         userActivity.setActivity(activity);
         userActivity.setStatus(UserActivityStatus.DONE);
         userActivity.setProof("인증 완료");
+        // 뱃지 생성
+        Badge badge = new Badge();
+        badge.setBadgeType(RecordType.ACTIVE);
+        badge.setName(BadgeType.WAKE);
+
+        // 캘린더와 연동
+        // 오늘자 캘린더 불러오기
+        // id값으로 연동하기
+        LocalDate date = LocalDate.now();
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar());
+
+
+
         // 저장
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장");
@@ -128,6 +147,13 @@ public class ActivityService {
         userActivity.setActivity(createdActivity);
         userActivity.setStatus(UserActivityStatus.DONE);
         userActivity.setProof(userSentence);
+
+        // 뱃지 생성
+        Badge badge = new Badge();
+        badge.setBadgeType(RecordType.ACTIVE);
+        badge.setName(BadgeType.VOICE_TEXT);
+        
+        // 캘린더와 연동
 
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장 완료");
@@ -192,6 +218,15 @@ public class ActivityService {
                 .status(UserActivityStatus.DONE)
                 .proof("인증 완료")
                 .build();
+        // 뱃지 생성
+        Badge badge = new Badge();
+        badge.setBadgeType(RecordType.ACTIVE);
+        badge.setName(BadgeType.WALK);
+
+        // 캘린더와 연동
+
+
+
         // 저장
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장");
@@ -269,7 +304,6 @@ public class ActivityService {
         userActivity.setActivity(activity);
         userActivity.setStatus(UserActivityStatus.DONE);
         userActivity.setProof("추천 장소 방문 활동 인증 완료");
-        
 
         activityRepository.save(activity);
         log.info("활동 저장 완료");

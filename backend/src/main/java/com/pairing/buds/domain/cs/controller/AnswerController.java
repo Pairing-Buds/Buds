@@ -18,15 +18,4 @@ import java.util.Date;
 @RequestMapping("/answers")
 @RequiredArgsConstructor
 public class AnswerController {
-
-    @GetMapping("/test")
-    public ResponseDto test(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
-    @GetMapping("/final-final-final-test")
-    public ResponseDto finalfinalfianltest(){
-        return new ResponseDto(StatusCode.OK, Message.OK);
-    }
-
 }

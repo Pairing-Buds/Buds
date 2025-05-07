@@ -22,7 +22,8 @@ public class Badge {
     @Column(name = "badge_type")
     private RecordType badgeType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "name")
-    private String name;
+    private BadgeType name;
 
 }

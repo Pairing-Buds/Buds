@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CalendarRepository extends JpaRepository<Calendar, Integer> {
@@ -15,4 +16,7 @@ public interface CalendarRepository extends JpaRepository<Calendar, Integer> {
 
     // 특정 날짜의 캘린더(뱃지) 조회
     List<Calendar> findByUserAndDate(User user, LocalDate date);
+    
+    // 특정 날짜 캘린더 조회
+    Optional<Calendar> findByUser_idAndDate(int userId, LocalDate date);
 }
