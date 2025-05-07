@@ -1,5 +1,4 @@
 version: "3.8"
-
 services:
   # Spring Boot (Backend)
   spring:
@@ -18,28 +17,7 @@ services:
       - MYSQL_USERNAME=${MYSQL_USERNAME}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_ACCESS_EXPIRATION_TIME=3600000
-      - JWT_REFRESH_EXPIRATION_TIME=604800000
-      - JWT_TOKEN_PREFIX=Bearer
-
       - KAKAO_API_KEY=${KAKAO_API_KEY}
-      - KAKAO_USERINFO_URL=${KAKAO_USERINFO_URL}
-      - KAKAO_USERINFO_REST_API_KEY=${KAKAO_USERINFO_REST_API_KEY}
-
-      - SPRING_MAIL_HOST=${SPRING_MAIL_HOST}
-      - SPRING_MAIL_PORT=${SPRING_MAIL_PORT}
-      - SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME}
-      - SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD}
-      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
-      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH_STARTTLS_ENABLE=true
-
-      - SPRING_DATASOURCE_URL=jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=${MYSQL_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=true
-
-
       - SMTP_PASSWORD=${SMTP_PASSWORD}
     depends_on:
       mysql:
@@ -60,9 +38,6 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - CHROMA_OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - ./ai/chroma_data:/app/chroma_data  # ChromaDB 데이터를 볼륨으로 마운트
     depends_on:
       mysql:
         condition: service_healthy
@@ -198,7 +173,7 @@ services:
     ports:
       - "9104:9104"
     environment:
-      - DATA_SOURCE_NAME=exporter:${MYSQL_EXPORTER_PASSWORD:-ssafyC105PairingBuds}@(mysql:3306)/
+      - DATA_SOURCE_NAME=exporter:${MYSQL_EXPORTER_PASSWORD:-password}@(mysql:3306)/
     depends_on:
       - mysql
     restart: unless-stopped
