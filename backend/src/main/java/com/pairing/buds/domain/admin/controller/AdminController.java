@@ -15,28 +15,28 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/cs")
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
 
     /** 문의 목록 조회 **/
-    @GetMapping("/answered-questions")
+    @GetMapping("/cs/answered-questions")
     public ResponseDto getAnsweredQuestionList(
             @AuthenticationPrincipal int adminId
     ){
         return new ResponseDto(StatusCode.OK, adminService.getAnsweredQuestionList(adminId));
     }
     /** 미답변 문의 목록 조회 **/
-    @GetMapping("/unanswered-questions")
+    @GetMapping("/cs/unanswered-questions")
     public ResponseDto getUnAnsweredQuestionList(
             @AuthenticationPrincipal int adminId
     ){
         return new ResponseDto(StatusCode.OK, adminService.getUnAnsweredQuestionList(adminId));
     }
     /** 특정 유저의 문의 조회 **/
-    @GetMapping("/questions/{questionId}")
+    @GetMapping("/cs/questions/{questionId}")
     public ResponseDto getQuestionOfUser(
             @AuthenticationPrincipal int adminId,
             @PathVariable("questionId") int questionId
@@ -45,7 +45,7 @@ public class AdminController {
     }
 
     /** 답변 작성 **/
-    @PostMapping("")
+    @PostMapping("/cs")
     public ResponseDto createAnswer(
             @AuthenticationPrincipal int adminId,
             @Valid @RequestBody CreateAnswerReqDto dto
@@ -55,7 +55,7 @@ public class AdminController {
     }
 
     /** 답변 수정 **/
-    @PatchMapping("")
+    @PatchMapping("/cs")
     public ResponseDto patchAnswer(
             @AuthenticationPrincipal int adminId,
             @Valid @RequestBody PatchAnswerReqDto dto
@@ -64,7 +64,7 @@ public class AdminController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
     /** 회원 활성화 **/
-    @PatchMapping("")
+    @PatchMapping("/is-active")
     public ResponseDto activeUser(
             @AuthenticationPrincipal int adminId,
             @Valid @RequestBody ActiveUserReqDto dto
@@ -73,7 +73,7 @@ public class AdminController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
     /** 회원 비활성화 **/
-    @PatchMapping("")
+    @PatchMapping("/not-active")
     public ResponseDto inactiveUser(
             @AuthenticationPrincipal int adminId,
             @Valid @RequestBody InActiveUserReqDto dto
@@ -83,7 +83,7 @@ public class AdminController {
     }
 
     /** 답변 삭제 **/
-    @DeleteMapping("")
+    @DeleteMapping("/cs")
     public ResponseDto deleteAnswer(
             @AuthenticationPrincipal int adminId,
             @Valid @RequestBody DeleteAnswerReqDto dto
