@@ -95,4 +95,73 @@ async def send_message(request: MessageRequest):
 @router.post("/chat/history", response_model=List[dict])
 async def get_chat_history(request: ChatHistoryRequest):
     """사용자의 채팅 기록을 가져오는 API"""
-    # (이전 코드와 동일하게 유지)
+    try:
+        # 사용자 인증 확인
+        try:
+            mysql_db.get_user_profile(request.user_id)
+        except ValueError as e:
+            raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
+
+        # 사용자의 컬렉션 가져오기
+        collection = chroma_db.get_or_create_collection(request.user_id)
+
+        # 모든 메시지 가져오기
+        results = collection.get(limit=request.limit * 2)  # 사용자와 AI 메시지를 모두 가져오기 위해 2배로 설정
+
+        if not results or not results["documents"]:
+            return []
+
+        # 결과를 메시지 목록으로 변환
+        messages = []
+        for i, doc in enumerate(results["documents"]):
+            metadata = results["metadatas"][i]
+            message_id = results["ids"][i]
+
+            # 타임스탬프 정보 가져오기 (ISO 형식: '2025-05-08T12:59:31.195')
+            created_at = metadata.get("timestamp", datetime.now().isoformat())
+
+            # 음성 메시지 여부 확인
+            is_voice = metadata.get("is_voice", False)
+
+            # 원본 음성 텍스트 (있는 경우)
+            original_voice_text = metadata.get("original_voice_text", None)
+
+            message_data = {
+                "message_id": message_id,
+                "message": doc,
+                "is_user": metadata["type"] == "user",
+                "is_voice": is_voice,
+                "created_at": created_at
+            }
+
+            # 원본 음성 텍스트가 있는 경우 추가
+            if original_voice_text:
+                message_data["original_voice_text"] = original_voice_text
+
+            messages.append(message_data)
+
+        # 메시지 순서를 타임스탬프 기준으로 정렬
+        # ISO 형식의 타임스탬프를 datetime 객체로 변환하여 정렬
+        try:
+            messages.sort(key=lambda x: datetime.fromisoformat(x["created_at"]))
+        except (ValueError, TypeError):
+            # ISO 형식 파싱에 실패할 경우 message_id 기반 정렬 시도
+            # message_id가 숫자 형식인 경우를 처리
+            try:
+                messages.sort(key=lambda x: int(x["message_id"]) if x["message_id"].isdigit() else x["message_id"])
+            except (ValueError, TypeError):
+                # 그래도 실패하면 문자열로 처리
+                messages.sort(key=lambda x: str(x["message_id"]))
+
+        # 대화 순서 로깅 (디버깅용)
+        logging.info(f"정렬된 채팅 기록: {len(messages)}개 메시지")
+        for i, msg in enumerate(messages[:5]):  # 처음 5개 메시지만 로깅
+            logging.info(f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}")
+
+        return messages
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"채팅 기록 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
