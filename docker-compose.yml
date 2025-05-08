@@ -153,31 +153,6 @@ services:
       - /dev/disk/:/dev/disk:ro
     restart: unless-stopped
 
-  # Redis Exporter
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: redis-exporter
-    ports:
-      - "9121:9121"
-    environment:
-      - REDIS_ADDR=redis:6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-  # MySQL Exporter
-  mysql-exporter:
-    image: prom/mysqld-exporter:latest
-    container_name: mysql-exporter
-    ports:
-      - "9104:9104"
-    environment:
-      - DATA_SOURCE_NAME=exporter:${MYSQL_EXPORTER_PASSWORD:-password}@(mysql:3306)/
-    depends_on:
-      - mysql
-    restart: unless-stopped
-
   # Alert Manager
   alertmanager:
     image: prom/alertmanager:latest
