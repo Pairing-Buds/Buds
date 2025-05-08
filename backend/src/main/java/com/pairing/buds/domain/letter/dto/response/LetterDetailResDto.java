@@ -14,7 +14,6 @@ public class LetterDetailResDto {
 
     private Integer letterId;
     private String senderName;
-    private String content;
     private LocalDate createdAt;
     private boolean isReceived;
     private LetterStatus status;

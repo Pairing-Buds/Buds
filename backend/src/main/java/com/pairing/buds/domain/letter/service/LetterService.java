@@ -87,6 +87,7 @@ public class LetterService {
 
                     return new ChatUserInfoResDto(
                             opponent.getId(),
+                            letter.getId(),
                             opponent.getUserName(),
                             letter.getCreatedAt().toLocalDate(),
                             letter.getStatus(),
@@ -111,13 +112,10 @@ public class LetterService {
 
         List<LetterDetailResDto> letters = letterPage.getContent().stream()
                 .map(letter -> {
-
                     boolean isReceived = letter.getReceiver().getId().equals(userId);
-
                     return new LetterDetailResDto(
                             letter.getId(),
                             letter.getSender().getUserName(),
-                            letter.getContent(),
                             letter.getCreatedAt().toLocalDate(),
                             isReceived,
                             letter.getStatus()
@@ -143,10 +141,13 @@ public class LetterService {
         Letter letter = letterRepository.findFirstByReceiver_IdOrderByCreatedAtDesc(loginUser.getId())
                 .orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
 
+        // 상태 읽음으로 변경
+        letter.setStatus(LetterStatus.READ);
+        letterRepository.save(letter);
+
         return new LetterDetailResDto(
                 letter.getId(),
                 letter.getSender().getUserName(),
-                letter.getContent(),
                 letter.getCreatedAt().toLocalDate(),
                 true,
                 letter.getStatus()
