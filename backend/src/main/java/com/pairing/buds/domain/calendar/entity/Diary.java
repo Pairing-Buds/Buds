@@ -25,14 +25,13 @@ public class Diary extends CreateBaseTime {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "content", nullable = false)
-    private String content;
+    @Column(name = "emotion_diary", nullable = false)
+    private String emotion_diary;
+
+    @Column(name = "active_diary", nullable = false)
+    private String active_diary;
 
     @Column(name = "date", nullable = false)
     private Date date; //저장된 날짜가 아닌 일기 날짜
-
-    @Column(name = "diary_type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private RecordType diaryType;
 
 }
