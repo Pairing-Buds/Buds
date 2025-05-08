@@ -1,39 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:buds/models/letter_model.dart';
 import '../constants/api_constants.dart';
 import 'dio_api_service.dart';
 
-class Letter {
-  final int userId;
-  final String userName;
-  final String lastLetterDate;
-  final String lastLetterStatus;
-  final bool received;
-
-  Letter({
-    required this.userId,
-    required this.userName,
-    required this.lastLetterDate,
-    required this.lastLetterStatus,
-    required this.received,
-  });
-
-  factory Letter.fromJson(Map<String, dynamic> json) {
-    return Letter(
-      userId: json['userId'],
-      userName: json['userName'],
-      lastLetterDate: json['lastLetterDate'],
-      lastLetterStatus: json['lastLetterStatus'],
-      received: json['received'],
-    );
-  }
-}
-
-class DioLetterService {
+class LetterService {
   final DioApiService _apiService = DioApiService();
 
   /// 편지 목록 조회
-  Future<List<Letter>> fetchLetters() async {
+  Future<List<LetterModel>> fetchLetters() async {
     try {
       final response = await _apiService.get(
         ApiConstants.letterListUrl.replaceFirst(ApiConstants.baseUrl, ''),
@@ -44,7 +19,7 @@ class DioLetterService {
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
           final chatList = data['resMsg']['chatList'] as List<dynamic>;
-          return chatList.map((json) => Letter.fromJson(json)).toList();
+          return chatList.map((json) => LetterModel.fromJson(json)).toList();
         } else {
           throw Exception('응답 형식 오류');
         }

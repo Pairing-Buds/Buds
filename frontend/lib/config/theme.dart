@@ -11,6 +11,8 @@ class AppColors {
   static const Color kakao = Color(0xFFFEE500);
   // 하늘색
   static const Color skyblue = Color(0xFFE6F7F6);
+  // 진한 하늘색
+  static const Color blue = Color(0xFFCFF4F2);
   // 텍스트 색상
   static const Color toast = Color(0xFF828282);
   // 일기 채팅 배경색
