@@ -1,7 +1,7 @@
 package com.pairing.buds.domain.user.entity;
 
 public enum TagType {
-    KPOP("KPOP"),
+//    KPOP("KPOP"),
     UNDONG("운동"),
     MOVIE("영화"),
     READING("독서"),
