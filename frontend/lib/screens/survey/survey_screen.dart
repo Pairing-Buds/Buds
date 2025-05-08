@@ -1,6 +1,8 @@
+// survey_screen.dart
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/services/dio_survey.dart';
 
 class SurveyScreen extends StatefulWidget {
   const SurveyScreen({Key? key}) : super(key: key);
@@ -36,8 +38,22 @@ class _SurveyScreenState extends State<SurveyScreen> {
     '생각이나 감정을 글이나 그림으로 표현하는 것을 좋아한다.',
   ];
 
-  // 각 질문에 대한 선택값 저장
   List<int?> selectedIndexes = List.filled(15, null);
+  List<String> surveyTags = [];
+  List<String> selectedTags = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadSurveyTags();
+  }
+
+  Future<void> loadSurveyTags() async {
+    final tags = await SurveyService().fetchSurveyTags();
+    setState(() {
+      surveyTags = tags;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +66,11 @@ class _SurveyScreenState extends State<SurveyScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 상단 진행바
           Container(
             height: 4,
             width: MediaQuery.of(context).size.width * 0.3,
             color: AppColors.primary,
           ),
-
           const SizedBox(height: 20),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
@@ -73,95 +87,119 @@ class _SurveyScreenState extends State<SurveyScreen> {
             ),
           ),
 
-          // 질문 목록 (스크롤)
           Expanded(
-            child: ListView.builder(
+            child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              itemCount: questions.length,
-              itemBuilder: (context, idx) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 질문 번호 + 내용
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: const Color(0xFFD2F0EB),
-                            child: Text(
-                              '${idx + 1}',
-                              style: const TextStyle(
-                                fontFamily: 'MangoDdobak',
-                                fontSize: 23,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              questions[idx],
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 선택지 라인 + 원
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: SizedBox(
-                          height: 100,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Positioned(
-                                left: 10,
-                                right: 10,
-                                top: 10,
-                                child: Container(
-                                  height: 2,
-                                  color: Colors.grey.shade300,
+              children: [
+                ...List.generate(
+                  questions.length,
+                      (idx) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: const Color(0xFFD2F0EB),
+                              child: Text(
+                                '${idx + 1}',
+                                style: const TextStyle(
+                                  fontFamily: 'MangoDdobak',
+                                  fontSize: 23,
+                                  color: Colors.grey,
                                 ),
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: List.generate(5, (i) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        selectedIndexes[idx] = i;
-                                      });
-                                    },
-                                    child: Column(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 10,
-                                          backgroundColor: selectedIndexes[idx] == i
-                                              ? const Color(0xFF9BE3D7)
-                                              : Colors.grey.shade300,
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          labels[i],
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                questions[idx],
+                                style: const TextStyle(fontSize: 14),
                               ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+
+                        // 선택지 라인 + 원
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(5, (i) {
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndexes[idx] = i;
+                                });
+                              },
+                              child: Column(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 10,
+                                    backgroundColor: selectedIndexes[idx] == i
+                                        ? const Color(0xFF9BE3D7)
+                                        : Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    labels[i],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // 관심 태그
+                const SizedBox(height: 24),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    '관심 태그를 선택하세요',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: surveyTags.map((tag) {
+                    final isSelected = selectedTags.contains(tag);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            selectedTags.remove(tag);
+                          } else {
+                            selectedTags.add(tag);
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
 
@@ -171,18 +209,15 @@ class _SurveyScreenState extends State<SurveyScreen> {
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: 응답 저장 처리
                   print(selectedIndexes);
+                  print(selectedTags);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 60,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 12),
                 ),
                 child: const Text('제출하기', style: TextStyle(color: Colors.black)),
               ),
