@@ -84,8 +84,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
             child: Text(
-              '설문조사 결과를 바탕으로 활동을 추천해드려요',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              '조사 결과를 바탕으로 활동을 추천해드려요',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ),
 
@@ -186,8 +186,15 @@ class _SurveyScreenState extends State<SurveyScreen> {
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    '관심 태그를 선택하세요',
+                    '관심 분야 태그를 선택하세요',
                     style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: Text(
+                    '최소 1개, 최대 3개 선택할 수 있어요',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -211,7 +218,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                             });
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4), // 태그 간격 조정
                             decoration: BoxDecoration(
                               color: isSelected ? AppColors.blue : Colors.grey.shade200,
@@ -223,7 +230,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                             child: Text(
                               tag,
                               style: TextStyle(
-                                // color: Colors.black,
+                                fontSize: 14,
                               ),
                             ),
                           ),
