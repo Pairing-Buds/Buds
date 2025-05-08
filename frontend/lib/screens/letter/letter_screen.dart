@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
-import 'package:buds/screens/letter/letter_list.dart';
+import 'package:buds/screens/letter/letter_list_screen.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 
 class LetterScreen extends StatefulWidget {

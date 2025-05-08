@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
-import 'package:buds/screens/letter/letter_send.dart';
-import 'package:buds/services/dio_letter_service.dart';
+import 'package:buds/screens/letter/letter_send_screen.dart';
+import 'package:buds/services/letter_service.dart';
 
 class LetterReplyScreen extends StatefulWidget {
   final int letterId;
@@ -37,7 +37,7 @@ class _LetterReplyScreenState extends State<LetterReplyScreen> {
 
     try {
       // Call the API to toggle scrap status
-      final success = await DioLetterService().toggleScrap(widget.letterId);
+      final success = await LetterService().toggleScrap(widget.letterId);
 
       if (success) {
         setState(() {
