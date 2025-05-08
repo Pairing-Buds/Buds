@@ -113,13 +113,27 @@ public class JwtTokenProvider {
         response.addCookie(refreshCookie);
     }
 
-    /** 토큰에서 JWT를 추출하는 메서드 **/
-    public String resolveToken(HttpServletRequest request) {
+    /** 쿠키에서 토큰 추출 **/
+    public String extractCookie(HttpServletRequest req, String name) {
+        if (req.getCookies() == null) return null;
+        for (Cookie c : req.getCookies()) {
+            if (c.getName().equals(name)) return c.getValue();
+        }
+        return null;
+    }
+
+    /** 쿠키에서 엑세스 토큰 추출 - 서브 메서드 **/
+    public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        return null;
+        return extractCookie(request, "access_token");
+    }
+
+    /** 쿠키에서 리프레시 토큰 추출 - 서브 메서드 **/
+    public String resolveRefreshToken(HttpServletRequest request) {
+        return extractCookie(request, "refresh_token");
     }
 
     /** 토큰 유효성 검증 (parser객체 -> JWT 검증, 해석할 수 있게 해줌) **/

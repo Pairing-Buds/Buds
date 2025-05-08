@@ -4,6 +4,7 @@ import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,4 +44,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findRandomReceiverByTags(@Param("senderId") Integer senderId,
                                         @Param("senderTagTypes") List<TagType> senderTagTypes,
                                         Pageable pageable);
+
+    boolean existsByUserEmailAndIsActiveTrue(@NotBlank @Email String userEmail);
+
+    Optional<User> findByUserEmailAndIsActiveTrue(String email);
+
 }
