@@ -1,5 +1,7 @@
 package com.pairing.buds.domain.user.service;
 
+import com.pairing.buds.common.auth.service.RedisService;
+import com.pairing.buds.common.auth.utils.JwtTokenProvider;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
@@ -13,10 +15,15 @@ import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.entity.UserCharacter;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +36,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RedisService redisService;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -112,15 +121,20 @@ public class UserService {
 
     /** 회원 탈퇴 */
     @Transactional
-    public void withdrawUser(Integer userId, WithdrawUserReqDto dto) {
+    public void withdrawUser(
+            Integer userId,
+            WithdrawUserReqDto dto,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication
+    ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
         // 이미 완료된 탈퇴 계정 검증
-        if (user.getIsActive()) {
+        if (!user.getIsActive()) {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.USER_ALREADY_DELETED);
         }
-
         // 입력 비밀번호 검증
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.PASSWORD_NOT_MATCHED);
@@ -129,6 +143,21 @@ public class UserService {
         // 탈퇴 처리 (소프트 삭제)
         user.setIsActive(false);
         userRepository.save(user);
+
+        // 쿠키 삭제
+        new CookieClearingLogoutHandler("access_token", "refresh_token")
+                .logout(request, response, authentication);
+
+        // 세션 무효화 & SecurityContext 비우기
+        new SecurityContextLogoutHandler()
+                .logout(request, response, authentication);
+
+        // Redis 에 저장된 리프레시 토큰 삭제
+        String refreshToken = jwtTokenProvider.extractCookie(request, "refresh_token");
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+            Integer rtUserId = jwtTokenProvider.getUserId(refreshToken);
+            redisService.deleteRefreshToken(rtUserId);
+        }
     }
 
 }

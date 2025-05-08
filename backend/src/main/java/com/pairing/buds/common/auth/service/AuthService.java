@@ -29,17 +29,17 @@ public class AuthService {
     /** 회원 가입 **/
     @Transactional
     public void userSignup(@Valid UserSignupReqDto dto) {
-
-        if (userRepository.existsByUserEmail(dto.getUserEmail()))  {
+        // 활성화 상태인 계정만 이메일 중복 체크
+        if (userRepository.existsByUserEmailAndIsActiveTrue(dto.getUserEmail()))  {
             throw new ApiException(
-                    StatusCode.CONFLICT, Message.DUPLICATE_EMAIL_EXCEPTION
+                    StatusCode.CONFLICT,
+                    Message.DUPLICATE_EMAIL_EXCEPTION
             );
         }
 
+        // 신규가입
         String encodedPwd = passwordEncoder.encode(dto.getPassword());
-
         User user = UserSignupReqDto.toUser(dto, encodedPwd);
-
         userRepository.save(user);
     }
 
@@ -97,5 +97,7 @@ public class AuthService {
 
         userRepository.save(user);
     }
+
+    /** 계정 복구 **/
 
 }

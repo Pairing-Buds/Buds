@@ -21,7 +21,7 @@ public class UserSignupReqDto {
     private String userEmail;
 
     @NotBlank
-    @Length(max = 50, message = "비밀번호는 최대 50자까지 지정 가능합니다.")
+    @Length(min = 4, max = 15, message = "비밀번호는 최대 15자까지 지정 가능합니다.")
     private String password;
 
     private LocalDate birthDate;
