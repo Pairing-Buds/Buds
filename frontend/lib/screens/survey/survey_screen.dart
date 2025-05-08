@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/services/survey.dart';
+import 'package:buds/services/survey_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class SurveyScreen extends StatefulWidget {
@@ -37,8 +37,21 @@ class _SurveyScreenState extends State<SurveyScreen> {
     '생각이나 감정을 글이나 그림으로 표현하는 것을 좋아한다.',
   ];
 
+  // 태그 한글 - 영어 매핑
+  final Map<String, String> tagTranslation = {
+    "취업": "EMPLOYMENT",
+    "자격증": "CERTIFICATION",
+    "운동": "SPORTS",
+    "패션": "FASHION",
+    "음악": "MUSIC",
+    "독서": "READING",
+    "요리": "COOKING",
+    "게임": "GAMING",
+    "만화": "COMICS"
+  };
+
   // 각 질문에 대한 선택값 저장
-  List<int?> selectedIndexes = List.filled(15, null);
+  List<int?> selectedIndexes = List.filled(15, 0);
   List<String> surveyTags = [];
   List<String> selectedTags = [];
 
@@ -53,6 +66,41 @@ class _SurveyScreenState extends State<SurveyScreen> {
     setState(() {
       surveyTags = tags;
     });
+  }
+
+  void submitSurvey() async {
+    // 점수 계산
+    int seclusionScore = selectedIndexes.sublist(0, 10).fold(0, (sum, score) => sum + (score ?? 0));
+    int opennessScore = selectedIndexes[10] ?? 0;
+    int sociabilityScore = selectedIndexes[11] ?? 0;
+    int routineScore = selectedIndexes[12] ?? 0;
+    int quietnessScore = selectedIndexes[13] ?? 0;
+    int expressionScore = selectedIndexes[14] ?? 0;
+
+    // 선택된 태그를 영어로 변환
+    List<String> englishTags = selectedTags.map((tag) => tagTranslation[tag] ?? tag).toList();
+
+    print("Request Tags (English): $englishTags"); // 디버깅 확인
+
+    bool success = await SurveyService().submitSurveyResult(
+      seclusionScore: seclusionScore,
+      opennessScore: opennessScore,
+      sociabilityScore: sociabilityScore,
+      routineScore: routineScore,
+      quietnessScore: quietnessScore,
+      expressionScore: expressionScore,
+      tags: englishTags,
+    );
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('설문조사 결과가 제출되었습니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제출에 실패했습니다. 다시 시도해주세요.')),
+      );
+    }
   }
 
   @override

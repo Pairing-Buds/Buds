@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:buds/models/letter_model.dart';
-import '../constants/api_constants.dart';
+import 'package:buds/constants/api_constants.dart';
 import 'dio_api_service.dart';
 
 class LetterService {

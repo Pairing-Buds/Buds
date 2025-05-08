@@ -49,7 +49,8 @@ class ApiConstants {
   static String get calendarDiaryUrl => '$baseUrl/calendars/'; // 뒤에 yyyy-MM 붙이기
 
   // 설문조사 관련 엔드포인트
-  // static String get
+  static String get surveyUrl => '$baseUrl/users/survey-result';
+
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
   static const receiveTimeout = 30000; // 밀리초
