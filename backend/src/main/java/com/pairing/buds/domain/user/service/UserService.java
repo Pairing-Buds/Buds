@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,8 +78,17 @@ public class UserService {
         log.info("userId : {}, opennessScore : {}, routineScore : {}, quitenessScore : {}, expressionScore : {}, seclusionScore : {}, sociabilityScore",
                 userId, opennessScore, routineScore, quietnessScore, expressionScore, seclusionScore, sociabilityScore);
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        User updatedUser = SaveSurveyResultReqDto.toUser(user, dto);
-        userRepository.save(updatedUser);
+
+        Set<Tag> newTags = dto.getTags().parallelStream().map( newTag ->
+                Tag.builder()
+                        .user(user)
+                        .tagName(newTag)
+                        .build()
+        ).collect(Collectors.toSet());
+
+        User userToUpdate = SaveSurveyResultReqDto.toUser(user, dto);
+        userToUpdate.getTags().addAll(newTags);
+        userRepository.save(userToUpdate);
     }
 
     /** 내 정보 조회 **/

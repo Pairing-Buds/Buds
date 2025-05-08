@@ -12,10 +12,9 @@ import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.QuoteRepository;
 import com.pairing.buds.domain.activity.repository.SleepRepository;
 import com.pairing.buds.domain.activity.repository.UserActivityRepository;
-import com.pairing.buds.domain.calendar.entity.Badge;
-import com.pairing.buds.domain.calendar.entity.BadgeType;
-import com.pairing.buds.domain.calendar.entity.Calendar;
-import com.pairing.buds.domain.calendar.entity.RecordType;
+import com.pairing.buds.domain.calendar.entity.*;
+import com.pairing.buds.domain.calendar.repository.BadgeRepository;
+import com.pairing.buds.domain.calendar.repository.CalendarBadgeRepository;
 import com.pairing.buds.domain.calendar.repository.CalendarRepository;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.user.dto.response.UserDto;
@@ -46,6 +45,8 @@ public class ActivityService {
     private final UserActivityRepository userActivityRepository;
     private final QuoteRepository quoteRepository;
     private final CalendarRepository calendarRepository;
+    private final BadgeRepository badgeRepository;
+    private final CalendarBadgeRepository calendarBadgeRepository;
 
     /** 기상 시간 등록 **/
     @Transactional
@@ -103,22 +104,29 @@ public class ActivityService {
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
         badge.setName(BadgeType.WAKE);
+        Badge createdBadge = badgeRepository.save(badge);
+        log.info("userActivity 저장");
 
         // 캘린더와 연동
         // 오늘자 캘린더 불러오기
         // id값으로 연동하기
         LocalDate date = LocalDate.now();
-        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar());
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        CalendarBadge calendarBadge = new CalendarBadge();
+        calendarBadge.setId(new CalendarBadgeId());
+        calendarBadge.setBadge(badge);
+        calendarBadge.setCalendar(calendar);
 
-
-
-        // 저장
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장");
         activityRepository.save(activity);
         log.info("Activity 저장");
         userActivityRepository.save(userActivity);
         log.info("userActivity 저장");
+        calendarRepository.save(calendar);
+        log.info("calendar 저장");
+        calendarBadgeRepository.save(calendarBadge);
+        log.info("calendarBadge 저장");
     }
     /** 사용자 음성 활동 인증 **/
     @Transactional
@@ -152,13 +160,26 @@ public class ActivityService {
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
         badge.setName(BadgeType.VOICE_TEXT);
-        
+        Badge createdBadge = badgeRepository.save(badge);
+
         // 캘린더와 연동
+        LocalDate date = LocalDate.now();
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        CalendarBadge calendarBadge = new CalendarBadge();
+        calendarBadge.setId(new CalendarBadgeId());
+        calendarBadge.setBadge(badge);
+        calendarBadge.setCalendar(calendar);
 
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장 완료");
         userActivityRepository.save(userActivity);
         log.info("사용자 활동 생성 완료");
+        calendarRepository.save(calendar);
+        log.info("캘린더 저장");
+        userActivityRepository.save(userActivity);
+        log.info("userActivity 저장");
+        calendarBadgeRepository.save(calendarBadge);
+        log.info("calendarBadge 저장");
 
 
     }
@@ -222,10 +243,14 @@ public class ActivityService {
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
         badge.setName(BadgeType.WALK);
-
+        Badge createdBadge = badgeRepository.save(badge);
         // 캘린더와 연동
-
-
+        LocalDate date = LocalDate.now();
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        CalendarBadge calendarBadge = new CalendarBadge();
+        calendarBadge.setId(new CalendarBadgeId());
+        calendarBadge.setBadge(badge);
+        calendarBadge.setCalendar(calendar);
 
         // 저장
         userRepository.save(user);
@@ -234,6 +259,10 @@ public class ActivityService {
         log.info("Activity 저장");
         userActivityRepository.save(userActivity);
         log.info("userActivity 저장");
+        calendarRepository.save(calendar);
+        log.info("캘린더 저장");
+        calendarBadgeRepository.save(calendarBadge);
+        log.info("calendarBadge 저장");
     }
 
     /** 기상 시간 수정 **/

@@ -30,4 +30,9 @@ public class Calendar extends CreateBaseTime {
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
+    public Calendar(User user, BadgeType badge, LocalDate date) {
+        this.user = user;
+        this.badge = badge;
+        this.date = date;
+    }
 }
