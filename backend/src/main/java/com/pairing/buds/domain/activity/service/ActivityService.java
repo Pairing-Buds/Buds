@@ -120,7 +120,6 @@ public class ActivityService {
         log.info("Activity 저장");
         userActivityRepository.save(userActivity);
         log.info("userActivity 저장");
-
         calendarRepository.save(calendar);
         log.info("userActivity 저장");
     }
@@ -159,11 +158,15 @@ public class ActivityService {
         Badge createdBadge = badgeRepository.save(badge);
 
         // 캘린더와 연동
+        LocalDate date = LocalDate.now();
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
 
         userRepository.save(user);
         log.info("유저 리워드 편지 3개 추가 저장 완료");
         userActivityRepository.save(userActivity);
         log.info("사용자 활동 생성 완료");
+        calendarRepository.save(calendar);
+        log.info("캘린더 저장");
 
 
     }
@@ -229,8 +232,8 @@ public class ActivityService {
         badge.setName(BadgeType.WALK);
         Badge createdBadge = badgeRepository.save(badge);
         // 캘린더와 연동
-
-
+        LocalDate date = LocalDate.now();
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
 
         // 저장
         userRepository.save(user);
@@ -239,6 +242,8 @@ public class ActivityService {
         log.info("Activity 저장");
         userActivityRepository.save(userActivity);
         log.info("userActivity 저장");
+        calendarRepository.save(calendar);
+        log.info("캘린더 저장");
     }
 
     /** 기상 시간 수정 **/
