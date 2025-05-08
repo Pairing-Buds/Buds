@@ -28,6 +28,9 @@ public enum Message {
     TAGS_NOT_SELECTED("저장된 태그가 없습니다."),
     PASSWORD_NOT_MATCHED("비밀번호가 일치하지 않습니다."),
     DATE_IS_NOT_NULL("날짜는 필수 입력 항목입니다."),
+    INVALID_USER_CHARACTER("허용되지 않은 캐릭터 값입니다"),
+    USER_ALREADY_DELETED("이미 탈퇴한 계정입니다."),
+    OUT_OF_LETTER_TOKEN("편지 토큰이 모두 사용되어 요청을 처리할 수 없습니다."),
 
     OK("성공"),
     CREATED("성공")

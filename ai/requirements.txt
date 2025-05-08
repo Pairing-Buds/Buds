@@ -9,3 +9,4 @@ mysql-connector-python>=8.0.33
 asyncio>=3.4.3
 websockets>=11.0.3
 openai>=0.27.0
+prometheus-fastapi-instrumentator

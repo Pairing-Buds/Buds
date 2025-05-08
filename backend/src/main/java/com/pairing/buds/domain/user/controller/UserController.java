@@ -10,7 +10,6 @@ import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +25,7 @@ public class UserController {
     public ResponseDto getTags(@AuthenticationPrincipal Integer userId) {
         return new ResponseDto(StatusCode.OK, userService.getUserTags(userId));
     }
+
     /** 전체 태그 조회 **/
     @GetMapping("/all-tags")
     public ResponseDto getAllTags(@AuthenticationPrincipal int userId) {
@@ -50,8 +50,6 @@ public class UserController {
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
-    /** 회원 조회(?) **/
-
     /** 내 정보 조회 **/
     @GetMapping("/my-info")
     public ResponseDto getMyInfo(@AuthenticationPrincipal Integer userId) {
@@ -62,11 +60,10 @@ public class UserController {
     @PatchMapping("/my-info")
     public ResponseDto updateUserInfo(
             @AuthenticationPrincipal Integer userId,
-            @RequestBody UpdateUserInfoReqDto dto) {
+            @Valid @RequestBody UpdateUserInfoReqDto dto) {
         userService.updateUserInfo(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
-
 
     /** 회원 탈퇴(소프트 삭제) **/
     @DeleteMapping("/withdrawal")

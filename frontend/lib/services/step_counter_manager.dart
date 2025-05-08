@@ -15,10 +15,10 @@ class StepCounterManager {
 
   // 플랫폼 채널 설정
   static const MethodChannel _methodChannel = MethodChannel(
-    'com.example.buds/stepcounter',
+    'com.budsapp/stepcounter',
   );
   static const EventChannel _eventChannel = EventChannel(
-    'com.example.buds/stepcounter_events',
+    'com.budsapp/stepcounter_events',
   );
 
   // 걸음 수 관련 변수
@@ -77,7 +77,11 @@ class StepCounterManager {
       } else {
         debugPrint('StepCounterManager: 권한이 없어 초기화를 완료할 수 없습니다.');
         // 권한 요청 시도
-        requestPermission();
+        final granted = await requestPermission();
+        if (granted) {
+          // 권한이 승인된 경우 초기화 재시도
+          await initialize();
+        }
       }
     } catch (e) {
       debugPrint('StepCounterManager: 초기화 중 오류 발생 - $e');
@@ -177,6 +181,16 @@ class StepCounterManager {
   // 서비스 시작
   Future<bool> startService() async {
     try {
+      // 권한 확인
+      final hasPermission = await checkPermission();
+      if (!hasPermission) {
+        debugPrint('StepCounterManager: 권한이 없어 서비스를 시작할 수 없습니다.');
+        final granted = await requestPermission();
+        if (!granted) {
+          return false;
+        }
+      }
+
       // 아직 초기화되지 않았다면 초기화 실행
       if (!_isInitialized) {
         await initialize();
@@ -185,12 +199,18 @@ class StepCounterManager {
       final result = await _methodChannel.invokeMethod<bool>(
         'startStepCounterService',
       );
-      _isServiceRunning = result ?? false;
-      _serviceStatusController.add(_isServiceRunning);
-      debugPrint('걸음 수 서비스 시작: $_isServiceRunning');
-      return _isServiceRunning;
+
+      if (result == true) {
+        _isServiceRunning = true;
+        _serviceStatusController.add(_isServiceRunning);
+        debugPrint('StepCounterManager: 걸음 수 서비스 시작 성공');
+        return true;
+      } else {
+        debugPrint('StepCounterManager: 걸음 수 서비스 시작 실패');
+        return false;
+      }
     } catch (e) {
-      debugPrint('Error starting service: $e');
+      debugPrint('StepCounterManager: 서비스 시작 중 오류 발생 - $e');
       _isServiceRunning = false;
       _serviceStatusController.add(_isServiceRunning);
       return false;
@@ -203,12 +223,18 @@ class StepCounterManager {
       final result = await _methodChannel.invokeMethod<bool>(
         'stopStepCounterService',
       );
-      _isServiceRunning = !(result ?? false);
-      _serviceStatusController.add(_isServiceRunning);
-      debugPrint('걸음 수 서비스 중지: ${!_isServiceRunning}');
-      return !_isServiceRunning;
+
+      if (result == true) {
+        _isServiceRunning = false;
+        _serviceStatusController.add(_isServiceRunning);
+        debugPrint('StepCounterManager: 걸음 수 서비스 중지 성공');
+        return true;
+      } else {
+        debugPrint('StepCounterManager: 걸음 수 서비스 중지 실패');
+        return false;
+      }
     } catch (e) {
-      debugPrint('Error stopping service: $e');
+      debugPrint('StepCounterManager: 서비스 중지 중 오류 발생 - $e');
       return false;
     }
   }

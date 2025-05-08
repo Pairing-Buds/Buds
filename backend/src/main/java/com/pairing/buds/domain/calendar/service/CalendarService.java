@@ -96,14 +96,23 @@ public class CalendarService {
                             .build())
                     .collect(Collectors.toList());
 
-            List<DiaryResDto> diaryList = diaryMap.getOrDefault(day, Collections.emptyList())
-                    .stream()
-                    .map(diary -> DiaryResDto.builder()
-                            .diaryType(diary.getDiaryType().name())
-                            .content(diary.getContent())
-                            .date(new SimpleDateFormat("yyyy-MM-dd").format(diary.getDate()))
-                            .build())
-                    .collect(Collectors.toList());
+            // 수정된 부분: 각 일기에 대해 감정 일기와 활동 일기를 두 개의 DiaryResDto로 변환
+            List<DiaryResDto> diaryList = new ArrayList<>();
+            for (Diary diary : diaryMap.getOrDefault(day, Collections.emptyList())) {
+                // 감정 일기 추가
+                diaryList.add(DiaryResDto.builder()
+                        .diaryType("EMOTION") // 감정 일기 타입
+                        .content(diary.getEmotion_diary()) // 감정 일기 내용
+                        .date(new SimpleDateFormat("yyyy-MM-dd").format(diary.getDate()))
+                        .build());
+
+                // 활동 일기 추가
+                diaryList.add(DiaryResDto.builder()
+                        .diaryType("ACTIVE") // 활동 일기 타입
+                        .content(diary.getActive_diary()) // 활동 일기 내용
+                        .date(new SimpleDateFormat("yyyy-MM-dd").format(diary.getDate()))
+                        .build());
+            }
 
             result.add(BadgeAndDiaryResDto.builder()
                     .date(day.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
@@ -114,5 +123,4 @@ public class CalendarService {
 
         return result;
     }
-
 }

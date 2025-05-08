@@ -25,6 +25,17 @@ public class DiaryController {
         return new ResponseDto(StatusCode.OK, Message.CREATED);
     }
 
+    /** 일기 수정 **/
+    @PatchMapping("/{diaryNo}")
+    public ResponseDto updateDiary(
+            @AuthenticationPrincipal Integer userId,
+            @PathVariable Integer diaryNo,
+            @RequestBody DiaryReqDto diaryReqDto
+    ){
+        diaryService.updateDiary(userId, diaryNo, diaryReqDto);
+        return new ResponseDto(StatusCode.OK, Message.CREATED);
+    }
+
     /** 일기 삭제 **/
     @DeleteMapping("/{diaryNo}")
     public ResponseDto deleteDiary(
