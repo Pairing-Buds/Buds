@@ -5,15 +5,15 @@ class User {
   final int id;
   final String email;
   final String name;
-  final String? profileImageUrl;
   final DateTime createdAt;
+  final String userCharacter;
 
   User({
     required this.id,
     required this.email,
     required this.name,
-    this.profileImageUrl,
     required this.createdAt,
+    this.userCharacter = '',
   });
 
   // JSON 변환 메서드 - 더 유연하게 만들기
@@ -24,14 +24,11 @@ class User {
     }
 
     try {
-      // 필드가 존재하는지 확인하고 올바른 필드명 사용
       int userId = json['id'] ?? json['userId'] ?? 0;
       String userEmail = json['email'] ?? json['userEmail'] ?? '';
       String userName = json['name'] ?? json['userName'] ?? '';
-      String? profileImage =
-          json['profile_image_url'] ?? json['profileImageUrl'];
+      String? userCharacter = json['userCharacter'];
 
-      // 날짜 문자열이 있는 경우만 파싱
       DateTime createdDate;
       final createdAtStr = json['created_at'] ?? json['createdAt'];
       if (createdAtStr != null && createdAtStr is String) {
@@ -51,8 +48,8 @@ class User {
         id: userId,
         email: userEmail,
         name: userName,
-        profileImageUrl: profileImage,
         createdAt: createdDate,
+        userCharacter: userCharacter ?? '',
       );
     } catch (e) {
       if (kDebugMode) {
@@ -64,8 +61,8 @@ class User {
         id: 0,
         email: '',
         name: '',
-        profileImageUrl: null,
         createdAt: DateTime.now(),
+        userCharacter: '',
       );
     }
   }
@@ -75,8 +72,8 @@ class User {
       'id': id,
       'email': email,
       'name': name,
-      'profile_image_url': profileImageUrl,
       'created_at': createdAt.toIso8601String(),
+      'userCharacter': userCharacter,
     };
   }
 }

@@ -91,7 +91,6 @@ class DioAuthService {
           id: 0,
           email: email,
           name: email.split('@')[0], // 이메일에서 추출한 기본 이름
-          profileImageUrl: null,
           createdAt: DateTime.now(),
         );
       }
@@ -146,7 +145,6 @@ class DioAuthService {
         id: 0,
         email: email,
         name: name.isEmpty ? email.split('@')[0] : name, // 이름이 없으면 이메일에서 추출
-        profileImageUrl: null,
         createdAt: DateTime.now(),
       );
     } catch (e) {
@@ -229,8 +227,8 @@ class DioAuthService {
             id: 0, // API에서 userId를 제공하지 않음
             email: userData['userEmail'] ?? '',
             name: userData['userName'] ?? '',
-            profileImageUrl: null,
             createdAt: DateTime.now(),
+            userCharacter: userData['userCharacter'] ?? '',
           );
         }
 
