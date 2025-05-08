@@ -3,7 +3,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:buds/constants/api_constants.dart';
-import 'package:buds/services/dio_api_service.dart';
+import 'package:buds/services/api_service.dart';
 
 class LetterAnonymityScreen extends StatefulWidget {
   const LetterAnonymityScreen({Key? key}) : super(key: key);

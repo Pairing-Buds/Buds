@@ -172,8 +172,9 @@ void main() async {
     }
   }
 
-  // 권한 요청 (Android만 사용)
-  await NotificationService().requestPermission();
+  // 권한 요청 (Android만 사용) - 앱 시작 시 동시에 여러 권한을 요청하는 문제 해결을 위해 주석 처리
+  // 대신 각 기능(걸음 수 측정, 알람)을 사용할 때 권한 요청하도록 함
+  // await NotificationService().requestPermission();
 
   // 앱 상태 로깅
   debugPrint('======================================');

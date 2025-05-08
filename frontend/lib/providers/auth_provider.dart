@@ -1,9 +1,9 @@
 // 인증 상태 관리
 import 'package:flutter/material.dart';
-import 'package:buds/services/dio_auth_service.dart';
+import 'package:buds/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import '../services/dio_api_service.dart';
+import '../services/api_service.dart';
 import '../constants/api_constants.dart';
 
 class AuthProvider extends ChangeNotifier {

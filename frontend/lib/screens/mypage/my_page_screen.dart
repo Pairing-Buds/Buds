@@ -79,28 +79,27 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: 40),
-                    const Text(
-                      '나의 캐릭터',
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
-                    ),
+                    const Text('나의 캐릭터', style: TextStyle(fontSize: 20)),
                     const SizedBox(height: 16),
                     Consumer<AuthProvider>(
                       builder: (context, authProvider, child) {
-                        final userCharacter = authProvider.userData?['userCharacter'];
-                        final userName = authProvider.userData?['name'] ?? '사용자';
-                        
+                        final userCharacter =
+                            authProvider.userData?['userCharacter'];
+                        final userName =
+                            authProvider.userData?['name'] ?? '사용자';
+
                         if (kDebugMode) {
                           print('마이페이지: 현재 캐릭터: $userCharacter');
                         }
-                        
+
                         // 캐릭터 인덱스 찾기
                         int characterIndex = 0;
                         for (int i = 0; i < CharacterData.characterCount; i++) {
                           final characterName = CharacterData.getName(i);
                           if (kDebugMode) {
-                            print('마이페이지: 비교 중 - $characterName vs $userCharacter');
+                            print(
+                              '마이페이지: 비교 중 - $characterName vs $userCharacter',
+                            );
                           }
                           if (characterName == userCharacter) {
                             characterIndex = i;
@@ -186,6 +185,26 @@ class _MyPageScreenState extends State<MyPageScreen> {
                             },
                             child: Text(
                               '회원 탈퇴하기',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          InkWell(
+                            onTap: () async {
+                              final authProvider = Provider.of<AuthProvider>(
+                                context,
+                                listen: false,
+                              );
+                              await authProvider.logout();
+                              Navigator.of(
+                                context,
+                              ).pushNamedAndRemoveUntil('/', (route) => false);
+                            },
+                            child: Text(
+                              '로그아웃',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey,
