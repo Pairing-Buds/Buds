@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/services/survey_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
@@ -39,15 +40,16 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
   // 태그 한글 - 영어 매핑
   final Map<String, String> tagTranslation = {
-    "취업": "EMPLOYMENT",
+    "취업": "JOB",
     "자격증": "CERTIFICATION",
-    "운동": "SPORTS",
+    "운동": "UNDONG",
     "패션": "FASHION",
     "음악": "MUSIC",
     "독서": "READING",
     "요리": "COOKING",
-    "게임": "GAMING",
-    "만화": "COMICS"
+    "게임": "GAME",
+    "만화": "COMIC",
+    "영화": "MOVIE",
   };
 
   // 각 질문에 대한 선택값 저장
@@ -80,8 +82,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
     // 선택된 태그를 영어로 변환
     List<String> englishTags = selectedTags.map((tag) => tagTranslation[tag] ?? tag).toList();
 
-    print("Request Tags (English): $englishTags"); // 디버깅 확인
-
     bool success = await SurveyService().submitSurveyResult(
       seclusionScore: seclusionScore,
       opennessScore: opennessScore,
@@ -96,6 +96,12 @@ class _SurveyScreenState extends State<SurveyScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('설문조사 결과가 제출되었습니다.')),
       );
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('제출에 실패했습니다. 다시 시도해주세요.')),
@@ -296,9 +302,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: 응답 저장 처리
-                        print(selectedIndexes);
-                        print(selectedTags);
+                        submitSurvey(); // 설문 제출 함수 호출
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -314,7 +318,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
                     ),
                   ),
                 ),
-
                 // 추가 여백 (하단 안전 영역을 위함)
                 const SizedBox(height: 20),
               ],

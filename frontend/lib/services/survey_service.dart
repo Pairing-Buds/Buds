@@ -33,6 +33,17 @@ class SurveyService {
     required List<String> tags,
   }) async {
     try {
+      final requestData = {
+        "seclusionScore": seclusionScore,
+        "opennessScore": opennessScore,
+        "sociabilityScore": sociabilityScore,
+        "routineScore": routineScore,
+        "quietnessScore": quietnessScore,
+        "expressionScore": expressionScore,
+        "tags": tags.map((tag) => tag.toUpperCase()).toList(),
+      };
+      print("📤 Survey Request Data: $requestData");
+
       final response = await _apiService.post(
         ApiConstants.surveyUrl,
         data: {
