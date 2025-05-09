@@ -29,8 +29,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +188,16 @@ public class LetterService {
         letterRepository.save(answeredLetter);
     }
 
-    /** 편지 랜덤 발송 **/
+    /**
+     * 편지 랜덤 발송
+     * - 상대와의 편지 목록 중 최근 편지가 내가 보낸 것 & 1개월 이내
+     * - 해당되는 경우
+     * 대화 없음	포함됨
+     * 최근 편지가 상대방 → 나	포함됨
+     * 최근 편지가 나 → 상대방인데 1개월 이후	포함됨
+     * 최근 편지가 나 → 상대방인데 1개월 이내	제외됨
+     **/
+    @Transactional
     public void sendLetter(Integer userId, SendLetterReqDto dto) {
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
@@ -196,6 +207,8 @@ public class LetterService {
         }
 
         List<User> candidates;
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1); // 최근 1개월 이내
+        Pageable page = PageRequest.of(0, 5); // 5명 선택
 
         if(dto.getIsTagBased()) {
             // 태그 기반 랜덤 발송(1개 이상 일치하는 경우 후보)
@@ -211,18 +224,24 @@ public class LetterService {
             candidates = userRepository.findRandomReceiverByTags(
                     sender.getId(),
                     senderTags,
-                    PageRequest.of(0, 1)
+                    oneMonthAgo,
+                    page
             );
 
         } else {
             // 일반 랜덤 발송
-            candidates = userRepository.findRandomReceiver(sender.getId(), PageRequest.of(0, 1));
+            candidates = userRepository.findRandomReceiver(
+                    sender.getId(),
+                    oneMonthAgo,
+                    page
+            );
         }
 
-        // 후보가 없으면 예외 처리
-        User receiver = candidates.stream()
-                .findFirst()
-                .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.RECEIVER_NOT_FOUND));
+        if (candidates.isEmpty()) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.RECEIVER_NOT_FOUND);
+        }
+
+        User receiver = candidates.get(0);
 
         Letter letter = new Letter();
         letter.setSender(sender);
@@ -235,7 +254,6 @@ public class LetterService {
         userRepository.save(sender);
         letterRepository.save(letter);
     }
-
 
     /** 편지 스크랩 취소 **/
     @Transactional
