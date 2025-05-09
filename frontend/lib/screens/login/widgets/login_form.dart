@@ -76,7 +76,11 @@ class _LoginFormState extends State<LoginForm> {
                       );
                     } else {
                       // 일반 사용자는 메인 화면으로 이동
-                      Navigator.pushReplacementNamed(context, '/main');
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/main',
+                            (route) => false,
+                      );
                     }
                   })
                   .catchError((e) {
@@ -84,8 +88,12 @@ class _LoginFormState extends State<LoginForm> {
                       print('내 정보 조회 실패: $e');
                     }
                     // 정보 조회 실패해도 일단 메인 화면으로 이동
-                    Navigator.pushReplacementNamed(context, '/main');
-                  });
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/main',
+                          (route) => false,
+                    );
+              });
             } else {
               // 로그인 실패
               ScaffoldMessenger.of(context).showSnackBar(

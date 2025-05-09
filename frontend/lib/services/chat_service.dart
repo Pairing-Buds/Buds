@@ -4,7 +4,7 @@ class ChatService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl: 'http://k12c105.p.ssafy.io/fastapi',
     connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
   ));
 
   Future<String> sendMessage({
@@ -46,7 +46,7 @@ class ChatService {
     } catch (e, stack) {
       print('❌ sendMessage 오류: $e');
       print(stack);
-      return '챗봇 응답 실패';
+      return '친구 집에 놀러갔어. 나중에 대화하자!';
     }
   }
 
