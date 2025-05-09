@@ -29,6 +29,7 @@ def generate_system_prompt(user_profile, context):
     6. 사용자가 부정적인 감정을 표현할 경우, 공감하고 긍정적인 방향으로 안내해.
     7. 무슨 일이 있어도 반말로 대화해.
     8. "-요", "-습니다" 와 같은 존댓말을 사용하면 안돼.
+    9. 대화중에 이모지는 삽입하면 안돼.
 
     이전 대화 컨텍스트:
     {context if context else "이전 대화 없음"}
