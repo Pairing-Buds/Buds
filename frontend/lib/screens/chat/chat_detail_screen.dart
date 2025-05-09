@@ -6,9 +6,12 @@ import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:buds/screens/chat/voice_chatting_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
-  const ChatDetailScreen({super.key});
+  final String? initialText;
+  final List<Map<String, dynamic>>? initialHistory;
+  const ChatDetailScreen({super.key, this.initialHistory, this.initialText});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -18,7 +21,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _controller = TextEditingController();
   final ChatService _chatService = ChatService();
   final ScrollController _scrollController = ScrollController();
-  final int userId = 20;
+  final int userId = 4;
   List<Map<String, dynamic>> _chatHistory = [];
   bool _isWaitingForBot = false;
   bool _hasStarted = false;
@@ -30,7 +33,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _loadChatHistory();
+
+    if (widget.initialHistory != null && widget.initialHistory!.isNotEmpty) {
+      _chatHistory = widget.initialHistory!;
+      _hasStarted = true;
+    } else {
+      _loadChatHistory();
+    }
   }
 
   Future<void> _loadChatHistory() async {
@@ -93,21 +102,48 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Future<void> _startListening() async {
     bool available = await _speech.initialize();
-    if (available) {
-      setState(() => _isListening = true);
-      _speech.listen(
-        onResult: (result) {
+    if (!available) return;
+
+    setState(() => _isListening = true);
+
+    _speech.listen(
+      onResult: (result) async {
+        setState(() => _recognizedText = result.recognizedWords);
+        if (result.finalResult && _recognizedText.isNotEmpty) {
+          final message = _recognizedText;
+
           setState(() {
-            _recognizedText = result.recognizedWords;
+            _chatHistory.add({
+              'message': message,
+              'is_user': true,
+              'created_at': DateTime.now().toIso8601String(),
+            });
           });
-          if (result.finalResult && _recognizedText.isNotEmpty) {
-            _controller.text = _recognizedText;
-            _handleSend();
-            _speech.stop();
-          }
-        },
-      );
-    }
+          _scrollToBottom();
+
+          final botReply = await _chatService.sendMessage(
+            userId: userId,
+            message: message,
+            isVoice: true,
+          );
+
+          setState(() {
+            _chatHistory.add({
+              'message': botReply,
+              'is_user': false,
+              'created_at': DateTime.now().toIso8601String(),
+            });
+          });
+          _scrollToBottom();
+
+          // 자동 재시작 (연속 인식)
+          Future.delayed(const Duration(milliseconds: 500), () => _startListening());
+        }
+      },
+      listenMode: stt.ListenMode.dictation,
+      pauseFor: const Duration(seconds: 2),
+      partialResults: true,
+    );
   }
 
   void _scrollToBottom() {
@@ -163,13 +199,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               suffixIcon: GestureDetector(
                 onTap: () {
-                  if (_controller.text.isEmpty) {
-                    _startListening();
+                  final input = _controller.text.trim();
+                  if (input.isEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
+                    );
                   } else {
                     _handleSend();
                   }
                 },
-                child: const Icon(Icons.mic, color: Colors.black),
+                child: Image.asset('assets/icons/chat.png', width: 30),
               ),
               suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
@@ -236,28 +276,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
               contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: _startListening,
-                    child: const Icon(Icons.mic, color: Colors.grey),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _handleSend,
-                    child: const Icon(Icons.send, color: Colors.black),
-                  ),
-                ],
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  final input = _controller.text.trim();
+                  if (input.isEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
+                    );
+                  } else {
+                    _handleSend();
+                  }
+                },
+                child: Image.asset('assets/icons/chat.png', width: 30),
               ),
-              suffixIconConstraints: const BoxConstraints(minWidth: 80, minHeight: 20),
+              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: BorderSide.none,
               ),
             ),
           ),
-        ),
+        )
       ],
     );
   }
