@@ -14,6 +14,7 @@ import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.entity.UserCharacter;
+import com.pairing.buds.domain.user.repository.TagRepository;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,6 +40,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
+    private final TagRepository tagRepository;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -87,6 +89,11 @@ public class UserService {
         log.info("userId : {}, opennessScore : {}, routineScore : {}, quitenessScore : {}, expressionScore : {}, seclusionScore : {}, sociabilityScore",
                 userId, opennessScore, routineScore, quietnessScore, expressionScore, seclusionScore, sociabilityScore);
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+
+        if(!user.getTags().isEmpty()){
+            tagRepository.deleteAll(user.getTags());
+            user.getTags().clear();
+        }
 
         Set<Tag> newTags = dto.getTags().parallelStream().map( newTag ->
                 Tag.builder()
