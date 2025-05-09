@@ -4,6 +4,7 @@ import 'package:buds/screens/letter/letter_reply_screen.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/models/letter_model.dart';
+import 'package:buds/models/letter_response_model.dart'; // LetterResponseModel 추가
 
 class LetterList extends StatefulWidget {
   final Function(int) onCountFetched;
@@ -20,8 +21,8 @@ class _LetterListState extends State<LetterList> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<LetterModel>>(
-      future: LetterService().fetchLetters(),
+    return FutureBuilder<LetterResponseModel>(
+      future: LetterService().fetchLetters(), // LetterResponseModel로 변경
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -30,11 +31,12 @@ class _LetterListState extends State<LetterList> {
           return Center(child: Text('오류: ${snapshot.error}'));
         }
 
-        final letters = snapshot.data ?? [];
+        final letterResponse = snapshot.data;
+        final letters = letterResponse?.letters ?? [];
 
-        if (!_countReported) {
+        if (!_countReported && letterResponse != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            widget.onCountFetched(letters.length);
+            widget.onCountFetched(letterResponse.letterCnt);
             _countReported = true;
           });
         }
@@ -86,7 +88,7 @@ class _LetterListState extends State<LetterList> {
                                   letter.lastLetterDate,
                                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
-                                const SizedBox(height: 4  ),
+                                const SizedBox(height: 4),
                                 Text(
                                   letter.lastLetterStatus == "UNREAD" ? "읽지 않음" : "읽음",
                                   style: TextStyle(

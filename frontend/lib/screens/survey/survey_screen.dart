@@ -42,7 +42,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
   final Map<String, String> tagTranslation = {
     "취업": "JOB",
     "자격증": "CERTIFICATION",
-    "운동": "UNDONG",
+    "운동": "SPORTS",
     "패션": "FASHION",
     "음악": "MUSIC",
     "독서": "READING",
