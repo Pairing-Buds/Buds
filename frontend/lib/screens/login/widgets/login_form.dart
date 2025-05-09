@@ -46,94 +46,86 @@ class _LoginFormState extends State<LoginForm> {
       authProvider
           .login(email, password)
           .then((success) {
-            if (success) {
-              // 로그인 성공
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('로그인 성공')));
+        if (success) {
+          // 로그인 성공
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('로그인 성공')));
 
-              // 내 정보 조회 API 호출
-              if (kDebugMode) {
-                print('내 정보 조회 API 호출 시작');
-              }
+          // 내 정보 조회 API 호출
+          if (kDebugMode) {
+            print('내 정보 조회 API 호출 시작');
+          }
 
-              // DioAuthService 객체를 직접 생성하지 않고 AuthProvider의 내부 구현 활용
-              authProvider
-                  .refreshUserData()
-                  .then((_) {
-                    if (kDebugMode) {
-                      print('내 정보 조회 완료: ${authProvider.userData}');
-                      print('익명 사용자 여부: ${authProvider.isAnonymousUser}');
-                    }
+          // DioAuthService 객체를 직접 생성하지 않고 AuthProvider의 내부 구현 활용
+          authProvider
+              .refreshUserData()
+              .then((_) {
+            if (kDebugMode) {
+              print('내 정보 조회 완료: ${authProvider.userData}');
+              print('익명 사용자 여부: ${authProvider.isAnonymousUser}');
+            }
 
-                    // 익명 사용자인지 확인
-                    if (authProvider.isAnonymousUser) {
-                      // 익명 사용자이면 캐릭터 선택 화면으로 이동
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const CharacterSelectScreen(),
-                        ),
-                      );
-                    } else {
-                      // 일반 사용자는 메인 화면으로 이동
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/main',
-                            (route) => false,
-                      );
-                    }
-                  })
-                  .catchError((e) {
-                    if (kDebugMode) {
-                      print('내 정보 조회 실패: $e');
-                    }
-                    // 정보 조회 실패해도 일단 메인 화면으로 이동
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/main',
-                          (route) => false,
-                    );
-              });
-            } else {
-              // 로그인 실패
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다'),
-                  backgroundColor: Colors.red,
+            // 익명 사용자인지 확인
+            if (authProvider.isAnonymousUser) {
+              // 익명 사용자이면 캐릭터 선택 화면으로 이동
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const CharacterSelectScreen(),
                 ),
               );
+            } else {
+              // 일반 사용자는 메인 화면으로 이동
+              Navigator.pushReplacementNamed(context, '/main');
             }
           })
-          .catchError((error) {
-            // 오류 처리
+              .catchError((e) {
             if (kDebugMode) {
-              print('로그인 폼 오류: $error');
+              print('내 정보 조회 실패: $e');
             }
-
-            // 오류 메시지 추출 및 표시
-            String errorMessage = '로그인 실패: 서버 연결 오류';
-
-            if (error.toString().contains('401')) {
-              errorMessage = '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다';
-            } else if (error.toString().contains('500')) {
-              errorMessage = '로그인 실패: 서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-            } else if (error.toString().contains('인증 쿠키 없음')) {
-              errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
-            }
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(errorMessage),
-                backgroundColor: Colors.red,
-              ),
-            );
-          })
-          .whenComplete(() {
-            // 로딩 상태 해제
-            setState(() {
-              _isLoading = false;
-            });
+            // 정보 조회 실패해도 일단 메인 화면으로 이동
+            Navigator.pushReplacementNamed(context, '/main');
           });
+        } else {
+          // 로그인 실패
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      })
+          .catchError((error) {
+        // 오류 처리
+        if (kDebugMode) {
+          print('로그인 폼 오류: $error');
+        }
+
+        // 오류 메시지 추출 및 표시
+        String errorMessage = '로그인 실패: 서버 연결 오류';
+
+        if (error.toString().contains('401')) {
+          errorMessage = '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다';
+        } else if (error.toString().contains('500')) {
+          errorMessage = '로그인 실패: 서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (error.toString().contains('인증 쿠키 없음')) {
+          errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      })
+          .whenComplete(() {
+        // 로딩 상태 해제
+        setState(() {
+          _isLoading = false;
+        });
+      });
     }
   }
 
@@ -236,22 +228,22 @@ class _LoginFormState extends State<LoginForm> {
                 elevation: 0,
               ),
               child:
-                  _isLoading
-                      ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Colors.white,
-                        ),
-                      )
-                      : const Text(
-                        '로그인',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+              _isLoading
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Colors.white,
+                ),
+              )
+                  : const Text(
+                '로그인',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 8),
