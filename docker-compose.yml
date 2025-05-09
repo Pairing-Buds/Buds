@@ -80,11 +80,13 @@ services:
 
   # Nginx (Web Server/Proxy)
   nginx:
-    image: kimkyeongeun/nginx:${IMAGE_TAG}
+    image: nginx:latest  # 공식 Nginx 이미지로 변경
     container_name: nginx
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # 설정 파일 마운트
     depends_on:
       - spring
       - fastapi
