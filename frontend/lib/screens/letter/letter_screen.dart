@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/models/letter_model.dart';
 import 'package:buds/screens/letter/letter_list_screen.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/services/letter_service.dart';
 
 class LetterScreen extends StatefulWidget {
   const LetterScreen({super.key});
@@ -12,11 +14,37 @@ class LetterScreen extends StatefulWidget {
 }
 
 class _LetterScreenState extends State<LetterScreen> {
-  int letterCount = 0;
+  int letterCnt = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLetterCount();
+  }
+
+  Future<void> fetchLetterCount() async {
+    try {
+      final letterResponse  = await LetterService().fetchLetters();
+      if (letterResponse.letters.isNotEmpty) {
+        setState(() {
+          letterCnt = letterResponse.letterCnt;
+        });
+      } else {
+        setState(() {
+          letterCnt = 0;
+        });
+      }
+    } catch (e) {
+      print('Error fetching letter count: $e');
+      setState(() {
+        letterCnt = 0;
+      });
+    }
+  }
 
   void updateLetterCount(int count) {
     setState(() {
-      letterCount = count;
+      letterCnt = count;
     });
   }
 
@@ -25,14 +53,14 @@ class _LetterScreenState extends State<LetterScreen> {
       context,
       MaterialPageRoute(builder: (_) => const LetterAnonymityScreen()),
     ).then((_) {
-      setState(() {}); // 돌아왔을 때 리스트 새로고침
+      fetchLetterCount(); // 돌아왔을 때 리스트 새로고침
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
+      // backgroundColor: const Color(0xFFF9F9F9),
       appBar: const CustomAppBar(
         title: '편지함',
         leftIconPath: 'assets/icons/bottle_icon.png',
@@ -81,7 +109,7 @@ class _LetterScreenState extends State<LetterScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  '나의 편지 $letterCount',
+                  '나의 편지 $letterCnt', // LetterModel의 letterCnt 사용
                   style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
               ],
@@ -93,7 +121,10 @@ class _LetterScreenState extends State<LetterScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: LetterList(onCountFetched: updateLetterCount, onWritePressed: navigateToWrite),
+              child: LetterList(
+                onCountFetched: updateLetterCount,
+                onWritePressed: navigateToWrite,
+              ),
             ),
           ),
         ],
