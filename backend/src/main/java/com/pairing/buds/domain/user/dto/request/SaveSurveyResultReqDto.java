@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
 
 import java.util.List;
@@ -21,27 +22,27 @@ import java.util.stream.Collectors;
 @Valid
 public class SaveSurveyResultReqDto {
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int seclusionScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int opennessScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int sociabilityScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int routineScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int quietnessScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int expressionScore;
 

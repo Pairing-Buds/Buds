@@ -73,7 +73,7 @@ public class UserService {
 
     /** 전체 태그 조회 **/
     public String[] getAllTags(int userId) {
-        return new String[]{"취업", "자격증", "운동", "패션", "음악", "독서", "요리", "게임", "만화"};
+        return new String[]{"취업", "자격증", "운동", "패션", "음악", "독서", "요리", "게임", "만화","영화"};
     }
 
     /** 설문조사 결과 저장 **/
