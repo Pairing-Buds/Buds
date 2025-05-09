@@ -96,7 +96,7 @@ public class AdminService {
         int userId = dto.getUserId();
         log.info("adminId : {}, userId : {}", adminId ,userId);
 
-        if(adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
+        if(!adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         User activatedUser = ActiveUserReqDto.toActiveUser(user);
         userRepository.save(activatedUser);

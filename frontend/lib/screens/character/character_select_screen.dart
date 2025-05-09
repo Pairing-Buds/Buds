@@ -7,7 +7,7 @@ import 'widgets/character_selection_manager.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'widgets/nickname_dialog.dart';
 import 'package:flutter/foundation.dart';
-import '../../services/dio_auth_service.dart';
+import '../../services/auth_service.dart';
 
 /// 캐릭터 선택 화면
 class CharacterSelectScreen extends StatefulWidget {

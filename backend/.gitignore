@@ -5,6 +5,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+
 ### STS ###
 .apt_generated
 .classpath
@@ -27,6 +28,8 @@ bin/
 out/
 !**/src/main/resources/**
 !**/src/test/**/out/
+!**/src/test/**
+
 resources
 application.yml
 *.idea

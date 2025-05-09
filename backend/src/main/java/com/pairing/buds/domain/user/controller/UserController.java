@@ -8,8 +8,11 @@ import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.UpdateUserTagsReqDto;
 import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,8 +72,11 @@ public class UserController {
     @DeleteMapping("/withdrawal")
     public ResponseDto withdraw(
             @AuthenticationPrincipal Integer userId,
-            @RequestBody WithdrawUserReqDto dto) {
-        userService.withdrawUser(userId, dto);
+            @RequestBody WithdrawUserReqDto dto,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Authentication authentication) {
+        userService.withdrawUser(userId, dto, request, response, authentication);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 

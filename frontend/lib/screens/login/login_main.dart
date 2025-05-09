@@ -75,7 +75,7 @@ class LoginMainScreen extends StatelessWidget {
                       );
                     },
                     child: Image.asset(
-                      'assets/images/newmarmet2.png',
+                      'assets/images/newmarmetmain.png',
                       scale: imageScale,
                       fit: BoxFit.contain,
                     ),

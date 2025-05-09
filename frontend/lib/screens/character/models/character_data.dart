@@ -23,13 +23,33 @@ class CharacterData {
     }
   }
 
+  // 마이페이지용 캐릭터 이미지 경로 가져오기
+  static String getMyPageImage(int index) {
+    switch (index) {
+      case 0:
+        return 'assets/images/mypage/newduck.png'; // 오리
+      case 1:
+        return 'assets/images/mypage/newfox.png'; // 여우
+      case 2:
+        return 'assets/images/mypage/newfrog.png'; // 개구리
+      case 3:
+        return 'assets/images/mypage/newlizard.png'; // 도마뱀
+      case 4:
+        return 'assets/images/mypage/newmarmet.png'; // 마멋
+      case 5:
+        return 'assets/images/mypage/newrabit.png'; // 토끼
+      default:
+        return 'assets/images/mypage/newduck.png';
+    }
+  }
+
   // 캐릭터 이름 가져오기
   static String getName(int index) {
     switch (index) {
       case 0:
         return '오리'; // 오리
       case 1:
-        return '여우'; // 여우
+        return '고양이'; // 고양이
       case 2:
         return '개구리'; // 개구리
       case 3:

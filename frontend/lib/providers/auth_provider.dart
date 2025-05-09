@@ -1,9 +1,9 @@
 // 인증 상태 관리
 import 'package:flutter/material.dart';
-import 'package:buds/services/dio_auth_service.dart';
+import 'package:buds/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
-import '../services/dio_api_service.dart';
+import '../services/api_service.dart';
 import '../constants/api_constants.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -50,8 +50,26 @@ class AuthProvider extends ChangeNotifier {
   // 초기화 - 앱 시작 시 호출
   Future<void> initialize() async {
     try {
-      // 쿠키 유효성 검증 (사용자 프로필 요청으로)
-      final cookiesValid = await _authService.checkCookies();
+      if (kDebugMode) {
+        print('AuthProvider 초기화 시작...');
+      }
+
+      // 먼저 저장된 쿠키가 있는지 확인
+      bool hasStoredCookies = false;
+      try {
+        hasStoredCookies = await _apiService.checkSavedCookies();
+        if (kDebugMode) {
+          print('저장된 쿠키 확인 결과: $hasStoredCookies');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('저장된 쿠키 확인 중 오류: $e');
+        }
+      }
+
+      // 저장된 쿠키가 있거나 서버에서 쿠키 유효성 검증이 성공하면 로그인 상태로 처리
+      final cookiesValid =
+          hasStoredCookies || await _authService.checkCookies();
 
       if (cookiesValid) {
         _isLoggedIn = true;

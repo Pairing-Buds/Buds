@@ -12,27 +12,56 @@ class ChatService {
     required String message,
     required bool isVoice,
   }) async {
-    final response = await _dio.post(
-      '/chat/message',
-      data: {
-        'user_id': userId,
-        'message': message,
-        'is_voice': isVoice,
-      },
-    );
+    try {
+      print("✅ ChatService 요청 시작");
+      print("user_id: $userId");
+      print("message: $message");
+      print("is_voice: $isVoice");
 
-    if (response.statusCode == 200 && response.data['success'] == true) {
-      return response.data['message'];
-    } else {
-      throw Exception('챗봇 응답 실패');
+      final response = await _dio.post(
+        '/chat/message',
+        data: {
+          'user_id': userId,
+          'message': message,
+          'is_voice': isVoice,
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('✅ 응답 상태 코드: ${response.statusCode}');
+      print('✅ 응답 데이터: ${response.data}');
+
+      final data = response.data;
+      if (response.statusCode == 200 &&
+          data is Map<String, dynamic> &&
+          data['success'] == true) {
+        return data['message'] ?? '응답 없음';
+      } else {
+        throw Exception('서버 응답 오류: ${response.statusCode}, data: $data');
+      }
+    } catch (e, stack) {
+      print('❌ sendMessage 오류: $e');
+      print(stack);
+      return '챗봇 응답 실패';
     }
   }
+
 
   Future<List<Map<String, dynamic>>> getChatHistory({required int userId}) async {
     final response = await _dio.post(
       '/chat/history',
       data: {'user_id': userId},
+      options: Options(headers: {'Content-Type': 'application/json'}),
     );
-    return List<Map<String, dynamic>>.from(response.data);
+
+    if (response.data is List) {
+      return List<Map<String, dynamic>>.from(response.data);
+    } else {
+      return []; // 잘못된 응답이면 빈 리스트로 처리
+    }
   }
 }

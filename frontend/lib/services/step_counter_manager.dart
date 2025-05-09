@@ -76,12 +76,13 @@ class StepCounterManager {
         debugPrint('StepCounterManager: 초기화 완료');
       } else {
         debugPrint('StepCounterManager: 권한이 없어 초기화를 완료할 수 없습니다.');
-        // 권한 요청 시도
-        final granted = await requestPermission();
-        if (granted) {
-          // 권한이 승인된 경우 초기화 재시도
-          await initialize();
-        }
+        // 권한 요청 부분 주석 처리 - 초기화 시 자동으로 권한 요청하지 않음
+        // 대신 사용자가 실제로 걸음 수 기능을 사용할 때만 권한 요청
+        // final granted = await requestPermission();
+        // if (granted) {
+        //   // 권한이 승인된 경우 초기화 재시도
+        //   await initialize();
+        // }
       }
     } catch (e) {
       debugPrint('StepCounterManager: 초기화 중 오류 발생 - $e');

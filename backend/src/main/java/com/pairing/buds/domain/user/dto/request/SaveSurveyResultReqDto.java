@@ -1,11 +1,18 @@
 package com.pairing.buds.domain.user.dto.request;
 
+import com.pairing.buds.domain.user.entity.Tag;
+import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.*;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -15,29 +22,31 @@ import lombok.*;
 @Valid
 public class SaveSurveyResultReqDto {
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int seclusionScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int opennessScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int sociabilityScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int routineScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int quietnessScore;
 
-    @Positive
+    @PositiveOrZero
     @NotNull
     private int expressionScore;
+
+    private Set<TagType> tags;
 
     public static User toUser(User user, SaveSurveyResultReqDto dto){
         user.setSeclusionScore(dto.getSeclusionScore());
@@ -48,5 +57,7 @@ public class SaveSurveyResultReqDto {
         user.setExpressionScore(dto.getExpressionScore());
         return user;
     }
+
+
 
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
-import 'package:buds/screens/letter/letter_list.dart';
+import 'package:buds/screens/letter/letter_list_screen.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 
 class LetterScreen extends StatefulWidget {
@@ -55,14 +55,14 @@ class _LetterScreenState extends State<LetterScreen> {
                 const Expanded(
                   child: Text(
                     '오늘의 퀘스트를 완료하고\n편지지를 모아봐요',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                 ),
                 Transform.translate(
                   offset: const Offset(0, 8),
                   child: Image.asset(
                     'assets/images/marmet_cutting_head.png',
-                    width: 100,
+                    width: 80,
                     height: 80,
                   ),
                 ),
@@ -77,12 +77,12 @@ class _LetterScreenState extends State<LetterScreen> {
               children: [
                 const Text(
                   '편지 목록',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
                 ),
                 const Spacer(),
                 Text(
                   '나의 편지 $letterCount',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
               ],
             ),

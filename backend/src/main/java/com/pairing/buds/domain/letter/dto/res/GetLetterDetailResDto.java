@@ -22,22 +22,22 @@ public class GetLetterDetailResDto {
 
     private int letterId;
 
-    private UserDto sender;
+    private String senderName;
 
-    private UserDto receiver;
+    private String receiverName;
 
     private String content;
 
     private LetterStatus status;
 
-    @DateTimeFormat(pattern = "yyyy.MM.dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 
     public static GetLetterDetailResDto toDto(Letter letter){
         GetLetterDetailResDto response = new GetLetterDetailResDto();
         response.setLetterId(letter.getId());
-        response.setSender(UserDto.toDto(letter.getSender()));
-        response.setReceiver(UserDto.toDto(letter.getReceiver()));
+        response.setSenderName(letter.getSender().getUserName());
+        response.setReceiverName(letter.getReceiver().getUserName());
         response.setContent(letter.getContent());
         response.setStatus(letter.getStatus());
         response.setCreatedAt(letter.getCreatedAt());

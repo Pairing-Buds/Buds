@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/character/models/character_data.dart';
-import '../services/dio_api_service.dart';
+import '../services/api_service.dart';
 import '../constants/api_constants.dart';
 import 'package:dio/dio.dart';
 

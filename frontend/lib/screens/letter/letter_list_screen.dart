@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
-import 'package:buds/screens/letter/letter_reply.dart';
-import 'package:buds/services/dio_letter_service.dart';
+import 'package:buds/screens/letter/letter_reply_screen.dart';
+import 'package:buds/services/letter_service.dart';
 import 'package:buds/config/theme.dart';
+import 'package:buds/models/letter_model.dart';
 
 class LetterList extends StatefulWidget {
   final Function(int) onCountFetched;
@@ -19,8 +20,8 @@ class _LetterListState extends State<LetterList> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Letter>>(
-      future: DioLetterService().fetchLetters(),
+    return FutureBuilder<List<LetterModel>>(
+      future: LetterService().fetchLetters(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -85,7 +86,7 @@ class _LetterListState extends State<LetterList> {
                                   letter.lastLetterDate,
                                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 4  ),
                                 Text(
                                   letter.lastLetterStatus == "UNREAD" ? "읽지 않음" : "읽음",
                                   style: TextStyle(
