@@ -241,6 +241,10 @@ public class LetterService {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.RECEIVER_NOT_FOUND);
         }
 
+        for (User candidate : candidates) {
+            log.info("랜덤 테스트, Random User Id {}", candidate.getId());
+        }
+
         User receiver = candidates.get(0);
 
         Letter letter = new Letter();
