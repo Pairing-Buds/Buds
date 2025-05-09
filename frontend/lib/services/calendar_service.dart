@@ -1,6 +1,6 @@
 import 'package:buds/models/badge_model.dart';
 import 'package:buds/constants/api_constants.dart';
-import 'package:buds/services/dio_api_service.dart';
+import 'package:buds/services/api_service.dart';
 
 class CalendarService {
   static final DioApiService _dioApiService = DioApiService();

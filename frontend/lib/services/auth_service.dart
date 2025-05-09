@@ -2,7 +2,7 @@
 
 import '../constants/api_constants.dart';
 import '../models/user_model.dart';
-import 'dio_api_service.dart';
+import 'api_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
