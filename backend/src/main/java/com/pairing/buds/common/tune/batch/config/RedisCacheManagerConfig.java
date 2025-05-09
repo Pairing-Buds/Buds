@@ -1,4 +1,4 @@
-package com.pairing.buds.common.tune.config;
+package com.pairing.buds.common.tune.batch.config;
 
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
