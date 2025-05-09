@@ -14,7 +14,6 @@ class MessageRequest(BaseModel):
     message: str
     is_voice: bool = False
 
-
 class MessageResponse(BaseModel):
     message: str
     created_at: datetime
@@ -34,6 +33,7 @@ async def send_message(
     텍스트와 음성 메시지를 모두 처리하며, 사용자 프로필과 컨텍스트를 활용하여
     개인화된 응답을 생성합니다.
     """
+    logging.info(f"사용자 식별자 : {user_id}")
     try:
         # 사용자 인증 확인
         try:
@@ -97,6 +97,7 @@ async def get_chat_history(
         request: ChatHistoryRequest,
         user_id: int = Depends(get_user_id_from_token)
 ):
+    logging.info(f"사용자 식별자 : {user_id}")
     """사용자의 채팅 기록을 가져오는 API"""
     try:
         # 사용자 인증 확인
