@@ -16,6 +16,8 @@ import 'package:buds/services/step_counter_manager.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:buds/providers/auth_provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:buds/services/api_service.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -92,6 +94,19 @@ void main() async {
       debugPrint('개발 환경에서 실행 중입니다. 환경 변수 파일을 생성해주세요.');
     } else {
       debugPrint('프로덕션 환경에서 실행 중입니다. 환경 변수가 설정되지 않았습니다.');
+    }
+  }
+
+  // API 서비스 초기화 확인
+  try {
+    final apiService = DioApiService();
+    await apiService.ensureInitialized();
+    if (kDebugMode) {
+      print('API 서비스 초기화 완료');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('API 서비스 초기화 실패: $e');
     }
   }
 
@@ -172,8 +187,9 @@ void main() async {
     }
   }
 
-  // 권한 요청 (Android만 사용)
-  await NotificationService().requestPermission();
+  // 권한 요청 (Android만 사용) - 앱 시작 시 동시에 여러 권한을 요청하는 문제 해결을 위해 주석 처리
+  // 대신 각 기능(걸음 수 측정, 알람)을 사용할 때 권한 요청하도록 함
+  // await NotificationService().requestPermission();
 
   // 앱 상태 로깅
   debugPrint('======================================');
@@ -217,13 +233,23 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initializeApp() async {
-    // AuthProvider 초기화
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await authProvider.initialize();
+    try {
+      // AuthProvider 초기화
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.initialize();
 
-    setState(() {
-      _isInitialized = true;
-    });
+      if (kDebugMode) {
+        print('앱 초기화 완료: 로그인 상태 = ${authProvider.isLoggedIn}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('앱 초기화 오류: $e');
+      }
+    } finally {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
   }
 
   @override

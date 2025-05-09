@@ -49,7 +49,7 @@ class CharacterData {
       case 0:
         return '오리'; // 오리
       case 1:
-        return '여우'; // 여우
+        return '고양이'; // 고양이
       case 2:
         return '개구리'; // 개구리
       case 3:

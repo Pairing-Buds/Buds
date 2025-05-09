@@ -2,7 +2,7 @@
 
 import '../constants/api_constants.dart';
 import '../models/user_model.dart';
-import 'dio_api_service.dart';
+import 'api_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
@@ -248,11 +248,31 @@ class DioAuthService {
   // 쿠키 확인 (디버깅용)
   Future<bool> checkCookies() async {
     try {
-      final response = await _apiService.get(
-        ApiConstants.userProfileUrl.replaceFirst(ApiConstants.baseUrl, ''),
-      );
+      // 먼저 저장된 쿠키 확인
+      final hasStoredCookies = await _apiService.checkSavedCookies();
 
-      return response is Response && response.statusCode == 200;
+      if (kDebugMode) {
+        print('저장된 쿠키 확인 결과: $hasStoredCookies');
+      }
+
+      // 저장된 쿠키가 있으면 바로 true 반환
+      if (hasStoredCookies) {
+        return true;
+      }
+
+      // 저장된 쿠키가 없으면 서버에 요청하여 확인
+      try {
+        final response = await _apiService.get(
+          ApiConstants.userProfileUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        );
+
+        return response is Response && response.statusCode == 200;
+      } catch (e) {
+        if (kDebugMode) {
+          print('서버 쿠키 확인 오류: $e');
+        }
+        return false;
+      }
     } catch (e) {
       if (kDebugMode) {
         print('쿠키 확인 오류: $e');

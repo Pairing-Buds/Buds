@@ -2,7 +2,7 @@ version: "3.8"
 services:
   # Spring Boot (Backend)
   spring:
-    build: ./backend
+    image: kimkyeongeun/springboot:${IMAGE_TAG}
     container_name: spring
     ports:
       - "8080:8080"
@@ -26,7 +26,7 @@ services:
         condition: service_healthy
 
   fastapi:
-    build: ./ai
+    image: kimkyeongeun/fastapi:${IMAGE_TAG}
     container_name: fastapi
     ports:
       - "8000:8000"
@@ -80,13 +80,11 @@ services:
 
   # Nginx (Web Server/Proxy)
   nginx:
-    image: nginx:latest
+    image: nginx:latest  # 공식 Nginx 이미지로 변경
     container_name: nginx
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - spring
       - fastapi
@@ -144,7 +142,7 @@ services:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     ports:
-      - "8082:8080"  # 8080은 이미 사용 중이므로 8082로 변경
+      - "8082:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

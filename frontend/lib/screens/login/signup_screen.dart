@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
-import 'package:buds/services/dio_auth_service.dart';
+import 'package:buds/services/auth_service.dart';
 import 'package:buds/models/user_model.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';

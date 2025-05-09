@@ -335,8 +335,8 @@ class NotificationService {
             >();
 
     if (androidImplementation != null) {
-      // 기본 알림 권한만 요청
-      await androidImplementation.requestNotificationsPermission();
+      // 기본 알림 권한 자동 요청 비활성화 (주석 처리)
+      // await androidImplementation.requestNotificationsPermission();
 
       // 일반 알림 채널만 등록 (기기 기본 설정 사용)
       await androidImplementation.createNotificationChannel(

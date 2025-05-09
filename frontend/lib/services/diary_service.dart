@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 import '../models/diary_model.dart';
-import 'dio_api_service.dart';
+import 'api_service.dart';
 
 class DiaryService {
   final DioApiService _apiService = DioApiService();

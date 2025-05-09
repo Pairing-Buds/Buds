@@ -1,12 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime
 from db.chroma import chroma_db
 from core.chatbot import chatbot
+from core.jwt_auth import get_user_id_from_token
 
 router = APIRouter()
 
 @router.post("/diary/generate", response_model=dict)
-async def generate_diary(user_id: int):
+async def generate_diary(
+        user_id: int = Depends(get_user_id_from_token)
+):
     """사용자의 채팅 기록을 바탕으로 일기를 생성하는 API"""
     try:
         # 오늘 날짜
@@ -42,7 +45,6 @@ async def generate_diary(user_id: int):
         active_diary = chatbot.generate_active_diary(chat_text)
 
         return {
-            "success": True,
             "emotion_diary": emotion_diary,
             "active_diary": active_diary,
             "user_id": user_id

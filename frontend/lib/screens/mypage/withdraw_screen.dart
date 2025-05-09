@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:buds/services/dio_auth_service.dart';
+import 'package:buds/services/auth_service.dart';
 import 'package:buds/screens/login/login_main.dart';
 import 'widgets/withdraw_reason_selector.dart';
 import 'widgets/withdraw_confirm_dialog.dart';
