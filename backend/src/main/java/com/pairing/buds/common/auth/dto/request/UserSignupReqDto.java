@@ -18,7 +18,7 @@ import java.time.LocalDate;
 public class UserSignupReqDto {
 
     @NotBlank
-    @Email(regexp = "[0-9a-zA-Z]*@[a-z]*.[a-z]{2,3}]")
+    @Email(regexp = "[0-9a-zA-Z]+@[a-z]+.[a-z]{2,3}")
     private String userEmail;
 
     @NotBlank
