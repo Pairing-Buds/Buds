@@ -7,8 +7,6 @@ import java.util.List;
 
 import com.pairing.buds.common.auth.service.RedisService;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -77,14 +75,6 @@ public class SecurityConfig {
         return provider;
     }
 
-    private String extractCookie(HttpServletRequest req, String name) {
-        if (req.getCookies() == null) return null;
-        for (Cookie c : req.getCookies()) {
-            if (c.getName().equals(name)) return c.getValue();
-        }
-        return null;
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -140,7 +130,7 @@ public class SecurityConfig {
                         .deleteCookies("access_token", "refresh_token")
                         // Redis에 저장된 refresh_token 삭제
                         .addLogoutHandler((req, res, auth) -> {
-                            String rt = extractCookie(req, "refresh_token");
+                            String rt = jwtTokenProvider.extractCookie(req, "refresh_token");
                             if (rt != null && jwtTokenProvider.validateToken(rt)) {
                                 Integer userId = jwtTokenProvider.getUserId(rt);
                                 redisService.deleteRefreshToken(userId);

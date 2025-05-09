@@ -32,6 +32,7 @@ class ApiConstants {
   // 사용자 관련 엔드포인트
   static String get userProfileUrl => '$baseUrl/users/my-info';
   static String get randomNicknameUrl => '$baseUrl/auth/random-nickname';
+  static String get tagUrl =>'$baseUrl/users/all-tags';
 
   // 일기 관련 엔드포인트
   static String get diariesUrl => '$baseUrl/diaries';
@@ -46,6 +47,9 @@ class ApiConstants {
 
   // 캘린더 관련 엔드포인트
   static String get calendarDiaryUrl => '$baseUrl/calendars/'; // 뒤에 yyyy-MM 붙이기
+
+  // 설문조사 관련 엔드포인트
+  static String get surveyUrl => '$baseUrl/users/survey-result';
 
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
