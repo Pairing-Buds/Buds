@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:buds/screens/chat/voice_chatting_screen.dart';
+import 'package:buds/screens/chat/start_chatting_screen.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String? initialText;
@@ -33,13 +34,35 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _loadChatHistoryAndRedirectIfEmpty();
+  }
 
-    if (widget.initialHistory != null && widget.initialHistory!.isNotEmpty) {
-      _chatHistory = widget.initialHistory!;
-      _hasStarted = true;
-    } else {
-      _loadChatHistory();
+  Future<void> _loadChatHistoryAndRedirectIfEmpty() async {
+    final history = await _chatService.getChatHistory(userId: userId);
+
+    if (history.isEmpty) {
+      // 🔁 기록 없으면 StartChattingScreen으로 이동
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const StartChattingScreen()),
+        );
+      }
+      return;
     }
+
+    history.sort((a, b) {
+      final timeA = DateTime.parse(a['created_at']);
+      final timeB = DateTime.parse(b['created_at']);
+      return timeA.compareTo(timeB);
+    });
+
+    setState(() {
+      _chatHistory = history;
+      _hasStarted = true;
+    });
+
+    _scrollToBottom();
   }
 
   Future<void> _loadChatHistory() async {
@@ -209,7 +232,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     _handleSend();
                   }
                 },
-                child: Image.asset('assets/icons/chat.png', width: 30),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Image.asset('assets/icons/chat.png', width: 30),
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
@@ -288,7 +314,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                     _handleSend();
                   }
                 },
-                child: Image.asset('assets/icons/chat.png', width: 30),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Image.asset('assets/icons/chat.png', width: 30),
+                ),
               ),
               suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
