@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -7,29 +7,28 @@ from db.mysql import mysql_db
 from core.chatbot import chatbot
 import logging
 
+from core.jwt_auth import get_user_id_from_token
 router = APIRouter()
 
-
 class MessageRequest(BaseModel):
-    user_id: int
     message: str
-    is_voice_recognition: bool = False  # 클라이언트에서 음성인식한 경우 true
-    original_message: Optional[str] = None  # 원본 음성텍스트 (있는 경우)
+    is_voice: bool = False
 
 
 class MessageResponse(BaseModel):
     message: str
     created_at: datetime
-    success: bool
 
 
 class ChatHistoryRequest(BaseModel):
-    user_id: int
     limit: Optional[int] = 50
 
 
 @router.post("/chat/message", response_model=MessageResponse)
-async def send_message(request: MessageRequest):
+async def send_message(
+        request: MessageRequest,
+        user_id: int = Depends(get_user_id_from_token)
+):
     """
     사용자가 메시지를 보내는 API
     텍스트와 음성 메시지를 모두 처리하며, 사용자 프로필과 컨텍스트를 활용하여
@@ -38,43 +37,44 @@ async def send_message(request: MessageRequest):
     try:
         # 사용자 인증 확인
         try:
-            mysql_db.get_user_profile(request.user_id)
+            mysql_db.get_user_profile(user_id)
         except ValueError as e:
             raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
 
         now = datetime.now()
-        logging.info(f"사용자 {request.user_id}로부터 메시지 수신: {request.message[:20]}...")
+        logging.info(f"사용자 {user_id}로부터 메시지 수신: {request.message[:20]}...")
 
-        # 음성 인식된 메시지 처리
-        if request.is_voice_recognition:
-            logging.info(f"클라이언트에서 음성 인식된 메시지: {request.message[:20]}...")
+        response_message = ""
 
-            # 원본 음성 메시지가 제공된 경우 (선택 사항)
-            original_message = request.original_message if request.original_message else request.message
+        # 음성 메시지 처리
+        if request.is_voice:
+            voice_result = chatbot.generate_voice_response(request.message, user_id)
 
-            # 비동기 방식으로 개인화된 응답 생성
-            response_message = await chatbot.get_response(
-                request.user_id,
-                request.message
-            )
+            if voice_result["success"]:
+                # 음성에서 텍스트로 변환된 메시지로 chatbot.get_response 호출
+                transcribed_text = voice_result["transcribed_text"]
+                logging.info(f"음성을 텍스트로 변환: {transcribed_text[:20]}...")
 
-            # 음성 인식 메시지임을 표시하여 저장
-            chroma_db.save_conversation(
-                request.user_id,
-                request.message,
-                response_message,
-                is_voice=True,
-                original_voice_text=original_message
-            )
+                # 비동기 방식으로 개인화된 응답 생성
+                response_message = await chatbot.get_response(
+                    user_id,
+                    transcribed_text
+                )
+
+                # 음성 메시지임을 표시하여 저장
+                chroma_db.save_conversation(user_id, transcribed_text, response_message, is_voice=True)
+            else:
+                # 음성 인식 실패 시 기본 오류 메시지 반환
+                response_message = voice_result["response"]
         else:
-            # 일반 텍스트 메시지 - 비동기 방식으로 개인화된 응답 생성
+            # 텍스트 메시지 - 비동기 방식으로 개인화된 응답 생성
             response_message = await chatbot.get_response(
-                request.user_id,
+                user_id,
                 request.message
             )
 
             # 텍스트 메시지 저장
-            chroma_db.save_conversation(request.user_id, request.message, response_message, is_voice=False)
+            chroma_db.save_conversation(user_id, request.message, response_message, is_voice=False)
 
         # 응답 반환
         return MessageResponse(
@@ -93,17 +93,20 @@ async def send_message(request: MessageRequest):
 
 
 @router.post("/chat/history", response_model=List[dict])
-async def get_chat_history(request: ChatHistoryRequest):
+async def get_chat_history(
+        request: ChatHistoryRequest,
+        user_id: int = Depends(get_user_id_from_token)
+):
     """사용자의 채팅 기록을 가져오는 API"""
     try:
         # 사용자 인증 확인
         try:
-            mysql_db.get_user_profile(request.user_id)
+            mysql_db.get_user_profile(user_id)
         except ValueError as e:
             raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
 
         # 사용자의 컬렉션 가져오기
-        collection = chroma_db.get_or_create_collection(request.user_id)
+        collection = chroma_db.get_or_create_collection(user_id)
 
         # 모든 메시지 가져오기
         results = collection.get(limit=request.limit * 2)  # 사용자와 AI 메시지를 모두 가져오기 위해 2배로 설정
@@ -117,46 +120,22 @@ async def get_chat_history(request: ChatHistoryRequest):
             metadata = results["metadatas"][i]
             message_id = results["ids"][i]
 
-            # 타임스탬프 정보 가져오기 (ISO 형식: '2025-05-08T12:59:31.195')
+            # 타임스탬프 정보 가져오기
             created_at = metadata.get("timestamp", datetime.now().isoformat())
 
             # 음성 메시지 여부 확인
             is_voice = metadata.get("is_voice", False)
 
-            # 원본 음성 텍스트 (있는 경우)
-            original_voice_text = metadata.get("original_voice_text", None)
-
-            message_data = {
+            messages.append({
                 "message_id": message_id,
                 "message": doc,
                 "is_user": metadata["type"] == "user",
-                "is_voice": is_voice,
+                "is_voice": is_voice,  # 음성 메시지 여부 추가
                 "created_at": created_at
-            }
+            })
 
-            # 원본 음성 텍스트가 있는 경우 추가
-            if original_voice_text:
-                message_data["original_voice_text"] = original_voice_text
-
-            messages.append(message_data)
-
-        # 메시지 순서를 타임스탬프 기준으로 정렬
-        # ISO 형식의 타임스탬프를 datetime 객체로 변환하여 정렬
-        try:
-            messages.sort(key=lambda x: datetime.fromisoformat(x["created_at"]))
-        except (ValueError, TypeError):
-            # ISO 형식 파싱에 실패할 경우 message_id 기반 정렬 시도
-            # message_id가 숫자 형식인 경우를 처리
-            try:
-                messages.sort(key=lambda x: int(x["message_id"]) if x["message_id"].isdigit() else x["message_id"])
-            except (ValueError, TypeError):
-                # 그래도 실패하면 문자열로 처리
-                messages.sort(key=lambda x: str(x["message_id"]))
-
-        # 대화 순서 로깅 (디버깅용)
-        logging.info(f"정렬된 채팅 기록: {len(messages)}개 메시지")
-        for i, msg in enumerate(messages[:5]):  # 처음 5개 메시지만 로깅
-            logging.info(f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}")
+        # 메시지 순서 정렬 (ID 기반 정렬)
+        messages.sort(key=lambda x: x["message_id"])
 
         return messages
 
