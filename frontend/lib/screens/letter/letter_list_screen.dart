@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:buds/screens/letter/letter_anonymity_screen.dart';
-import 'package:buds/screens/letter/letter_reply_screen.dart';
+import 'package:buds/screens/letter/letter_reply_screen2.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/models/letter_model.dart';
+// import 'package:buds/models/letter_list_model.dart';
 import 'package:buds/models/letter_response_model.dart'; // LetterResponseModel 추가
 
 class LetterList extends StatefulWidget {
@@ -68,9 +67,15 @@ class _LetterListState extends State<LetterList> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => LetterReplyScreen(
-                              letterId: letter.userId,
-                              isScraped: false,
+                            builder: (_) => LetterReplyScreen2(
+                              letterDetail: LetterDetailModel(
+                                letterId: letter.letterId, // LetterResponseModel의 letterId 사용
+                                senderName: letter.userName, // senderName => userName
+                                content: letter.content ?? '', // 편지 내용 (없으면 빈 문자열)
+                                createdAt: letter.lastLetterDate, // 생성 날짜
+                                status: letter.lastLetterStatus, // 읽음/읽지 않음 상태
+                                received: letter.received, // 수신 여부
+                              ),
                             ),
                           ),
                         );

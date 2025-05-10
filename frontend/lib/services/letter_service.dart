@@ -2,7 +2,9 @@ import 'api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:buds/constants/api_constants.dart';
-import 'package:buds/models/letter_model.dart';
+import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/models/letter_detail_model.dart';
+import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/models/letter_response_model.dart';
 
 class LetterService {
@@ -35,7 +37,7 @@ class LetterService {
   }
 
   /// 특정 사용자와 주고 받은 편지
-  Future<List<LetterModel>> fetchLetterDetails({
+  Future<List<LetterDetailModel>> fetchLetterDetails({
     required int opponentId,
     required int page,
     required int size,
@@ -55,7 +57,7 @@ class LetterService {
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
           final chatList = data['resMsg']['chatList'] as List<dynamic>;
-          return chatList.map((json) => LetterModel.fromJson(json)).toList();
+          return chatList.map((json) => LetterDetailModel.fromJson(json)).toList();
         } else {
           throw Exception('응답 형식 오류');
         }
@@ -71,7 +73,7 @@ class LetterService {
   }
 
   /// 편지 디테일 조회
-  Future<LetterModel> fetchSingleLetter(int letterId) async {
+  Future<LetterContentModel> fetchSingleLetter(int letterId) async {
     try {
       final response = await _apiService.get(
         ApiConstants.letterSingleUrl.replaceFirst(ApiConstants.baseUrl, ''),
@@ -82,7 +84,7 @@ class LetterService {
         final data = response.data as Map<String, dynamic>;
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
-          return LetterModel.fromJson(data['resMsg']);
+          return LetterContentModel.fromJson(data['resMsg']);
         } else {
           throw Exception('응답 형식 오류');
         }
