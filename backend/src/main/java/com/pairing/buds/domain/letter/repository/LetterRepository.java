@@ -17,9 +17,10 @@ public interface LetterRepository extends JpaRepository<Letter, Integer> {
     List<Letter> findAllBySenderIdOrReceiverIdOrderByIdDesc(Integer senderId, Integer receiverId);
 
     @Query("""
-        SELECT l FROM Letter l
-        WHERE (l.sender.id = :userId AND l.receiver.id = :opponentId)
-           OR (l.sender.id = :opponentId AND l.receiver.id = :userId)
+        SELECT l
+        FROM Letter l
+        WHERE ((l.sender.id = :userId AND l.receiver.id = :opponentId)
+           OR (l.sender.id = :opponentId AND l.receiver.id = :userId))
         ORDER BY l.id DESC
         """)
     Page<Letter> findLettersBetweenUsers(@Param("userId") Integer userId,

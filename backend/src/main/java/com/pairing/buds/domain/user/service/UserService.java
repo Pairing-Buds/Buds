@@ -27,6 +27,8 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,14 +61,21 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
-        // 기존 태그 제거
-        user.getTags().clear();
+        Set<TagType> valid = EnumSet.allOf(TagType.class);
+        for (TagType t : selected) {
+            if (!valid.contains(t)) {
+                throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_FOUND);
+            }
+        }
 
-        // 새로 선택된 enum 목록 Tag 엔티티 생성·추가
-        for (TagType type : selected) {
+        // 기존 태그 삭제
+        userRepository.deleteTagsByUserId(userId);
+
+        Set<TagType> uniqueTypes = new LinkedHashSet<>(selected);
+        for (TagType type : uniqueTypes) {
             Tag tag = new Tag();
-            tag.setUser(user);
-            tag.setTagName(type);
+                tag.setUser(user);
+                tag.setTagName(type);
             user.getTags().add(tag);
         }
 
@@ -174,6 +183,15 @@ public class UserService {
         if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
             Integer rtUserId = jwtTokenProvider.getUserId(refreshToken);
             redisService.deleteRefreshToken(rtUserId);
+        }
+    }
+
+    @Transactional
+    public void replenishLetterCntIfNecessary() {
+        List<User> users = userRepository.findByIsActiveTrueAndLetterCntBetween(0, 4);
+
+        for (User user : users) {
+            user.setLetterCnt(5);
         }
     }
 
