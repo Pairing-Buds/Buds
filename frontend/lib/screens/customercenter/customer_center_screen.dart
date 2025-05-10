@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'widgets/faq_section.dart';
+import 'faq_screen.dart';
 
 class CustomerCenterScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -62,7 +64,13 @@ class CustomerCenterScreen extends StatelessWidget {
                     context,
                     icon: Icons.receipt_long,
                     label: '자주 묻는 질문',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const FaqScreen(),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   _buildMenuButton(
