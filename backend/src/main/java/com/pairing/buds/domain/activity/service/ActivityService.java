@@ -131,8 +131,8 @@ public class ActivityService {
     /** 사용자 음성 활동 인증 **/
     @Transactional
     public void activitySentenceVoice(int userId, ActivitySentenceVoiceReqDto dto) {
-        String originalSentenceText = dto.getOriginalSentenceText().replaceAll("[!@#$%^&*()_+=,.?/|-]", "");
-        String userSentence = dto.getUserSentenceText().replaceAll("[!@#$%^&*()_+=,.?/|-]", "");
+        String originalSentenceText = dto.getOriginalSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
+        String userSentence = dto.getUserSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
         log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
 
         if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
@@ -242,7 +242,18 @@ public class ActivityService {
         // 뱃지 생성
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
-        badge.setName(BadgeType.WALK);
+        // 뱃지 종류 저장, 만보기 1000, 3000, 5000, 10000
+        if(userStepSet == 1000){
+            badge.setName(BadgeType.WALK1000);
+        }else if(userStepSet == 3000){
+            badge.setName(BadgeType.WALK3000);
+        }else if(userStepSet == 5000){
+            badge.setName(BadgeType.WALK5000);
+        }else if(userStepSet == 10000){
+            badge.setName(BadgeType.WALK10000);
+        }else{
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+        }
         Badge createdBadge = badgeRepository.save(badge);
         // 캘린더와 연동
         LocalDate date = LocalDate.now();

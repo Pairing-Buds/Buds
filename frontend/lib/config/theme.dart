@@ -15,11 +15,12 @@ class AppColors {
   static const Color blue = Color(0xFFCFF4F2);
   // 텍스트 색상
   static const Color toast = Color(0xFF828282);
+  // 그린 색상
+  static const Color lightgreen= Color(0xFFF5FFE5);
   // 일기 채팅 배경색
   static const Color cardBackground = Color(0xFFFFFDF4);
   // 연한 회색
   static const Color lightGrey = Color(0xFFF5F5F5);
-
   // 회원가입 회색 색상
   static const Color gray = Color(0xFFEEEEEE);
   // static final Color gray = Colors.grey.shade200;

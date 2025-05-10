@@ -31,6 +31,7 @@ public enum Message {
     INVALID_USER_CHARACTER("허용되지 않은 캐릭터 값입니다"),
     USER_ALREADY_DELETED("이미 탈퇴한 계정입니다."),
     OUT_OF_LETTER_TOKEN("편지 토큰이 모두 사용되어 요청을 처리할 수 없습니다."),
+    TAGS_NOT_FOUND("유효하지 않은 태그가 포함되어 있습니다."),
 
     OK("성공"),
     CREATED("성공")

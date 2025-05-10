@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/config/theme.dart';
+import 'package:buds/screens/activity/shell_screen.dart';
 import 'package:buds/screens/activity/widgets/book_recommendation.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class ActivityScreen extends StatelessWidget {
   const ActivityScreen({super.key});
@@ -19,29 +21,36 @@ class ActivityScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('버즈의 추천활동', style: TextStyle(fontSize: 18)),
-            // const SizedBox(height: 2),
             const Text(
               '오늘 이런 활동 어때요?',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                ActivityBox(
+              children: [
+                const ActivityBox(
                   icon: Icons.book,
                   label: '도서관 가기',
-                  color: Color(0xFFE6F7FF),
+                  color: AppColors.skyblue,
                 ),
-                ActivityBox(
+                const ActivityBox(
                   icon: Icons.park,
                   label: '공원 가기',
-                  color: Color(0xFFF0FFE6),
+                  color: AppColors.lightgreen,
                 ),
-                ActivityBox(
-                  icon: Icons.edit,
-                  label: '필사 하기',
-                  color: Color(0xFFFFF8E6),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ShellScreen()),
+                    );
+                  },
+                  child: const ActivityBox(
+                    icon: Icons.edit,
+                    label: '필사 하기',
+                    color: Color(0xFFFFF8E6),
+                  ),
                 ),
               ],
             ),
@@ -50,7 +59,7 @@ class ActivityScreen extends StatelessWidget {
             const SizedBox(height: 32),
             const Text(
               '취향에 맞는 친구 찾기',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 16),
             Row(
@@ -108,11 +117,11 @@ class PreferenceBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80,
-      height: 60,
+      width: 100,
+      height: 120,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF4),
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(label, style: const TextStyle(fontSize: 14)),

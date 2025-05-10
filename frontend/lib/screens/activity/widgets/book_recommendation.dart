@@ -1,3 +1,4 @@
+import 'package:buds/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/services/activity_service.dart';
 
@@ -64,25 +65,26 @@ class _BookRecommendationState extends State<BookRecommendation> {
         .of(context)
         .size
         .height;
-    final cardHeight = screenHeight * 0.3;
+    final cardHeight = screenHeight * 0.2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           '버즈의 책 추천',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18),
         ),
         const Text(
-          '오늘 이런 활동 어때요?',
-          style: TextStyle(fontSize: 13, color: Colors.grey),
+          '이번 달 책 추천입니다',
+          style: TextStyle(fontSize: 14, color: Colors.grey),
         ),
         const SizedBox(height: 12),
         Container(
           height: cardHeight,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
-            color: const Color(0xFFF9F9F9),
+            // color: const Color(0xFFF9F9F9),
+            color: AppColors.lightGrey,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -96,7 +98,7 @@ class _BookRecommendationState extends State<BookRecommendation> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               AspectRatio(
-                aspectRatio: 2 / 3, // 책 비율 유지 (보통 2:3)
+                aspectRatio: 1 / 2, // 책 비율 유지 (보통 2:3)
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: Image.network(

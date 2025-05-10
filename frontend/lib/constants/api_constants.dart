@@ -54,6 +54,10 @@ class ApiConstants {
   // 설문조사 관련 엔드포인트
   static String get surveyUrl => '$baseUrl/users/survey-result';
 
+  // 활동
+  static String get quoteSearchUrl => '$baseUrl/activities/quote'; // 명언 랜덤 조회
+  static String get voiceSendUrl=> '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
+
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
   static const receiveTimeout = 30000; // 밀리초

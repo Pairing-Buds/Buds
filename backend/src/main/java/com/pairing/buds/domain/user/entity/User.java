@@ -86,7 +86,7 @@ public class User extends CUBaseTime {
         if (this.isActive == null)    this.isActive = true;
         if (this.userName == null)      this.userName = "익명";
         if (this.userCharacter == null) this.userCharacter = UserCharacter.GECKO;
-        if (this.letterCnt == null)      this.letterCnt = 0;
+        if (this.letterCnt == null)      this.letterCnt = 5;
         if (this.isCompleted == null)   this.isCompleted = SignupStatus.PENDING;
         if (this.seclusionScore == null)          this.seclusionScore = 0;
         if (this.opennessScore == null)       this.opennessScore = 0;
