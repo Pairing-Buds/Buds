@@ -131,8 +131,8 @@ public class ActivityService {
     /** 사용자 음성 활동 인증 **/
     @Transactional
     public void activitySentenceVoice(int userId, ActivitySentenceVoiceReqDto dto) {
-        String originalSentenceText = dto.getOriginalSentenceText().replaceAll("[!@#$%^&*()_+=,.?/|-]", "");
-        String userSentence = dto.getUserSentenceText().replaceAll("[!@#$%^&*()_+=,.?/|-]", "");
+        String originalSentenceText = dto.getOriginalSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
+        String userSentence = dto.getUserSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
         log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
 
         if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
