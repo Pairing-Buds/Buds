@@ -34,6 +34,69 @@ class LetterService {
     }
   }
 
+  /// 특정 사용자와 주고 받은 편지
+  Future<List<LetterModel>> fetchLetterDetails({
+    required int opponentId,
+    required int page,
+    required int size,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        ApiConstants.letterDetailUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        queryParameters: {
+          'opponentId': opponentId,
+          'page': page,
+          'size': size,
+        },
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
+          final chatList = data['resMsg']['chatList'] as List<dynamic>;
+          return chatList.map((json) => LetterModel.fromJson(json)).toList();
+        } else {
+          throw Exception('응답 형식 오류');
+        }
+      } else {
+        throw Exception('편지 상세 요청 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('fetchLetterDetails 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// 편지 디테일 조회
+  Future<LetterModel> fetchSingleLetter(int letterId) async {
+    try {
+      final response = await _apiService.get(
+        ApiConstants.letterSingleUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        queryParameters: {'letterId': letterId},
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
+          return LetterModel.fromJson(data['resMsg']);
+        } else {
+          throw Exception('응답 형식 오류');
+        }
+      } else {
+        throw Exception('싱글 편지 요청 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('fetchSingleLetter 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
   /// 편지 스크랩 토글
   Future<bool> toggleScrap(int letterId) async {
     try {
