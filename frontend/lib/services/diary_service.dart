@@ -11,14 +11,21 @@ class DiaryService {
       final response = await _apiService.get('/calendars/day/$date');
       final data = response.data;
 
+      print('📥 응답 데이터: $data'); // 디버깅용
+
       if (data['statusCode'] != 'OK') {
         throw Exception('일기 데이터 조회 실패');
       }
 
       final List<dynamic> resMsg = data['resMsg'];
-      return resMsg.map((e) => DiaryDay.fromJson(e)).toList();
+
+      final days = resMsg.map((e) => DiaryDay.fromJson(e)).toList();
+      print('✅ 파싱된 diaryList 개수: ${days.length}');
+
+      return days;
     } catch (e) {
-      throw Exception('일기 API 오류: $e');
+      print('❌ 일기 API 오류: $e');
+      rethrow;
     }
   }
 
@@ -65,5 +72,33 @@ class DiaryService {
     }
   }
 
+  Future<bool> updateDiary({
+    required String diaryNo,
+    required String emotionDiary,
+    required String activeDiary,
+    required String date,
+  }) async {
+    try {
+      final response = await _apiService.patch(
+        '${ApiConstants.diaryDetailUrl}$diaryNo',
+        data: {
+          'emotion_diary': emotionDiary,
+          'active_diary': activeDiary,
+          'date': date,
+        },
+      );
+      return response.data['statusCode'] == 'OK';
+    } catch (e) {
+      throw Exception('일기 수정 실패: $e');
+    }
+  }
 
+  Future<bool> deleteDiary(String diaryNo) async {
+    try {
+      final response = await _apiService.delete('${ApiConstants.diaryDetailUrl}$diaryNo');
+      return response.data['statusCode'] == 'OK';
+    } catch (e) {
+      throw Exception('일기 삭제 실패: $e');
+    }
+  }
 }

@@ -3,6 +3,9 @@ import '../../config/theme.dart';
 import '../../models/diary_model.dart';
 import '../../services/diary_service.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
+import 'package:buds/screens/diary/widgets/EditDiaryBottomSheet.dart';
+import 'package:buds/widgets/common_dialog.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class DiaryListScreen extends StatefulWidget {
   final DateTime selectedDate;
@@ -114,9 +117,80 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
                                   .where((e) => e.diaryType == 'ACTIVE')
                                   .map((e) => e.content)
                                   .join('\n'),
-                              showEditButton: false,
+                              showEditButton: true, // ✅ 이걸 true로
                               showRecordButton: false,
                               hasShadow: true,
+                              onEditPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                  ),
+                                  builder: (_) {
+                                    return SafeArea(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ListTile(
+                                            leading: const Icon(Icons.edit),
+                                            title: const Text('수정하기'),
+                                            onTap: () {
+                                              Navigator.pop(context); // 액션시트 닫기
+                                              showModalBottomSheet(
+                                                context: context,
+                                                isScrollControlled: true,
+                                                shape: const RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                                ),
+                                                builder: (_) => EditDiaryBottomSheet(
+                                                  diaryDay: day,
+                                                  onUpdated: () {
+                                                    setState(() {
+                                                      _diaryDaysFuture = DiaryService().getDiaryByMonth(_formatDate(widget.selectedDate));
+                                                    });
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          ListTile(
+                                            leading: const Icon(Icons.delete),
+                                            title: const Text('삭제하기'),
+                                            onTap: () async {
+                                              Navigator.pop(context); // 액션시트 닫기
+
+                                              final confirm = await showDialog<bool>(
+                                                context: context,
+                                                builder: (_) => CommonDialog(
+                                                  title: '삭제하시겠어요?',
+                                                  description: '삭제된 일기는 복구할 수 없어요.',
+                                                  cancelText: '취소',
+                                                  confirmText: '삭제',
+                                                  confirmColor: Colors.redAccent,
+                                                  onCancel: () => Navigator.pop(context, false),
+                                                  onConfirm: () => Navigator.pop(context, true),
+                                                ),
+                                              );
+
+                                              if (confirm == true) {
+                                                final success = await DiaryService().deleteDiary(day.diaryList.first.diaryNo);
+                                                if (success) {
+                                                  Toast(context, '일기가 삭제되었어요.');
+                                                  setState(() {
+                                                    _diaryDaysFuture = DiaryService().getDiaryByMonth(_formatDate(widget.selectedDate));
+                                                  });
+                                                } else {
+                                                  Toast(context, '삭제에 실패했어요.');
+                                                }
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             ),
                           );
                         },
