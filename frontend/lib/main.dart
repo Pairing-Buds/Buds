@@ -13,7 +13,7 @@ import 'package:buds/services/notification_service.dart';
 import 'package:buds/services/step_counter_manager.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
-import 'package:buds/providers/letter_provider.dart';
+// import 'package:buds/providers/letter_provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -204,10 +204,10 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AgreementProvider()),
         ChangeNotifierProvider(create: (_) => CharacterProvider()),
-        ChangeNotifierProvider(
-          create: (_) => LetterProvider(),
-          child: const MyApp(),
-        ),
+        // ChangeNotifierProvider(
+        //   create: (_) => LetterProvider(),
+        //   child: const MyApp(),
+        // ),
         ChangeNotifierProvider(
           create:
               (context) => MyPageProvider(

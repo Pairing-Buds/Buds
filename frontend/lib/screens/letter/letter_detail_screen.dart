@@ -1,7 +1,8 @@
-import 'package:buds/models/letter_detail_model.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/models/letter_detail_model.dart';
 import 'package:buds/services/letter_service.dart';
+import 'package:buds/screens/letter/letter_reply_screen2.dart';
+import 'package:buds/screens/letter/letter_send_screen.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterDetailScreen extends StatefulWidget {
@@ -43,16 +44,10 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         size: 5,
       );
 
-      if (response.isNotEmpty) {
-        setState(() {
-          letters = response;
-          totalPages = (response.length == 5) ? currentPage + 2 : currentPage + 1;
-        });
-      } else {
-        setState(() {
-          letters = [];
-        });
-      }
+      setState(() {
+        letters = response;
+        totalPages = (response.length == 5) ? currentPage + 2 : currentPage + 1;
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('편지를 불러오는데 실패했습니다: $e')),
@@ -62,14 +57,6 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         isLoading = false;
       });
     }
-  }
-
-  void goToPage(int page) {
-    if (page < 0 || page >= totalPages) return;
-    setState(() {
-      currentPage = page;
-    });
-    fetchLetters();
   }
 
   @override
@@ -82,29 +69,9 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         centerTitle: true,
         showBackButton: true,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: Row(
-              children: [
-                Text('${widget.opponentName}와(과)의 편지',
-                    style: const TextStyle(color: Colors.grey, fontSize: 16)),
-                const Spacer(),
-                if (letters.isNotEmpty)
-                  Text('총 ${letters.length}개의 편지',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14)),
-              ],
-            ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : buildLetterList(),
-          ),
-          buildPagination(),
-        ],
-      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : buildLetterList(),
     );
   }
 
@@ -113,32 +80,38 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
       itemCount: letters.length,
       itemBuilder: (context, index) {
         final letter = letters[index];
+        print("✅ Letter ID (from list): ${letter.letterId}");
+
         return ListTile(
-          title: Text(letter.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+          title: Text(
+            letter.status == "READ" ? "읽은 편지" : "읽지 않은 편지",
+          ),
           subtitle: Text(letter.createdAt),
-          trailing: Icon(letter.received ? Icons.mail : Icons.send),
+          onTap: () {
+            if (letter.received) {
+              print("✅ Navigating to ReplyScreen2 with letterId: ${letter.letterId}");
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LetterReplyScreen2(
+                    letterId: letter.letterId,
+                  ),
+                ),
+              );
+            } else {
+              print("✅ Navigating to SendScreen with letterId: ${letter.letterId}");
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LetterSendScreen(
+                    letterId: letter.letterId,
+                  ),
+                ),
+              );
+            }
+          },
         );
       },
-    );
-  }
-
-  Widget buildPagination() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: currentPage > 0 ? () => goToPage(currentPage - 1) : null,
-          ),
-          Text('${currentPage + 1} / $totalPages'),
-          IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: currentPage < totalPages - 1 ? () => goToPage(currentPage + 1) : null,
-          ),
-        ],
-      ),
     );
   }
 }

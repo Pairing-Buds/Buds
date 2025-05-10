@@ -56,8 +56,8 @@ class LetterService {
         final data = response.data as Map<String, dynamic>;
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
-          final chatList = data['resMsg']['chatList'] as List<dynamic>;
-          return chatList.map((json) => LetterDetailModel.fromJson(json)).toList();
+          final letters  = data['resMsg']['letters'] as List<dynamic>;
+          return letters.map((json) => LetterDetailModel.fromJson(json)).toList();
         } else {
           throw Exception('응답 형식 오류');
         }
