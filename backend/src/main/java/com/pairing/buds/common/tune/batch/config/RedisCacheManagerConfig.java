@@ -10,13 +10,13 @@ import java.time.Duration;
 @Configuration(proxyBeanMethods = false)
 public class RedisCacheManagerConfig {
 
-    @Bean
-    public RedisCacheManagerBuilderCustomizer myRedisCacheManagerBuilderCustomizer() {
-        return (builder) -> builder
-                .withCacheConfiguration("userInfo", RedisCacheConfiguration
-                        .defaultCacheConfig()
-                        .entryTtl(Duration.ofMinutes(10))
-                        .computePrefixWith(cacheName -> cacheName + "::"));
-    }
+//    @Bean
+//    public RedisCacheManagerBuilderCustomizer myRedisCacheManagerBuilderCustomizer() {
+//        return (builder) -> builder
+//                .withCacheConfiguration("userInfo", RedisCacheConfiguration
+//                        .defaultCacheConfig()
+//                        .entryTtl(Duration.ofMinutes(10))
+//                        .computePrefixWith(cacheName -> cacheName + "::"));
+//    }
 
 }
