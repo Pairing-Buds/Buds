@@ -1,6 +1,6 @@
 import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:buds/screens/home/shell_screen_stt.dart';
+import 'package:buds/screens/activity/shell_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
 import 'package:buds/screens/home/widgets/speech_bubble.dart';
@@ -87,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ShellScreenSTT(),
+                    builder: (context) => const ShellScreen(),
                   ),
                 );
               },
