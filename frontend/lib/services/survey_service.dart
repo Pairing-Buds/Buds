@@ -42,7 +42,7 @@ class SurveyService {
         "expressionScore": expressionScore,
         "tags": tags.map((tag) => tag.toUpperCase()).toList(),
       };
-      print("📤 Survey Request Data: $requestData");
+      print("설문조사 Request 데이터: $requestData");
 
       final response = await _apiService.post(
         ApiConstants.surveyUrl,
@@ -57,13 +57,13 @@ class SurveyService {
         },
       );
       if (response is Response && response.statusCode == 200) {
-        print("Survey result submitted successfully.");
+        print("설문조사 제출 성공");
         return true;
       }
-      print("Failed to submit survey result: ${response.statusCode}");
+      print("설문조사 제출 실패: ${response.statusCode}");
       return false;
     } catch (e) {
-      print("Error submitting survey result: $e");
+      print("설문조사 제출 에러: $e");
       return false;
     }
   }
