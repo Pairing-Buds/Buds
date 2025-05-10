@@ -18,6 +18,17 @@ class ApiConstants {
     return envUrl;
   }
 
+  static String get fastApiUrl {
+    final fastUrl = dotenv.env['FASTAPI_URL'];
+    if (fastUrl == null || fastUrl.isEmpty) {
+      if (kDebugMode) {
+        print('경고: FASTAPI_URL 환경 변수가 설정되지 않았습니다.');
+      }
+      return '';
+    }
+    return fastUrl;
+  }
+
   // 인증 관련 엔드포인트
   static String get loginUrl => '$baseUrl/login';
   static String get registerUrl => '$baseUrl/auth/sign-up';
@@ -61,4 +72,9 @@ class ApiConstants {
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
   static const receiveTimeout = 30000; // 밀리초
+
+  //채팅
+  static String get chatMessageUrl => '$fastApiUrl/chat/message';
+  static String get chatHistoryUrl => '$fastApiUrl/chat/history';
+  static String get generateDiaryUrl => '$fastApiUrl/diary/generate';
 }

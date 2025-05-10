@@ -1,67 +1,61 @@
 import 'package:dio/dio.dart';
+import 'package:buds/constants/api_constants.dart';
+import 'package:buds/services/fast_api_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 class ChatService {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: 'http://k12c105.p.ssafy.io/fastapi',
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 15),
-  ));
+  final FastApiService _fastApiService = FastApiService();
 
   Future<String> sendMessage({
-    required int userId,
     required String message,
     required bool isVoice,
   }) async {
     try {
-      print("✅ ChatService 요청 시작");
-      print("user_id: $userId");
-      print("message: $message");
-      print("is_voice: $isVoice");
-
-      final response = await _dio.post(
+      final response = await _fastApiService.post(
         '/chat/message',
         data: {
-          'user_id': userId,
           'message': message,
           'is_voice': isVoice,
         },
-        options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        ),
       );
 
-      print('✅ 응답 상태 코드: ${response.statusCode}');
-      print('✅ 응답 데이터: ${response.data}');
-
       final data = response.data;
-      if (response.statusCode == 200 &&
-          data is Map<String, dynamic> &&
-          data['success'] == true) {
+      if (response.statusCode == 200 && data is Map<String, dynamic>) {
         return data['message'] ?? '응답 없음';
       } else {
-        throw Exception('서버 응답 오류: ${response.statusCode}, data: $data');
+        throw Exception('서버 응답 형식 오류: $data');
       }
-    } catch (e, stack) {
-      print('❌ sendMessage 오류: $e');
-      print(stack);
-      return '친구 집에 놀러갔어. 나중에 대화하자!';
+    } on DioException catch (e) {
+      final resData = e.response?.data;
+
+      // ✅ 임시 방편: message 필드가 없을 경우 기본 응답 제공
+      if (e.response?.statusCode == 422 || e.response?.statusCode == 500) {
+        final fallbackMsg = resData is Map && resData['response'] is String
+            ? resData['response']
+            : '음성 인식에 실패했어요. 다시 시도해 주세요.';
+        return fallbackMsg;
+      }
+
+      return '대화 중 오류가 발생했어요.';
     }
   }
 
+  Future<List<Map<String, dynamic>>> getChatHistory() async {
+    try {
+      final response = await _fastApiService.post(
+        '/chat/history',
+        data: {'limit': 50}, // ✅ Cookie 헤더 제거!
+      );
 
-  Future<List<Map<String, dynamic>>> getChatHistory({required int userId}) async {
-    final response = await _dio.post(
-      '/chat/history',
-      data: {'user_id': userId},
-      options: Options(headers: {'Content-Type': 'application/json'}),
-    );
-
-    if (response.data is List) {
-      return List<Map<String, dynamic>>.from(response.data);
-    } else {
-      return []; // 잘못된 응답이면 빈 리스트로 처리
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('❌ getChatHistory 오류: $e');
+      return [];
     }
   }
 }
