@@ -1,88 +1,67 @@
+/// lib/providers/letter_provider.dart
 import 'package:flutter/material.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/models/letter_detail_model.dart';
-import 'package:buds/models/letter_response_model.dart';
+import 'package:buds/models/letter_content_model.dart';
 
 class LetterProvider extends ChangeNotifier {
-  final LetterService _letterService = LetterService();
+  final LetterService _service = LetterService();
 
-  List<LetterDetailModel> _letters = []; // 편지 목록 (개별 편지)
-  bool _isLoading = false;
+  // 대화 목록 요약
+  List<LetterDetailModel> _summaries = [];
+  bool _isLoadingSummaries = false;
   int _currentPage = 0;
   int _totalPages = 1;
-  int _letterCount = 0; // 전체 편지 수 (LetterResponseModel에서 받아옴)
 
-  List<LetterDetailModel> get letters => _letters;
-  bool get isLoading => _isLoading;
+  // 선택된 편지 상세
+  LetterContentModel? _detail;
+  bool _isLoadingDetail = false;
+
+  // getters
+  List<LetterDetailModel> get summaries => _summaries;
+  bool get isLoadingSummaries => _isLoadingSummaries;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
-  int get letterCount => _letterCount; // 전체 편지 수 getter
+  LetterContentModel? get detail => _detail;
+  bool get isLoadingDetail => _isLoadingDetail;
 
-  /// 편지 목록 초기화
-  void resetLetters() {
-    _letters = [];
-    _currentPage = 0;
-    _totalPages = 1;
-    _letterCount = 0;
+  // 대화 목록(요약) 조회
+  Future<void> fetchSummaries({
+    required int opponentId,
+    int page = 0,
+    int size = 5,
+  }) async {
+    if (_isLoadingSummaries) return;
+    _isLoadingSummaries = true;
     notifyListeners();
-  }
-
-  /// 편지 목록 조회 (편지 수는 LetterResponseModel에서만 확인)
-  Future<void> fetchLetters(int opponentId) async {
-    if (_isLoading) return;
-    _isLoading = true;
-    notifyListeners();
-
     try {
-      // 전체 응답을 LetterResponseModel로 받아옴
-      final response = await _letterService.fetchLetters();
-      _letterCount = response.letterCnt; // 전체 편지 수 저장
-
-      // 특정 사용자와 주고 받은 편지만 필터링
-      _letters = response.letters
-          .where((letter) => letter.userId == opponentId)
-          .map((letter) => LetterDetailModel(
-        letterId: letter.letterId,
-        senderName: letter.userName,
-        createdAt: letter.lastLetterDate,
-        status: letter.lastLetterStatus,
-        received: letter.received,
-      ))
-          .toList();
-
-      _totalPages = (_letterCount / 5).ceil();
-    } catch (e) {
-      print('편지 목록 조회 오류: $e');
+      final list = await _service.fetchLetterDetails(
+        opponentId: opponentId,
+        page: page,
+        size: size,
+      );
+      _summaries = list;
+      _currentPage = page;
+      _totalPages = (list.length == size) ? page + 2 : page + 1;
     } finally {
-      _isLoading = false;
+      _isLoadingSummaries = false;
       notifyListeners();
     }
   }
 
-  /// 페이지 변경
-  void setPage(int page) {
-    if (page < 0 || page >= _totalPages) return;
-    _currentPage = page;
+  // 상세 내용 조회
+  Future<void> fetchDetail(int letterId) async {
+    if (_isLoadingDetail) return;
+    _isLoadingDetail = true;
     notifyListeners();
-  }
-
-  /// 편지 상세 조회 (LetterDetailModel에서 조회)
-  Future<LetterDetailModel?> fetchLetterDetail(int letterId) async {
     try {
-      return _letters.firstWhere((letter) => letter.letterId == letterId);
-    } catch (e) {
-      print('편지 상세 조회 오류: $e');
-      return null;
-    }
-  }
-
-  /// 편지 스크랩 토글
-  Future<void> toggleScrap(int letterId) async {
-    try {
-      await _letterService.toggleScrap(letterId);
+      _detail = await _service.fetchSingleLetter(letterId);
+    } catch (_) {
+      _detail = null;
+    } finally {
+      _isLoadingDetail = false;
       notifyListeners();
-    } catch (e) {
-      print('스크랩 토글 오류: $e');
     }
   }
 }
+2

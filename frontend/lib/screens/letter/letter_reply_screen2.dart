@@ -1,3 +1,4 @@
+import 'package:buds/models/letter_content_model.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
@@ -6,7 +7,7 @@ import 'package:buds/services/letter_service.dart';
 import 'package:buds/models/letter_detail_model.dart';
 
 class LetterReplyScreen2 extends StatefulWidget {
-  final LetterDetailModel letterDetail;
+  final LetterContentModel letterDetail;
 
   const LetterReplyScreen2({
     Key? key,
