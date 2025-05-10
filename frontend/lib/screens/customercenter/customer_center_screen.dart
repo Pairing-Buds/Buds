@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'widgets/faq_section.dart';
 import 'faq_screen.dart';
+import 'inquiry_chat_screen.dart';
 
 class CustomerCenterScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -77,7 +78,13 @@ class CustomerCenterScreen extends StatelessWidget {
                     context,
                     icon: Icons.chat_bubble_outline,
                     label: '문의 내역 조회 및 작성',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const InquiryChatScreen(),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   _buildMenuButton(
