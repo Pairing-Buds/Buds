@@ -38,20 +38,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  // 이메일 인증 관련 상태 변수 및 컨트롤러
+  final TextEditingController _emailTokenController = TextEditingController();
+  bool _isEmailRequested = false;
+  bool _isEmailVerified = false;
+  String? _emailAuthMsg;
+
+  // 이메일 입력값이 유효한지 체크
+  bool get _isEmailValid => RegExp(
+    r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+  ).hasMatch(_emailController.text.trim());
+
+  // 이메일 입력값 변경 시 setState
+  void _onEmailChanged() {
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     // 한국어 로케일 초기화
     initializeDateFormatting('ko_KR', null);
+    _emailController.addListener(_onEmailChanged);
   }
 
-  // 컨트롤러 해제
   @override
   void dispose() {
+    _emailController.removeListener(_onEmailChanged);
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _birthDateController.dispose();
+    _emailTokenController.dispose();
     super.dispose();
   }
 
@@ -163,6 +181,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  // 이메일 인증 요청 함수
+  Future<void> _requestEmailVerification() async {
+    setState(() {
+      _emailAuthMsg = null;
+    });
+    try {
+      final result = await _authService.requestEmailVerification(
+        _emailController.text.trim(),
+      );
+      setState(() {
+        _isEmailRequested = result;
+        _emailAuthMsg = result ? '이메일로 인증 토큰이 발송되었습니다.' : '이메일 인증 요청에 실패했습니다.';
+      });
+    } catch (e) {
+      setState(() {
+        _emailAuthMsg = '이메일 인증 요청 중 오류가 발생했습니다.';
+      });
+    }
+  }
+
+  // 이메일 토큰 인증 함수
+  Future<void> _verifyEmailToken() async {
+    setState(() {
+      _emailAuthMsg = null;
+    });
+    try {
+      final result = await _authService.verifyEmailToken(
+        _emailTokenController.text.trim(),
+      );
+      setState(() {
+        _isEmailVerified = result;
+        _emailAuthMsg = result ? '이메일 인증이 완료되었습니다.' : '토큰 인증에 실패했습니다.';
+      });
+    } catch (e) {
+      setState(() {
+        _emailAuthMsg = '토큰 인증 중 오류가 발생했습니다.';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,23 +239,58 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: SignupForm(
-              formKey: _formKey,
-              emailController: _emailController,
-              passwordController: _passwordController,
-              confirmPasswordController: _confirmPasswordController,
-              birthDateController: _birthDateController,
-              obscurePassword: _obscurePassword,
-              obscureConfirmPassword: _obscureConfirmPassword,
-              isLoading: _isLoading,
-              onSelectDate: _selectDate,
-              onTogglePassword:
-                  () => setState(() => _obscurePassword = !_obscurePassword),
-              onToggleConfirmPassword:
-                  () => setState(
-                    () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                  ),
-              onSubmit: _submitForm,
+            child: Column(
+              children: [
+                SignupForm(
+                  formKey: _formKey,
+                  emailController: _emailController,
+                  passwordController: _passwordController,
+                  confirmPasswordController: _confirmPasswordController,
+                  birthDateController: _birthDateController,
+                  obscurePassword: _obscurePassword,
+                  obscureConfirmPassword: _obscureConfirmPassword,
+                  isLoading: _isLoading,
+                  onSelectDate: _selectDate,
+                  onTogglePassword:
+                      () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                  onToggleConfirmPassword:
+                      () => setState(
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
+                  onSubmit: _submitForm,
+                  emailSuffixIcon:
+                      (_isEmailVerified || !_isEmailValid)
+                          ? null
+                          : SizedBox(
+                            width: 90,
+                            height: 36,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                backgroundColor: AppColors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed:
+                                  _isEmailValid && !_isEmailVerified
+                                      ? _requestEmailVerification
+                                      : null,
+                              child: const Text(
+                                '인증하기',
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ),
+                  showEmailTokenField: _isEmailRequested && !_isEmailVerified,
+                  emailTokenController: _emailTokenController,
+                  onVerifyToken: _verifyEmailToken,
+                  emailAuthMsg: _emailAuthMsg,
+                  isEmailVerified: _isEmailVerified,
+                ),
+              ],
             ),
           ),
         ),
