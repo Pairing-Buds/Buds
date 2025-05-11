@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.letter.dto.res;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.letter.entity.LetterStatus;
 import com.pairing.buds.domain.user.dto.response.UserDto;
@@ -30,7 +31,7 @@ public class GetLetterDetailResDto {
 
     private LetterStatus status;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 
     public static GetLetterDetailResDto toDto(Letter letter){
