@@ -62,10 +62,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     if (!status.isGranted) {
       final result = await Permission.microphone.request();
       if (result.isGranted) {
-        print('🎤 마이크 권한 허용됨');
         _initializeSTT(); // 권한 허용되면 STT 초기화 시작
       } else {
-        print('❌ 마이크 권한 거부됨');
         // 안내 메시지 띄우기
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -74,42 +72,33 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         }
       }
     } else {
-      print('✅ 마이크 권한 이미 있음');
       _initializeSTT();
     }
   }
 
   void _initializeSTT() async {
     final available = await _speech.initialize(
-      onStatus: (status) => print('🎙️ STT 상태: $status'),
-      onError: (error) => print('❌ STT 오류: $error'),
     );
 
-    print('✅ STT 초기화 성공 여부: $available');
     if (available) {
       _startListening();
     } else {
-      print('🚫 STT 초기화 실패: 마이크 권한 확인 필요');
     }
   }
 
   Future<void> _startListening() async {
 
-    // 2. 마이크 리소스 반환 대기 (중요)
     await Future.delayed(const Duration(milliseconds: 200));
 
-    // 3. 기존 코드 계속 진행
     if (_speech.isListening || _isMuted || _ttsPlaying) return;
 
     final initialized = await _speech.initialize(
       onStatus: (status) {
-        print('🎙️ STT 상태: $status');
         if (status == 'done' || status == 'notListening') {
           Future.delayed(const Duration(milliseconds: 500), _startListening);
         }
       },
       onError: (error) {
-        print('❌ STT 오류: $error');
         if (error.permanent || error.errorMsg == 'error_speech_timeout') {
           Future.delayed(const Duration(milliseconds: 500), _startListening);
         }
@@ -117,13 +106,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     );
 
     if (initialized) {
-      print("✅ STT 시작");
       _speech.listen(
         onResult: (result) {
-          print("🎧 onResult called!");
-          print("👉 인식된 문장: '${result.recognizedWords}'");
-          print("✅ FinalResult 여부: ${result.finalResult}");
-
           if (result.finalResult && result.recognizedWords.trim().isNotEmpty) {
             _handleUserSpeech(result.recognizedWords.trim());
           }
@@ -138,7 +122,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         ),
       );
     } else {
-      print("❌ STT 초기화 실패");
     }
   }
 
@@ -159,25 +142,20 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     try {
       _noiseSubscription = _noiseMeter.noise.listen((NoiseReading reading) {
         final dB = reading.meanDecibel;
-        print("📈 현재 소음 dB: $dB");
 
         if (_ttsPlaying && dB > 88) {
-          print("🎤 사용자 말 감지됨! → TTS 중단 → STT 시작");
 
           _tts.stop();
           _ttsPlaying = false;
 
-          // 🔻 소음 측정 중단
           _noiseSubscription?.cancel();
           _noiseSubscription = null;
 
-          // 기존 STT 중지 후 재시작
           if (_speech.isListening) _speech.stop();
           Future.delayed(const Duration(milliseconds: 300), _startListening);
         }
       });
     } catch (e) {
-      print("❌ NoiseMeter 오류: $e");
     }
   }
 
@@ -205,7 +183,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         _startListening();
       }
     } catch (e) {
-      print("❌ 오류: $e");
       _startListening();
     }
   }
@@ -300,7 +277,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
                             }).toList(),
                           ),
                         ),
-                            (route) => route.isFirst, // ✅ HomeScreen만 남기고 나머지 모두 제거
+                            (route) => route.isFirst,
                       );
                     },
                     child: const Icon(Icons.close, size: 40, color: Colors.black),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'calendar_day.dart';
+import 'package:buds/screens/calendar/widgets/calendar_day.dart';
 import 'package:buds/models/badge_model.dart';
 
 class CalendarGrid extends StatelessWidget {

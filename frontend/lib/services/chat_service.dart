@@ -1,8 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:buds/constants/api_constants.dart';
 import 'package:buds/services/fast_api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 
 class ChatService {
   final FastApiService _fastApiService = FastApiService();
@@ -29,7 +26,6 @@ class ChatService {
     } on DioException catch (e) {
       final resData = e.response?.data;
 
-      // ✅ 임시 방편: message 필드가 없을 경우 기본 응답 제공
       if (e.response?.statusCode == 422 || e.response?.statusCode == 500) {
         final fallbackMsg = resData is Map && resData['response'] is String
             ? resData['response']
@@ -45,7 +41,7 @@ class ChatService {
     try {
       final response = await _fastApiService.post(
         '/chat/history',
-        data: {'limit': 50}, // ✅ Cookie 헤더 제거!
+        data: {'limit': 50},
       );
 
       if (response.data is List) {
@@ -54,7 +50,6 @@ class ChatService {
         return [];
       }
     } catch (e) {
-      print('❌ getChatHistory 오류: $e');
       return [];
     }
   }

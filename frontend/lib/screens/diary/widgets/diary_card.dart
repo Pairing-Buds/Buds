@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../config/theme.dart';
+import 'package:buds/config/theme.dart';
 
 class DiaryCard extends StatelessWidget {
   final DateTime date;
