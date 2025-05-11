@@ -1,7 +1,6 @@
 package com.pairing.buds.domain.admin.service;
 
 import com.pairing.buds.common.exception.ApiException;
-import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
@@ -12,6 +11,7 @@ import com.pairing.buds.domain.cs.dto.answer.req.CreateAnswerReqDto;
 import com.pairing.buds.domain.cs.dto.answer.req.DeleteAnswerReqDto;
 import com.pairing.buds.domain.cs.dto.answer.req.PatchAnswerReqDto;
 import com.pairing.buds.domain.cs.dto.answer.res.GetAnsweredQuestionListReqDto;
+import com.pairing.buds.domain.cs.dto.question.res.GetQuestionsResDto;
 import com.pairing.buds.domain.cs.dto.answer.res.GetUnAnsweredQuestionListReqDto;
 import com.pairing.buds.domain.cs.entity.Answer;
 import com.pairing.buds.domain.cs.entity.Question;
@@ -59,11 +59,10 @@ public class AdminService {
         if(adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
-
-//        answerRepository.find
-
-        return null;
-//        return questionRepository.findUnAnsweredQuestionsByUserId();
+        // 조회
+        List<Question> questions = questionRepository.findByUser_id(userId);
+        // 응답
+        return GetQuestionsResDto.toGetQuestionsResDto(questions);
     }
 
     /** 답변 작성 **/
@@ -84,6 +83,7 @@ public class AdminService {
             answerRepository.delete(question.getAnswer());
         }
         question.setAnswer(answerToCreate);
+        question.setStatus(QuestionStatus.ANSWERED);
         // 저장
         answerRepository.save(answerToCreate);
         questionRepository.save(question);

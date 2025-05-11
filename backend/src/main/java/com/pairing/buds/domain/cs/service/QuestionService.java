@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,9 +35,8 @@ public class QuestionService {
 
         log.info("userId : {}", userId);
 
-//        User user = questionRepository.findByUser(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        List<Question> questions = questionRepository.findByUser_id(userId);
 
-//        return GetQuestionResDto.toDto(question);
     return null;
     }
 
