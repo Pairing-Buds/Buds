@@ -29,10 +29,7 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 
   Future<void> _initSpeech() async {
-    _hasSpeech = await _speech.initialize(
-      onError: (e) => print('STT 초기화 오류: $e'),
-      onStatus: (status) => print('STT 상태: $status'),
-    );
+    _hasSpeech = await _speech.initialize();
     setState(() {});
   }
 
@@ -43,7 +40,7 @@ class _ShellScreenState extends State<ShellScreen> {
         _quote = quote;
       });
     } catch (e) {
-      print('명언 불러오기 오류: $e');
+      // 에러 발생 시 별도 처리 로직 추가 가능
     }
   }
 
@@ -86,12 +83,10 @@ class _ShellScreenState extends State<ShellScreen> {
     );
 
     if (success) {
-      print("STT 결과 전송 성공");
       _showSuccessModal();
-    } else {
-      print("STT 결과 전송 실패");
     }
   }
+
 
   // 인증 성공 모달 + 홈 화면 리다이렉트
   void _showSuccessModal() {

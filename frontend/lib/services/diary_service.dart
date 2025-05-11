@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import '../constants/api_constants.dart';
-import '../models/diary_model.dart';
+import 'package:buds/constants/api_constants.dart';
+import 'package:buds/models/diary_model.dart';
 import 'api_service.dart';
 
 class DiaryService {

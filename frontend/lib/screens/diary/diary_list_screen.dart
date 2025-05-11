@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
-import '../../models/diary_model.dart';
-import '../../services/diary_service.dart';
+import 'package:buds/models/diary_model.dart';
+import 'package:buds/services/diary_service.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
 import 'package:buds/screens/diary/widgets/EditDiaryBottomSheet.dart';
 import 'package:buds/widgets/common_dialog.dart';

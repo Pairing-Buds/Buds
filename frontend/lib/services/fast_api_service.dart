@@ -1,9 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:buds/constants/api_constants.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 class FastApiService {
   late final Dio _dio;
@@ -35,7 +33,6 @@ class FastApiService {
         final cookies = await _cookieJar.loadForRequest(Uri.parse(ApiConstants.baseUrl));
         final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
         options.headers['Cookie'] = cookieHeader;
-        print('🍪 FastAPI 요청에 붙인 쿠키: $cookieHeader');
         handler.next(options);
       },
     ));

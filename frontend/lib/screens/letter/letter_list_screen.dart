@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-// import 'package:buds/models/letter_list_model.dart';
 import 'package:buds/screens/letter/letter_detail_screen.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/models/letter_response_model.dart';
@@ -21,7 +20,7 @@ class _LetterListState extends State<LetterList> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<LetterResponseModel>(
-      future: LetterService().fetchLetters(), // LetterResponseModel로 변경
+      future: LetterService().fetchLetters(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -68,8 +67,8 @@ class _LetterListState extends State<LetterList> {
                           context,
                           MaterialPageRoute(
                             builder: (_) => LetterDetailScreen(
-                              opponentId: letter.userId, // 상대방 사용자 ID
-                              opponentName: letter.userName, // 상대방 사용자 이름
+                              opponentId: letter.userId,
+                              opponentName: letter.userName,
                               ),
                             ),
                         );
