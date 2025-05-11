@@ -1,4 +1,4 @@
-import 'package:buds/models/letter_model.dart';
+import 'package:buds/models/letter_list_model.dart';
 
 class LetterResponseModel {
   final int letterCnt;

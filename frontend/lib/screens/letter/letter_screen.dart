@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/models/letter_model.dart';
+import 'package:buds/models/letter_list_model.dart';
 import 'package:buds/screens/letter/letter_list_screen.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
@@ -35,7 +35,7 @@ class _LetterScreenState extends State<LetterScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching letter count: $e');
+      print('편지 수 조회 에러: $e');
       setState(() {
         letterCnt = 0;
       });
@@ -87,7 +87,7 @@ class _LetterScreenState extends State<LetterScreen> {
                   ),
                 ),
                 Transform.translate(
-                  offset: const Offset(0, 8),
+                  offset: const Offset(0, 16),
                   child: Image.asset(
                     'assets/images/marmet_cutting_head.png',
                     width: 80,

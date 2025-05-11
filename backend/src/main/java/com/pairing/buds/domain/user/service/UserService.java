@@ -10,10 +10,8 @@ import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.dto.response.MyInfoResDto;
 import com.pairing.buds.domain.user.dto.response.TagResDto;
-import com.pairing.buds.domain.user.entity.Tag;
-import com.pairing.buds.domain.user.entity.TagType;
-import com.pairing.buds.domain.user.entity.User;
-import com.pairing.buds.domain.user.entity.UserCharacter;
+import com.pairing.buds.domain.user.entity.*;
+import com.pairing.buds.domain.user.repository.RandomNameRepository;
 import com.pairing.buds.domain.user.repository.TagRepository;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +25,7 @@ import org.springframework.security.web.authentication.logout.CookieClearingLogo
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +42,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
     private final TagRepository tagRepository;
+    private final RandomNameRepository randomNameRepository;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -161,6 +161,14 @@ public class UserService {
         // 탈퇴 처리 (소프트 삭제)
         user.setIsActive(false);
         userRepository.save(user);
+
+        // userName -> AVAILABLE로 상태변경
+        randomNameRepository.findByRandomName(user.getUserName())
+                .ifPresent(rn -> {
+                    rn.setStatus(RandomNameStatus.AVAILABLE);
+                    rn.setAssignedAt(LocalDateTime.now());
+                    randomNameRepository.save(rn);
+                });
 
         // 쿠키 삭제
         new CookieClearingLogoutHandler("access_token", "refresh_token")

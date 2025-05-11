@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:buds/screens/letter/letter_anonymity_screen.dart';
-import 'package:buds/screens/letter/letter_reply_screen.dart';
-import 'package:buds/services/letter_service.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/models/letter_model.dart';
-import 'package:buds/models/letter_response_model.dart'; // LetterResponseModel 추가
+// import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/screens/letter/letter_detail_screen.dart';
+import 'package:buds/services/letter_service.dart';
+import 'package:buds/models/letter_response_model.dart';
 
 class LetterList extends StatefulWidget {
   final Function(int) onCountFetched;
@@ -68,11 +67,11 @@ class _LetterListState extends State<LetterList> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => LetterReplyScreen(
-                              letterId: letter.userId,
-                              isScraped: false,
+                            builder: (_) => LetterDetailScreen(
+                              opponentId: letter.userId, // 상대방 사용자 ID
+                              opponentName: letter.userName, // 상대방 사용자 이름
+                              ),
                             ),
-                          ),
                         );
                       },
                       child: Row(

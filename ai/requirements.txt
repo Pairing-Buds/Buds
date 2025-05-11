@@ -12,3 +12,5 @@ openai>=0.27.0
 prometheus-fastapi-instrumentator
 PyJWT>=2.6.0
 python-multipart>=0.0.5
+apscheduler
+pytz
