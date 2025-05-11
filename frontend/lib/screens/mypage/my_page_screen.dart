@@ -10,6 +10,7 @@ import 'widgets/wake_up_section.dart';
 import 'widgets/step_section.dart';
 import 'package:buds/screens/mypage/withdraw_screen.dart';
 import 'package:buds/screens/customercenter/customer_center_screen.dart';
+import 'package:buds/screens/step/step_detail_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({Key? key}) : super(key: key);
@@ -131,7 +132,20 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    const StepSection(),
+                    InkWell(
+                      onTap: () {
+                        final myPageProvider = Provider.of<MyPageProvider>(
+                          context,
+                          listen: false,
+                        );
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const StepDetailScreen(),
+                          ),
+                        );
+                      },
+                      child: const StepSection(),
+                    ),
                   ],
                 ),
               ),
