@@ -18,8 +18,7 @@ class Chatbot:
 
         self.chat = ChatOpenAI(
             model="gpt-4o",
-            temperature=0.1,
-            openai_api_key=api_key
+            temperature=0.1
         )
 
         # OpenAI 직접 API 키 설정

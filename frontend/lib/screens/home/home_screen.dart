@@ -35,7 +35,6 @@ class HomeScreen extends StatelessWidget {
             left: 20,
             child: GestureDetector(
               onTap: () {
-                // TODO: 태양 아이콘 눌렀을 때
               },
               child: Image.asset(
                 'assets/icons/sun.png',

@@ -21,11 +21,11 @@ public class QuestionController {
 
     /** 해당 유저의 문의 조회 **/
     @GetMapping("")
-    public ResponseDto getQuestion(
+    public ResponseDto getQuestionsOfUser(
             @AuthenticationPrincipal int userId
 //            @RequestParam("questionId") int questionId
     ){
-        return new ResponseDto(StatusCode.OK, questionService.getQuestion(userId));
+        return new ResponseDto(StatusCode.OK, questionService.getQuestionsOfUser(userId));
     }
 
     /** 문의 생성 **/

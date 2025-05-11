@@ -1,8 +1,6 @@
 import 'api_service.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
-// import`1 'package:flutter/foundation.dart';
-// import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:buds/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
@@ -17,7 +15,6 @@ class ActivityService {
 
     try {
       final response = await _apiService.get(quoteSearchUrl);
-
       if (response.statusCode == 200) {
         return ActivityQuoteModel.fromJson(response.data);
       } else {
@@ -39,25 +36,16 @@ class ActivityService {
         "userSentenceText": userSentenceText,
       };
 
-      print("STT 전송 데이터: $requestData");
-
       final response = await _apiService.post(
         ApiConstants.voiceSendUrl,
-        data: jsonEncode(requestData), // JSON 형식으로 전송
+        data: jsonEncode(requestData),
         options: Options(
           headers: {'Content-Type': 'application/json'},
         ),
       );
 
-      if (response.statusCode == 200) {
-        print("📤 STT 제출 성공: ${response.data}");
-        return true;
-      } else {
-        print("❌ STT 제출 실패: ${response.statusCode} - ${response.data}");
-        return false;
-      }
+      return response.statusCode == 200;
     } catch (e) {
-      print("❌ STT 제출 에러: $e");
       return false;
     }
   }
@@ -65,10 +53,8 @@ class ActivityService {
   // 알라딘 API 조회
   Future<Map<String, String>> fetchMentalHealthBook() async {
     final bookUrl = dotenv.env['BOOK_URL'];
-    final ttbKey = dotenv.env['ttbKey'];
-
+    final ttbKey = dotenv.env['TTBKEY'];
     _validateEnvVariables(bookUrl, ttbKey);
-
     final url = Uri.parse('$bookUrl?ttbkey=$ttbKey&QueryType=ItemNewSpecial&MaxResults=1&Start=1&SearchTarget=Book&CategoryId=51378&Output=JS&Version=20131101');
 
     final response = await http.get(url);

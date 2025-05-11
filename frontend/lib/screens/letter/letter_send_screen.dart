@@ -26,7 +26,7 @@ class _LetterSendScreenState extends State<LetterSendScreen> {
     fetchLetterContent();
   }
 
-  /// ✅ 편지 내용 조회
+  /// 편지 내용 조회
   Future<void> fetchLetterContent() async {
     setState(() {
       _isLoading = true;

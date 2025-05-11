@@ -31,7 +31,7 @@ public class QuestionService {
     private final AnswerRepository answerRepository;
 
     /** 문의 조회 **/
-    public GetQuestionsResDto getQuestion(int userId) {
+    public GetQuestionsResDto getQuestionsOfUser(int userId) {
         List<Question> questions = questionRepository.findByUser_id(userId);
         return GetQuestionsResDto.toGetQuestionsResDto(questions);
     }
