@@ -32,8 +32,7 @@ public class AnswerDto {
     private LocalDateTime createdAt;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    private LocalDateTime updatedA
-
+    private LocalDateTime updatedAt;
     public static AnswerDto toAnswerDto(Answer answer){
         return AnswerDto.builder()
                 .id(answer.getId())
