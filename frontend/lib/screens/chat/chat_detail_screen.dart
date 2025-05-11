@@ -22,7 +22,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _controller = TextEditingController();
   final ChatService _chatService = ChatService();
   final ScrollController _scrollController = ScrollController();
-  final int userId = 4;
   List<Map<String, dynamic>> _chatHistory = [];
   bool _isWaitingForBot = false;
   bool _hasStarted = false;
@@ -38,10 +37,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   Future<void> _loadChatHistoryAndRedirectIfEmpty() async {
-    final history = await _chatService.getChatHistory(userId: userId);
+    final history = await _chatService.getChatHistory();
 
     if (history.isEmpty) {
-      // 🔁 기록 없으면 StartChattingScreen으로 이동
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -66,7 +64,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   Future<void> _loadChatHistory() async {
-    final history = await _chatService.getChatHistory(userId: userId);
+    final history = await _chatService.getChatHistory();
 
     history.sort((a, b) {
       final timeA = DateTime.parse(a['created_at']);
@@ -104,7 +102,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       _scrollToBottom();
 
       final botMessage = await _chatService.sendMessage(
-        userId: userId,
         message: userMessage,
         isVoice: false,
       );
@@ -145,7 +142,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           _scrollToBottom();
 
           final botReply = await _chatService.sendMessage(
-            userId: userId,
             message: message,
             isVoice: true,
           );

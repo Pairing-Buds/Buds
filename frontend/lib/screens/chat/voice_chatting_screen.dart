@@ -161,7 +161,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         final dB = reading.meanDecibel;
         print("📈 현재 소음 dB: $dB");
 
-        if (_ttsPlaying && dB > 76) {
+        if (_ttsPlaying && dB > 88) {
           print("🎤 사용자 말 감지됨! → TTS 중단 → STT 시작");
 
           _tts.stop();
@@ -191,9 +191,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
 
     try {
       final response = await _chatService.sendMessage(
-        userId: userId,
         message: text,
-        isVoice: true,
+        isVoice: false,
       );
 
       setState(() {
