@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/models/diary_model.dart';
 import 'package:buds/services/diary_service.dart';
-import 'package:buds/widgets/common_dialog.dart';
 import 'package:buds/widgets/toast_bar.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
 

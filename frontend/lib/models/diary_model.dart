@@ -11,7 +11,7 @@ class DiaryDay {
 
   factory DiaryDay.fromJson(Map<String, dynamic> json) {
     final List<DiaryEntry> entries = [];
-    final String date = json['date']; // ✅ 날짜를 바깥에서 꺼냄
+    final String date = json['date'];
 
     for (final item in (json['diaryList'] as List<dynamic>)) {
       final diaryNo = item['diaryNo'].toString();
@@ -47,7 +47,7 @@ class DiaryDay {
 
 class DiaryEntry {
   final String diaryNo;
-  final String diaryType; // 'EMOTION' 또는 'ACTIVE'
+  final String diaryType;
   final String content;
   final String date;
 

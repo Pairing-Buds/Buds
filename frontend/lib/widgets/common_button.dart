@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
 
 class CommonButton extends StatelessWidget {
   final String text;

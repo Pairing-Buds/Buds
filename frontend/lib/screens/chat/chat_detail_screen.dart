@@ -1,4 +1,3 @@
-// ChatDetailScreen.dart (voice + text 통합)
 import 'package:flutter/material.dart';
 import 'package:buds/services/chat_service.dart';
 import 'package:buds/config/theme.dart';

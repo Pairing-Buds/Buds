@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
+import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/common_dialog.dart';
 import 'package:buds/services/diary_service.dart';
 import 'package:buds/models/diary_create_model.dart';
