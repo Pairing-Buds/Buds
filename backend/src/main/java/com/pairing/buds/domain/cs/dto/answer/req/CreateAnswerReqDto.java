@@ -2,6 +2,7 @@ package com.pairing.buds.domain.cs.dto.answer.req;
 
 import com.pairing.buds.domain.admin.entity.Admin;
 import com.pairing.buds.domain.cs.entity.Answer;
+import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,10 @@ public class CreateAnswerReqDto {
     @Positive
     @NotNull
     private int userId;
+
+    @Positive
+    @NotNull
+    private int questionId;
 
     @NotNull
     private String content;

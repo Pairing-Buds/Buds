@@ -14,6 +14,7 @@ import com.pairing.buds.domain.cs.dto.answer.req.PatchAnswerReqDto;
 import com.pairing.buds.domain.cs.dto.answer.res.GetAnsweredQuestionListReqDto;
 import com.pairing.buds.domain.cs.dto.answer.res.GetUnAnsweredQuestionListReqDto;
 import com.pairing.buds.domain.cs.entity.Answer;
+import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.entity.QuestionStatus;
 import com.pairing.buds.domain.cs.repository.AnswerRepository;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
@@ -54,7 +55,7 @@ public class AdminService {
         return questionRepository.findUnAnsweredQuestionsByStatusOrderByCreatedAt(QuestionStatus.UNANSWERED);
     }
     /** 특정 유저의 문의 조회 **/
-    public Object getQuestionOfUser(int adminId, int questionId) {
+    public Object getQuestionOfUser(int adminId, int userId) {
         if(adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
@@ -67,16 +68,25 @@ public class AdminService {
 
     /** 답변 작성 **/
     public void createAnswer(int adminId, @Valid CreateAnswerReqDto dto) {
-
+        // 변수
+        int questionId = dto.getQuestionId();
         int userId = dto.getUserId();
         String content = dto.getContent();
         log.info("userId : {}, adminId : {}", userId, adminId);
-
+        // 조회
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
-
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+        // 답변 생성
         Answer answerToCreate = CreateAnswerReqDto.toAnswer(admin, user, content);
+        // 기존 답변이 있다면 삭제 후 갱신
+        if(question.getAnswer() != null){
+            answerRepository.delete(question.getAnswer());
+        }
+        question.setAnswer(answerToCreate);
+        // 저장
         answerRepository.save(answerToCreate);
+        questionRepository.save(question);
     }
 
     /** 답변 수정 **/
