@@ -3,7 +3,7 @@ package com.pairing.buds;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.request.ActiveUserReqDto;
 import com.pairing.buds.domain.admin.entity.Admin;
 import com.pairing.buds.domain.admin.repository.AdminRepository;
 import com.pairing.buds.domain.admin.service.AdminService;

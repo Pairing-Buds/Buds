@@ -1,7 +1,7 @@
 package com.pairing.buds.domain.cs.repository;
 
-import com.pairing.buds.domain.cs.dto.answer.res.GetAnsweredQuestionListReqDto;
-import com.pairing.buds.domain.cs.dto.answer.res.GetUnAnsweredQuestionListReqDto;
+import com.pairing.buds.domain.cs.dto.answer.response.GetAnsweredQuestionListReqDto;
+import com.pairing.buds.domain.cs.dto.answer.response.GetUnAnsweredQuestionListReqDto;
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.entity.QuestionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,12 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
     @Query(value = """
-            SELECT new com.pairing.buds.domain.cs.dto.answer.res.GetAnsweredQuestionListReqDto(
+            SELECT new com.pairing.buds.domain.cs.dto.answer.response.GetAnsweredQuestionListReqDto(
                 q.user.id,
                 MAX(q.createdAt)
             )
@@ -27,7 +26,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<GetAnsweredQuestionListReqDto> findAnsweredQuestionsByStatusOrderByCreatedAt(@Param("questionStatus") QuestionStatus questionStatus);
 
     @Query(value = """
-            SELECT new com.pairing.buds.domain.cs.dto.answer.res.GetUnAnsweredQuestionListReqDto(
+            SELECT new com.pairing.buds.domain.cs.dto.answer.response.GetUnAnsweredQuestionListReqDto(
                 q.user.id,
                 MAX(q.createdAt)
             )

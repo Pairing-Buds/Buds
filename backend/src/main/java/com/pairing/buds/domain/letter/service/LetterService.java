@@ -49,8 +49,6 @@ public class LetterService {
     /** 특정 편지 상세 조회 **/
     @Transactional
     public GetLetterDetailResDto getLetterDetail(int userId, int letterId) {
-        // 변수
-        log.info("userId : {}, letterId : {}", userId, letterId);
         // 응답
         Letter letter = letterRepository.findById(letterId).orElseThrow((()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND)));
         letter.setStatus(LetterStatus.READ);
@@ -158,7 +156,6 @@ public class LetterService {
     @Transactional
     public void scrapLetter(int userId, ScrapLetterReqDto dto) {
         int letterId = dto.getLetterId();
-        log.info("userId : {}, letterId : {}", userId, letterId);
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
@@ -176,7 +173,6 @@ public class LetterService {
     public void answerLetter(int userId, AnswerLetterReqDto dto) {
         int letterId = dto.getLetterId();
         String content = dto.getContent();
-        log.info("userId : {}, letterId : {} ",userId ,letterId);
 
         if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
 
@@ -261,7 +257,6 @@ public class LetterService {
     @Transactional
     public void scrapLetterCancel(int userId, ScrapLetterCancelReqDto dto) {
         int letterId = dto.getLetterId();
-        log.info("userId : {}, letterId : {}", userId, letterId);
 
         // 편지 조회
         LetterFavorite letterFavorite = letterFavoriteRepository.findByUserIdAndLetterId(userId, letterId).orElseThrow(

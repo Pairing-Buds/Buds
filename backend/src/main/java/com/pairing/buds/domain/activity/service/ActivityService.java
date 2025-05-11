@@ -1,12 +1,11 @@
 package com.pairing.buds.domain.activity.service;
 
 import com.pairing.buds.common.exception.ApiException;
-import com.pairing.buds.common.response.Common;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.activity.dto.req.*;
-import com.pairing.buds.domain.activity.dto.res.FindFriendByTagResDto;
-import com.pairing.buds.domain.activity.dto.res.GetQuoteByRandomResDto;
+import com.pairing.buds.domain.activity.dto.request.*;
+import com.pairing.buds.domain.activity.dto.response.FindFriendByTagResDto;
+import com.pairing.buds.domain.activity.dto.response.GetQuoteByRandomResDto;
 import com.pairing.buds.domain.activity.entity.*;
 import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.QuoteRepository;
@@ -16,13 +15,10 @@ import com.pairing.buds.domain.calendar.entity.*;
 import com.pairing.buds.domain.calendar.repository.BadgeRepository;
 import com.pairing.buds.domain.calendar.repository.CalendarBadgeRepository;
 import com.pairing.buds.domain.calendar.repository.CalendarRepository;
-import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.user.dto.response.UserDto;
 import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +49,6 @@ public class ActivityService {
     public void createWakeTime(int userId , @Valid CreateWakeTimeReqDto dto) {
 
         String wakeTime = dto.getWakeTime();
-        log.info("wakeTime : {}, userId : {}", wakeTime, userId);
 
         // 유저 유무 조회
         User userToSave = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
@@ -70,7 +65,6 @@ public class ActivityService {
     public void firstVisitReward(int userId, FirstVisitRewardReqDto dto) {
 
         PageName pageName = dto.getPageName();
-        log.info("userId : {}, pageName : {}", userId, pageName);
 
         if(!activityRepository.isVisited(userId, pageName)){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
@@ -105,7 +99,6 @@ public class ActivityService {
         badge.setBadgeType(RecordType.ACTIVE);
         badge.setName(BadgeType.WAKE);
         Badge createdBadge = badgeRepository.save(badge);
-        log.info("userActivity 저장");
 
         // 캘린더와 연동
         // 오늘자 캘린더 불러오기
@@ -118,22 +111,16 @@ public class ActivityService {
         calendarBadge.setCalendar(calendar);
 
         userRepository.save(user);
-        log.info("유저 리워드 편지 3개 추가 저장");
         activityRepository.save(activity);
-        log.info("Activity 저장");
         userActivityRepository.save(userActivity);
-        log.info("userActivity 저장");
         calendarRepository.save(calendar);
-        log.info("calendar 저장");
         calendarBadgeRepository.save(calendarBadge);
-        log.info("calendarBadge 저장");
     }
     /** 사용자 음성 활동 인증 **/
     @Transactional
     public void activitySentenceVoice(int userId, ActivitySentenceVoiceReqDto dto) {
         String originalSentenceText = dto.getOriginalSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
         String userSentence = dto.getUserSentenceText().replaceAll("[ !@#$%^&*()_+=,.?/|-]", "");
-        log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
 
         if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
@@ -142,7 +129,6 @@ public class ActivityService {
         activity.setName(ActivityType.VOICE_TEXT);
         activity.setDescription("사용자 음성 텍스트 활동 인증");
         activity.setBonusLetter(3);
-        log.info("활동 생성 완료");
 
         Activity createdActivity = activityRepository.save(activity);
 
@@ -171,15 +157,10 @@ public class ActivityService {
         calendarBadge.setCalendar(calendar);
 
         userRepository.save(user);
-        log.info("유저 리워드 편지 3개 추가 저장 완료");
         userActivityRepository.save(userActivity);
-        log.info("사용자 활동 생성 완료");
         calendarRepository.save(calendar);
-        log.info("캘린더 저장");
         userActivityRepository.save(userActivity);
-        log.info("userActivity 저장");
         calendarBadgeRepository.save(calendarBadge);
-        log.info("calendarBadge 저장");
 
 
     }
@@ -222,7 +203,6 @@ public class ActivityService {
         // 변수
         int userStepSet = dto.getUserStepSet();
         int userRealStep = dto.getUserRealStep();
-        log.info("userStepSet : {}, userRealStep : {}", userStepSet, userRealStep);
         // 검증
         if(userStepSet > userRealStep){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
@@ -265,15 +245,10 @@ public class ActivityService {
 
         // 저장
         userRepository.save(user);
-        log.info("유저 리워드 편지 3개 추가 저장");
         activityRepository.save(activity);
-        log.info("Activity 저장");
         userActivityRepository.save(userActivity);
-        log.info("userActivity 저장");
         calendarRepository.save(calendar);
-        log.info("캘린더 저장");
         calendarBadgeRepository.save(calendarBadge);
-        log.info("calendarBadge 저장");
     }
 
     /** 기상 시간 수정 **/
@@ -282,18 +257,15 @@ public class ActivityService {
 
         int wakeId = dto.getWakeId();
         String wakeTime = dto.getWakeTime();
-        log.info("sleepId : {}, wakeTime : {}, userId : {}", wakeId, wakeTime, userId);
-        
+
         // user, sleep 유무 검증
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToUpdate = wakeToUpdate.getUser().getId();
-        log.info("userId : {}, userIdOfWakeToUpdate : {}", userId, userIdOfWakeToUpdate);
-        
+
         // sleep의 유저와 식별자 비교
         if(userId != userIdOfWakeToUpdate){
-            log.info("userId, userIdOfSleepToUpdate Not Match");
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
         
@@ -307,17 +279,14 @@ public class ActivityService {
     public void deleteWakeTime(int userId, @Valid DeleteWakeTimeReqDto dto) {
 
         int wakeId = dto.getWakeId();
-        log.info("wakeId : {}, userId : {}", wakeId, userId);
 
         // exists...
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToDelete = wakeToDelete.getUser().getId();
-        log.info("userId : {}, userIdOfWakeToDelete : {}", userId, userIdOfWakeToDelete);
 
         if(userId != userIdOfWakeToDelete){
-            log.info("userId, userIdOfSleepToDelete Not Match");
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
 
@@ -329,7 +298,6 @@ public class ActivityService {
     @Transactional
     public void visitRecommendedPlaceReward(int userId) {
         // 변수
-        log.info("userId : {}", userId);
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         
         // 활동
@@ -346,19 +314,15 @@ public class ActivityService {
         userActivity.setProof("추천 장소 방문 활동 인증 완료");
 
         activityRepository.save(activity);
-        log.info("활동 저장 완료");
         userActivityRepository.save(userActivity);
-        log.info("유저 활동 저장 완료");
 
         // 유저 리워드 편지 3개 추가
         user.setLetterCnt(user.getLetterCnt() + 3);
-        log.info("유저 리워드 편지 3개 증정 완료");
-    }   
+    }
         
     /** 취향이 맞는 친구 찾기 **/
     public Set<UserDto> findFriendByTag(int userId) {
         // 변수
-        log.info("userId : {}", userId);
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Set<Tag> userTags = user.getTags();

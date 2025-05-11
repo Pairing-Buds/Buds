@@ -3,8 +3,7 @@ package com.pairing.buds;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
-import com.pairing.buds.domain.admin.dto.req.InActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.request.ActiveUserReqDto;
 import com.pairing.buds.domain.admin.entity.Admin;
 import com.pairing.buds.domain.admin.repository.AdminRepository;
 import com.pairing.buds.domain.admin.service.AdminService;
@@ -13,18 +12,13 @@ import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.entity.UserCharacter;
 import com.pairing.buds.domain.user.entity.UserRole;
 import com.pairing.buds.domain.user.repository.UserRepository;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.AssertTrue;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootTest

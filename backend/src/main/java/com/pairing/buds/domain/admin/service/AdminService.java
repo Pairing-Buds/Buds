@@ -3,16 +3,16 @@ package com.pairing.buds.domain.admin.service;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.admin.dto.req.ActiveUserReqDto;
-import com.pairing.buds.domain.admin.dto.req.InActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.request.ActiveUserReqDto;
+import com.pairing.buds.domain.admin.dto.request.InActiveUserReqDto;
 import com.pairing.buds.domain.admin.entity.Admin;
 import com.pairing.buds.domain.admin.repository.AdminRepository;
-import com.pairing.buds.domain.cs.dto.answer.req.CreateAnswerReqDto;
-import com.pairing.buds.domain.cs.dto.answer.req.DeleteAnswerReqDto;
-import com.pairing.buds.domain.cs.dto.answer.req.PatchAnswerReqDto;
-import com.pairing.buds.domain.cs.dto.answer.res.GetAnsweredQuestionListReqDto;
-import com.pairing.buds.domain.cs.dto.question.res.GetQuestionsResDto;
-import com.pairing.buds.domain.cs.dto.answer.res.GetUnAnsweredQuestionListReqDto;
+import com.pairing.buds.domain.cs.dto.answer.request.CreateAnswerReqDto;
+import com.pairing.buds.domain.cs.dto.answer.request.DeleteAnswerReqDto;
+import com.pairing.buds.domain.cs.dto.answer.request.PatchAnswerReqDto;
+import com.pairing.buds.domain.cs.dto.answer.response.GetAnsweredQuestionListReqDto;
+import com.pairing.buds.domain.cs.dto.question.response.GetQuestionsResDto;
+import com.pairing.buds.domain.cs.dto.answer.response.GetUnAnsweredQuestionListReqDto;
 import com.pairing.buds.domain.cs.entity.Answer;
 import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.entity.QuestionStatus;
@@ -47,7 +47,6 @@ public class AdminService {
     }
     /** 미답변 문의 목록 조회 **/
     public List<GetUnAnsweredQuestionListReqDto> getUnAnsweredQuestionList(int adminId) {
-        log.info("adminId : {}", adminId);
 
         if(adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
@@ -71,7 +70,6 @@ public class AdminService {
         int questionId = dto.getQuestionId();
         int userId = dto.getUserId();
         String content = dto.getContent();
-        log.info("userId : {}, adminId : {}", userId, adminId);
         // 조회
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
@@ -93,7 +91,6 @@ public class AdminService {
     public void patchAnswer(int adminId, @Valid PatchAnswerReqDto dto) {
         int answerId = dto.getAnswerId();
         String content = dto.getContent();
-        log.info("answerId : {}, adminId : {}", answerId, adminId);
 
         if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         Answer answer = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
@@ -104,7 +101,6 @@ public class AdminService {
     /** 회원 활성화 **/
     public void activeUser(int adminId, ActiveUserReqDto dto) {
         int userId = dto.getUserId();
-        log.info("adminId : {}, userId : {}", adminId ,userId);
 
         if(!adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
@@ -114,7 +110,6 @@ public class AdminService {
     /** 회원 비활성화 **/
     public void inactiveUser(int adminId, InActiveUserReqDto dto) {
         int userId = dto.getUserId();
-        log.info("adminId : {}, userId : {}", adminId ,userId);
 
         if(adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
@@ -128,7 +123,6 @@ public class AdminService {
     public void deleteAnswer(int adminId, @Valid DeleteAnswerReqDto dto) {
 
         int answerId = dto.getAnswerId();
-        log.info("answerId : {}", answerId);
 
         if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         Answer answerToDelete = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));

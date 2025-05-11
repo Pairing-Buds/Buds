@@ -3,7 +3,7 @@ package com.pairing.buds.domain.activity.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.activity.dto.req.*;
+import com.pairing.buds.domain.activity.dto.request.*;
 import com.pairing.buds.domain.activity.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

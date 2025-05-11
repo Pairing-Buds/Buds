@@ -20,13 +20,15 @@ public class Answer extends CUBaseTime {
     @Column(name = "answer_id")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id", nullable = false)
-    private Admin admin;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
-    private User user;
+    // 변경을 대비한 주석처리 입니다.
+//    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+//    @JoinColumn(name = "admin_id", referencedColumnName = "admin_id", nullable = true)
+//    private Admin admin;
+
+//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
+//    private User user;
 
     @Column(name = "content", nullable = false)
     private String content;

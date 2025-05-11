@@ -89,28 +89,20 @@ public class UserService {
 
     /** 설문조사 결과 저장 **/
     public void saveSurveyResult(int userId, SaveSurveyResultReqDto dto) {
-        int seclusionScore = dto.getSeclusionScore();
-        int opennessScore = dto.getOpennessScore();
-        int routineScore = dto.getRoutineScore();
-        int sociabilityScore = dto.getSociabilityScore();
-        int quietnessScore = dto.getQuietnessScore();
-        int expressionScore = dto.getExpressionScore();
-        log.info("userId : {}, opennessScore : {}, routineScore : {}, quitenessScore : {}, expressionScore : {}, seclusionScore : {}, sociabilityScore",
-                userId, opennessScore, routineScore, quietnessScore, expressionScore, seclusionScore, sociabilityScore);
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-
+        // 태그 비우기
         if(!user.getTags().isEmpty()){
             tagRepository.deleteAll(user.getTags());
             user.getTags().clear();
         }
-
+        // 태그 빌드
         Set<Tag> newTags = dto.getTags().parallelStream().map( newTag ->
                 Tag.builder()
                         .user(user)
                         .tagName(newTag)
                         .build()
         ).collect(Collectors.toSet());
-
+        // 수정
         User userToUpdate = SaveSurveyResultReqDto.toUser(user, dto);
         userToUpdate.getTags().addAll(newTags);
         userRepository.save(userToUpdate);
