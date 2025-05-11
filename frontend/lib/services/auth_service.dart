@@ -444,4 +444,53 @@ class DioAuthService {
   Future<void> clearCookies() async {
     await _apiService.clearCookies();
   }
+
+  // 이메일 인증 요청
+  Future<bool> requestEmailVerification(String email) async {
+    try {
+      final queryParams = {'user-email': email};
+      final response = await _apiService.post(
+        '/auth/email/request',
+        queryParameters: queryParams,
+        data: {},
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+        return statusCode == 'OK';
+      }
+      return false;
+    } catch (e) {
+      print('이메일 인증 요청 오류: $e');
+      throw Exception('이메일 인증 요청 실패: $e');
+    }
+  }
+
+  // 이메일 토큰 검증
+  Future<bool> verifyEmailToken(String token) async {
+    try {
+      final queryParams = {'token': token};
+      final response = await _apiService.get(
+        '/auth/verify-email',
+        queryParameters: queryParams,
+        options: Options(
+          validateStatus: (status) => status != null && status < 500,
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+        return statusCode == 'OK';
+      }
+      return false;
+    } catch (e) {
+      print('이메일 토큰 검증 오류: $e');
+      throw Exception('이메일 토큰 검증 실패: $e');
+    }
+  }
 }

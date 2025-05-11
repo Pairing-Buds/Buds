@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 /// 이메일 입력 필드
 class EmailInputField extends StatelessWidget {
   final TextEditingController controller;
+  final Widget? suffixIcon;
 
-  const EmailInputField({Key? key, required this.controller}) : super(key: key);
+  const EmailInputField({Key? key, required this.controller, this.suffixIcon})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +21,14 @@ class EmailInputField extends StatelessWidget {
         if (value == null || value.isEmpty) {
           return '이메일을 입력해주세요';
         }
-        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+        if (!RegExp(
+          r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+        ).hasMatch(value)) {
           return '올바른 이메일 형식이 아닙니다';
         }
         return null;
       },
+      suffixIcon: suffixIcon,
     );
   }
 }
@@ -139,6 +144,12 @@ class SignupForm extends StatelessWidget {
   final VoidCallback onTogglePassword;
   final VoidCallback onToggleConfirmPassword;
   final VoidCallback onSubmit;
+  final Widget? emailSuffixIcon;
+  final bool showEmailTokenField;
+  final TextEditingController? emailTokenController;
+  final VoidCallback? onVerifyToken;
+  final String? emailAuthMsg;
+  final bool isEmailVerified;
 
   const SignupForm({
     Key? key,
@@ -154,6 +165,12 @@ class SignupForm extends StatelessWidget {
     required this.onTogglePassword,
     required this.onToggleConfirmPassword,
     required this.onSubmit,
+    this.emailSuffixIcon,
+    this.showEmailTokenField = false,
+    this.emailTokenController,
+    this.onVerifyToken,
+    this.emailAuthMsg,
+    this.isEmailVerified = false,
   }) : super(key: key);
 
   @override
@@ -172,7 +189,36 @@ class SignupForm extends StatelessWidget {
 
           // 이메일 입력 필드
           const InputLabel(label: '이메일'),
-          EmailInputField(controller: emailController),
+          EmailInputField(
+            controller: emailController,
+            suffixIcon: emailSuffixIcon,
+          ),
+          if (showEmailTokenField && emailTokenController != null) ...[
+            const SizedBox(height: 12),
+            CommonTextField(
+              controller: emailTokenController!,
+              hintText: '이메일로 받은 토큰 입력',
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: onVerifyToken,
+                child: const Text('인증 확인'),
+              ),
+            ),
+          ],
+          if (emailAuthMsg != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                emailAuthMsg!,
+                style: TextStyle(
+                  color: isEmailVerified ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           const SizedBox(height: 24),
 
           // 생년월일 입력 필드
