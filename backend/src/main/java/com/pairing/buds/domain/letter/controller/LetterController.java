@@ -22,12 +22,13 @@ public class LetterController {
     private final LetterService letterService;
 
     /** 편지 조회 **/
-    @GetMapping("/detail")
+    @GetMapping("/detail/{letterId}")
     public ResponseDto getLetterDetail(
             @AuthenticationPrincipal int userId,
-            @Valid @RequestBody GetLetterDetailReqDto dto
+            @PathVariable("letterId") int letterId
+//            @Valid @RequestBody GetLetterDetailReqDto dto
     ) {
-        return new ResponseDto(StatusCode.OK, letterService.getLetterDetail(userId, dto));
+        return new ResponseDto(StatusCode.OK, letterService.getLetterDetail(userId, letterId));
     }
 
     /** 편지 채팅 리스트 조회 **/

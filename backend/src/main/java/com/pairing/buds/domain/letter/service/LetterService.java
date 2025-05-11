@@ -5,7 +5,6 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.common.utils.BadWordFilter;
 import com.pairing.buds.domain.letter.dto.req.AnswerLetterReqDto;
-import com.pairing.buds.domain.letter.dto.req.GetLetterDetailReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
@@ -49,9 +48,8 @@ public class LetterService {
 
     /** 특정 편지 상세 조회 **/
     @Transactional
-    public GetLetterDetailResDto getLetterDetail(int userId, GetLetterDetailReqDto dto) {
+    public GetLetterDetailResDto getLetterDetail(int userId, int letterId) {
         // 변수
-        int letterId = dto.getLetterId();
         log.info("userId : {}, letterId : {}", userId, letterId);
         // 응답
         Letter letter = letterRepository.findById(letterId).orElseThrow((()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND)));
