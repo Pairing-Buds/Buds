@@ -30,7 +30,7 @@ class MySQLDB:
         """
         try:
             if self.connection is None or not self.connection.is_connected():
-                raise ValueError("데이터베이스 연결이 없습니다")
+                raise ValueError("MySQL 데이터베이스 연결이 없습니다")
 
             cursor = self.connection.cursor(dictionary=True)
             query = "SELECT * FROM users WHERE user_id = %s"
