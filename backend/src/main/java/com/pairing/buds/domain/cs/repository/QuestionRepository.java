@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
@@ -37,4 +38,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
             """
             )
     List<GetUnAnsweredQuestionListReqDto> findUnAnsweredQuestionsByStatusOrderByCreatedAt(@Param("questionStatus") QuestionStatus questionStatus);
+
+
+    List<Question> findByUser_id(int userId);
 }

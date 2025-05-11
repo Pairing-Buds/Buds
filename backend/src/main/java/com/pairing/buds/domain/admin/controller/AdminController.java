@@ -36,12 +36,12 @@ public class AdminController {
         return new ResponseDto(StatusCode.OK, adminService.getUnAnsweredQuestionList(adminId));
     }
     /** 특정 유저의 문의 조회 **/
-    @GetMapping("/cs/questions/{questionId}")
+    @GetMapping("/cs/users/{userId}")
     public ResponseDto getQuestionOfUser(
             @AuthenticationPrincipal int adminId,
-            @PathVariable("questionId") int questionId
+            @PathVariable("userId") int userId
     ){
-        return new ResponseDto(StatusCode.OK, adminService.getQuestionOfUser(adminId, questionId));
+        return new ResponseDto(StatusCode.OK, adminService.getQuestionOfUser(adminId, userId));
     }
 
     /** 답변 작성 **/

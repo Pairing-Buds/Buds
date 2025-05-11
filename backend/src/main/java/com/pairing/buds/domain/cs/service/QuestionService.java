@@ -8,7 +8,9 @@ import com.pairing.buds.domain.cs.dto.question.req.CreateQuestionReqDto;
 import com.pairing.buds.domain.cs.dto.question.req.DeleteQuestionReqDto;
 import com.pairing.buds.domain.cs.dto.question.req.PatchQuestionReqDto;
 import com.pairing.buds.domain.cs.dto.question.res.GetQuestionResDto;
+import com.pairing.buds.domain.cs.entity.Answer;
 import com.pairing.buds.domain.cs.entity.Question;
+import com.pairing.buds.domain.cs.repository.AnswerRepository;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
@@ -17,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,31 +28,38 @@ public class QuestionService {
 
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
 
     /** 문의 조회 **/
     public GetQuestionResDto getQuestion(int userId) {
 
         log.info("userId : {}", userId);
 
-//        User user = questionRepository.findByUser(userId).orElseThrow( () -> new RuntimeException(Common.toString(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND)));
+        List<Question> questions = questionRepository.findByUser_id(userId);
 
-//        return GetQuestionResDto.toDto(question);
     return null;
     }
 
     /** 문의 생성 **/
     public void createQuestion(int userId, @Valid CreateQuestionReqDto dto) {
-
+        // 변수
         String subject = dto.getSubject();
         String content = dto.getContent();
         log.info("userId : {}, subject : {}, content : {}", userId, subject, content);
-
+        // 유저 조회
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        // 임시 답변 생성
+        Answer answer = new Answer();
+        answer.setContent("문의를 확인 중입니다..");
+        answer.setUser(user);
+        // 질문 생성
         Question newQuestion = new Question();
         newQuestion.setUser(user);
         newQuestion.setSubject(subject);
         newQuestion.setContent(content);
-
+        newQuestion.setAnswer(answer);
+        // 저장
+        answerRepository.save(answer);
         Question createdQuestion = questionRepository.save(newQuestion);
         log.info("createdQuestion.id : {}", createdQuestion.getId());
         log.info("문의 생성 완료");

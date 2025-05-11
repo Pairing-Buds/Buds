@@ -29,6 +29,10 @@ public class Question extends CUBaseTime {
     @Column(name = "content", nullable = false)
     private String content;
 
+    @OneToOne
+    @JoinColumn(name = "answer_id")
+    private Answer answer;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @ColumnDefault("'UNANSWERED'")
