@@ -2,7 +2,9 @@ import 'api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:buds/constants/api_constants.dart';
-import 'package:buds/models/letter_model.dart';
+import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/models/letter_detail_model.dart';
+import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/models/letter_response_model.dart';
 
 class LetterService {
@@ -29,6 +31,68 @@ class LetterService {
     } catch (e) {
       if (kDebugMode) {
         print('fetchLetters 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// 특정 사용자와 주고 받은 편지
+  Future<List<LetterDetailModel>> fetchLetterDetails({
+    required int opponentId,
+    required int page,
+    required int size,
+  }) async {
+    try {
+      final response = await _apiService.get(
+        ApiConstants.letterDetailUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        queryParameters: {
+          'opponentId': opponentId,
+          'page': page,
+          'size': size,
+        },
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
+          final letters  = data['resMsg']['letters'] as List<dynamic>;
+          return letters.map((json) => LetterDetailModel.fromJson(json)).toList();
+        } else {
+          throw Exception('응답 형식 오류');
+        }
+      } else {
+        throw Exception('편지 상세 요청 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('fetchLetterDetails 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// 편지 디테일 조회
+  Future<LetterContentModel> fetchSingleLetter(int letterId) async {
+    try {
+      final response = await _apiService.get(
+        '${ApiConstants.letterSingleUrl.replaceFirst(ApiConstants.baseUrl, '')}/$letterId',
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
+          return LetterContentModel.fromJson(data['resMsg']);
+        } else {
+          throw Exception('응답 형식 오류');
+        }
+      } else {
+        throw Exception('싱글 편지 요청 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('fetchSingleLetter 오류: $e');
       }
       rethrow;
     }

@@ -1,9 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
+import 'package:buds/services/letter_service.dart';
+import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
-class LetterSendScreen extends StatelessWidget {
-  const LetterSendScreen({Key? key}) : super(key: key);
+class LetterSendScreen extends StatefulWidget {
+  final int letterId;
+
+  const LetterSendScreen({
+    Key? key,
+    required this.letterId,
+  }) : super(key: key);
+
+  @override
+  _LetterSendScreenState createState() => _LetterSendScreenState();
+}
+
+class _LetterSendScreenState extends State<LetterSendScreen> {
+  LetterContentModel? _letterDetail;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLetterContent();
+  }
+
+  /// ✅ 편지 내용 조회
+  Future<void> fetchLetterContent() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final detail = await LetterService().fetchSingleLetter(widget.letterId);
+      setState(() {
+        _letterDetail = detail;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('편지 내용을 불러올 수 없습니다: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +58,11 @@ class LetterSendScreen extends StatelessWidget {
         centerTitle: true,
         showBackButton: true,
       ),
-      body: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _letterDetail == null
+          ? const Center(child: Text('편지 내용을 불러올 수 없습니다.'))
+          : Column(
         children: [
           // 상단 탭
           Padding(
@@ -56,16 +103,16 @@ class LetterSendScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. 보낸 유저명, 노란색 발신 아이콘
+                    // 1. 수신자 정보
                     Row(
                       children: [
                         const Expanded(child: SizedBox()), // 왼쪽 빈 공간
-                        const Expanded(
+                        Expanded(
                           flex: 5,
                           child: Center(
                             child: Text(
-                              '용감한 너구리에게',
-                              style: TextStyle(fontSize: 16),
+                              'To: ${_letterDetail?.receiverName ?? '알 수 없음'}',
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                         ),
@@ -84,81 +131,69 @@ class LetterSendScreen extends StatelessWidget {
 
                     // 2. 날짜
                     const SizedBox(height: 10),
-                    const Align(
+                    Align(
                       alignment: Alignment.bottomLeft,
                       child: Text(
-                        '2025.04.21', //yyyy.mm.dd 형식
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                        '작성일: ${_letterDetail?.createdAt ?? '알 수 없음'}',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                     ),
                     const SizedBox(height: 20),
 
-                    // 3. 편지 내용 : 스크롤 기능 존재
-                    Center(
-                      child: SizedBox(
-                        height: 120, // 텍스트 영역의 최대 높이
-                        child: SingleChildScrollView(
-                          child: const Text(
-                            '안녕하세요 카피바라입니다. 반가워요.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14),
-                          ),
+                    // 3. 편지 내용 : 스크롤 가능
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _letterDetail?.content ?? '내용이 없습니다.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
 
-                    // 4. 발신자 정보
-                    const Spacer(),
-                    const Align(
+                    // 4. 송신자 정보
+                    const SizedBox(height: 18),
+                    Align(
                       alignment: Alignment.bottomRight,
-                      child: Text('사랑스러운 카피바라가', style: TextStyle(fontSize: 16)),
+                      child: Text(
+                        'From: ${_letterDetail?.senderName ?? '알 수 없음'}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
                     ),
                     const SizedBox(height: 12),
-
-                    // 5. 전송버튼
-                    Center(
-                      child: Container(
-                        width: 140,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '편지보내기',
-                            style: TextStyle(color: Colors.black, fontSize: 16),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 페이지네이션
+          // 전송 버튼
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.arrow_left, size: 32),
-                SizedBox(width: 8),
-                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
-                SizedBox(width: 4),
-                CircleAvatar(radius: 6, backgroundColor: Colors.brown),
-                SizedBox(width: 4),
-                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_right, size: 32),
-              ],
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                minimumSize: const Size(140, 44),
+              ),
+              onPressed: _sendLetter,
+              child: const Text(
+                '편지보내기',
+                style: TextStyle(color: Colors.black, fontSize: 16),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// ✅ 편지 전송 로직 (추가 가능)
+  void _sendLetter() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('편지를 성공적으로 보냈습니다.')),
     );
   }
 }
