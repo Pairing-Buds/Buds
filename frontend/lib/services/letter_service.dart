@@ -76,8 +76,7 @@ class LetterService {
   Future<LetterContentModel> fetchSingleLetter(int letterId) async {
     try {
       final response = await _apiService.get(
-        ApiConstants.letterSingleUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        queryParameters: {'letterId': letterId},
+        '${ApiConstants.letterSingleUrl.replaceFirst(ApiConstants.baseUrl, '')}/$letterId',
       );
 
       if (response is Response && response.statusCode == 200) {

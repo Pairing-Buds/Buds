@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:buds/models/letter_detail_model.dart';
 import 'package:buds/services/letter_service.dart';
-import 'package:buds/screens/letter/letter_reply_screen2.dart';
+import 'package:buds/screens/letter/letter_reply_screen.dart';
 import 'package:buds/screens/letter/letter_send_screen.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
@@ -93,7 +93,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LetterReplyScreen2(
+                  builder: (context) => LetterReplyScreen(
                     letterId: letter.letterId,
                   ),
                 ),

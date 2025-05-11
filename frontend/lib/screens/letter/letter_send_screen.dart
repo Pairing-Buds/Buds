@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/models/letter_content_model.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterSendScreen extends StatefulWidget {
-  final int letterId; // letterId만 전달
+  final int letterId;
 
   const LetterSendScreen({
     Key? key,
@@ -13,7 +13,7 @@ class LetterSendScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<LetterSendScreen> createState() => _LetterSendScreenState();
+  _LetterSendScreenState createState() => _LetterSendScreenState();
 }
 
 class _LetterSendScreenState extends State<LetterSendScreen> {
@@ -23,28 +23,29 @@ class _LetterSendScreenState extends State<LetterSendScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchLetterDetail();
+    fetchLetterContent();
   }
 
-  /// ✅ 편지 내용 조회 API (나중에 API 연결)
-  Future<void> _fetchLetterDetail() async {
+  /// ✅ 편지 내용 조회
+  Future<void> fetchLetterContent() async {
     setState(() {
       _isLoading = true;
     });
 
-    // ✅ 더미 데이터 (나중에 API 연결 시 변경)
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {
-      _letterDetail = LetterContentModel(
-        letterId: widget.letterId,
-        senderName: "당신", // 보내는 사람 (내가 보낸 편지)
-        receiverName: "익명의 사용자", // 받는 사람
-        content: "안녕하세요 카피바라입니다. 반가워요.",
-        status: "SENT",
-        createdAt: "2025-04-21", // yyyy.MM.dd 형식
+    try {
+      final detail = await LetterService().fetchSingleLetter(widget.letterId);
+      setState(() {
+        _letterDetail = detail;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('편지 내용을 불러올 수 없습니다: $e')),
       );
-      _isLoading = false;
-    });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -52,7 +53,7 @@ class _LetterSendScreenState extends State<LetterSendScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
-        title: '보낸 편지',
+        title: '편지함',
         leftIconPath: 'assets/icons/bottle_icon.png',
         centerTitle: true,
         showBackButton: true,
@@ -67,15 +68,15 @@ class _LetterSendScreenState extends State<LetterSendScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: Row(
-              children: [
+              children: const [
                 Text(
-                  '보낸 편지',
-                  style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  '보낼 편지',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                const Spacer(),
+                Spacer(),
                 Text(
-                  '편지 ID: ${_letterDetail!.letterId}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  'n번째 편지',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ],
             ),
@@ -102,59 +103,97 @@ class _LetterSendScreenState extends State<LetterSendScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 발신자와 수신자 정보
-                    Text(
-                      'From: ${_letterDetail!.senderName}',
-                      style: const TextStyle(fontSize: 16),
+                    // 1. 수신자 정보
+                    Row(
+                      children: [
+                        const Expanded(child: SizedBox()), // 왼쪽 빈 공간
+                        Expanded(
+                          flex: 5,
+                          child: Center(
+                            child: Text(
+                              'To: ${_letterDetail?.receiverName ?? '알 수 없음'}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Image.asset(
+                              'assets/icons/letter/send.png',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'To: ${_letterDetail!.receiverName}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
+
+                    // 2. 날짜
                     const SizedBox(height: 10),
-                    Text(
-                      'Date: ${_letterDetail!.createdAt}',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Text(
+                        '작성일: ${_letterDetail?.createdAt ?? '알 수 없음'}',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
                     ),
                     const SizedBox(height: 20),
 
-                    // 편지 내용
+                    // 3. 편지 내용 : 스크롤 가능
                     Expanded(
                       child: SingleChildScrollView(
                         child: Text(
-                          _letterDetail!.content,
+                          _letterDetail?.content ?? '내용이 없습니다.',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 14),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
                     ),
+
+                    // 4. 송신자 정보
+                    const SizedBox(height: 18),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text(
+                        'From: ${_letterDetail?.senderName ?? '알 수 없음'}',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 페이지네이션 (비활성)
+          // 전송 버튼
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.arrow_left, size: 32, color: Colors.grey),
-                SizedBox(width: 8),
-                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
-                SizedBox(width: 4),
-                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
-                SizedBox(width: 4),
-                CircleAvatar(radius: 6, backgroundColor: Colors.grey),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_right, size: 32, color: Colors.grey),
-              ],
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                minimumSize: const Size(140, 44),
+              ),
+              onPressed: _sendLetter,
+              child: const Text(
+                '편지보내기',
+                style: TextStyle(color: Colors.black, fontSize: 16),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// ✅ 편지 전송 로직 (추가 가능)
+  void _sendLetter() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('편지를 성공적으로 보냈습니다.')),
     );
   }
 }
