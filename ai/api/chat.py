@@ -14,12 +14,13 @@ router = APIRouter()
 
 class MessageRequest(BaseModel):
     message: str
-    is_voice_origin: bool = False  # 메시지가 원래 음성에서 STT로 변환되었는지 여부
+    is_voice: bool = False
 
 
 class MessageResponse(BaseModel):
     message: str
     created_at: datetime
+    remaining_messages: int  # 남은 메시지 수 추가
 
 
 class ChatHistoryRequest(BaseModel):
@@ -35,9 +36,6 @@ async def send_message(
     사용자가 메시지를 보내는 API
     텍스트 메시지를 처리하며, 사용자 프로필과 컨텍스트를 활용하여
     개인화된 응답을 생성합니다.
-
-    Flutter에서 STT로 처리된 음성 메시지도 텍스트로 받아 처리하고,
-    원본이 음성인지 여부를 메타데이터로 기록합니다.
     """
 
     try:
@@ -49,12 +47,24 @@ async def send_message(
 
         now = datetime.now()
         logging.info(f"사용자 {user_id}로부터 메시지 수신: {request.message[:20]}...")
-        logging.info(f"음성 기원 메시지: {request.is_voice_origin}")
+        logging.info(f"음성 기원 메시지: {request.is_voice}")
+
+        # 메시지 카운트 가져오기 - 필요한 경우 데이터베이스에서 오늘의 메시지 수 조회
+        today = now.strftime('%Y-%m-%d')
+        message_count = chroma_db.get_daily_message_count(user_id, today)
+
+        # 일일 제한 확인
+        if message_count >= 100:
+            raise HTTPException(
+                status_code=429,
+                detail="오늘의 메시지 한도(100)에 도달했습니다. 내일 다시 대화해주세요."
+            )
 
         # 텍스트 메시지 처리 - 비동기 방식으로 개인화된 응답 생성
         response_message = await chatbot.get_response(
             user_id,
-            request.message
+            request.message,
+            message_count=message_count
         )
 
         # 메시지 저장 (음성 원본 여부 표시)
@@ -62,13 +72,17 @@ async def send_message(
             user_id,
             request.message,
             response_message,
-            is_voice=request.is_voice_origin
+            is_voice=request.is_voice
         )
+
+        # 남은 메시지 수 계산
+        remaining_messages = 100 - (message_count + 1)
 
         # 응답 반환
         return MessageResponse(
             message=response_message,
-            created_at=datetime.now()
+            created_at=datetime.now(),
+            remaining_messages=remaining_messages
         )
 
     except ValueError as e:
@@ -118,7 +132,7 @@ async def get_chat_history(
                 "message_id": message_id,
                 "message": doc,
                 "is_user": metadata["type"] == "user",
-                "is_voice_origin": is_voice,  # 메시지가 원래 음성이었는지 여부
+                "is_voice": is_voice,  # 메시지가 원래 음성이었는지 여부
                 "created_at": created_at
             }
 
@@ -141,7 +155,7 @@ async def get_chat_history(
         logging.info(f"정렬된 채팅 기록: {len(messages)}개 메시지")
         for i, msg in enumerate(messages[:5]):  # 처음 5개 메시지만 로깅
             logging.info(
-                f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}, 음성원본={msg['is_voice_origin']}")
+                f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}, 음성원본={msg['is_voice']}")
 
         return messages
 
