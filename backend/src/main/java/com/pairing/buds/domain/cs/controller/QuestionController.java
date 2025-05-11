@@ -19,7 +19,7 @@ public class QuestionController {
 
     private final QuestionService questionService;
 
-    /** 문의 조회 **/
+    /** 해당 유저의 문의 조회 **/
     @GetMapping("")
     public ResponseDto getQuestion(
             @AuthenticationPrincipal int userId
