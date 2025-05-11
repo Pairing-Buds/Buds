@@ -334,18 +334,15 @@ public class ActivityService {
         // 활성화된 사용자만
         // 10개만 수집
         // 랜덤은 parallel 메소드로 순서 보장 하지 않음
-        Set<UserDto> responseDto = FindFriendByTagResDto.toDto(recommendedUsers); // Set<User> users
-        return responseDto;
+        return FindFriendByTagResDto.toDto(recommendedUsers);
     }
 
     /** 명언 랜덤 조회 **/
     public GetQuoteByRandomResDto getQuoteByRandom(int userId) {
         // 명언 랜덤 조회
         Quote quote = activityRepository.getQuoteByRandom().orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.QUOTE_NOT_FOUND));
-        // dto 빌드
-        GetQuoteByRandomResDto responseDto = GetQuoteByRandomResDto.toDto(quote);
         // 응답
-        return responseDto;
+        return GetQuoteByRandomResDto.toDto(quote);
     }
 
 
