@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from prometheus_fastapi_instrumentator import Instrumentator
+from api.diary import start_scheduler, shutdown_scheduler
 
 # 현재 디렉토리를 Python 패스에 추가
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -34,13 +35,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 일기 생성 스케줄러 임포트
+from  api.diary import start_scheduler, shutdown_scheduler
+
+# 앱 시작 및 종료 이벤트 핸들러
+@app.on_event("startup")
+async def startup_event():
+    """앱 시작 시 실행되는 이벤트 핸들러"""
+    # 일기 생성 스케줄러 시작
+    start_scheduler()
+    logging.info("앱이 시작되었으며 일기 생성 스케줄러가 활성화되었습니다")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """앱 종료 시 실행되는 이벤트 핸들러"""
+    # 일기 생성 스케줄러 종료
+    shutdown_scheduler()
+    logging.info("앱이 종료되며 일기 생성 스케줄러가 비활성화되었습니다")
+
 # 라우터 및 WebSocket 설정
 from api.chat import router as chat_router
 from api.websocket import websocket_endpoint
-from api.diary import router as diary_router
 
 app.include_router(chat_router)
-app.include_router(diary_router)
 
 # Prometheus 메트릭 설정
 Instrumentator().instrument(app).expose(app)
@@ -59,6 +76,15 @@ def read_root():
         "status": "active",
         "connections": len(connection_manager.active_connections)
     }
+
+# 수동으로 일기 생성을 트리거하는 엔드포인트 (개발 및 테스트용)
+@app.post("/admin/generate-diaries")
+async def trigger_diary_generation():
+    """수동으로 일기 생성을 트리거하는 관리자 엔드포인트"""
+    from api.diary import manual_generate_diaries
+    await manual_generate_diaries()
+    return {"status": "success", "message": "일기 생성이 수동으로 트리거되었습니다"}
+
 
 if __name__ == "__main__":
     import uvicorn
