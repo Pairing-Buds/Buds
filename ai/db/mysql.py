@@ -9,11 +9,11 @@ class MySQLDB:
         try:
             # 환경 변수에서 데이터베이스 접속 정보 가져오기
             self.connection = mysql.connector.connect(
-                host=os.getenv("DB_HOST", "k12c105.p.ssafy.io"),
-                port=os.getenv("DB_PORT", "3306"),
-                user=os.getenv("DB_USER", "Pairing"),
-                password=os.getenv("DB_PASSWORD", "ssafyC105PairingBuds"),
-                database=os.getenv("DB_NAME", "Buds")
+                host=os.getenv("MYSQL_HOST"),
+                port=os.getenv("MYSQL_PORT"),
+                user=os.getenv("MYSQL_USERNAME"),
+                password=os.getenv("MYSQL_ROOT_PASSWORD"),
+                database=os.getenv("MYSQL_DATABASE")
             )
 
             if self.connection.is_connected():
