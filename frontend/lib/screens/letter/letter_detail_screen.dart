@@ -33,9 +33,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
   Future<void> fetchLetters() async {
     if (isLoading) return;
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
     try {
       final response = await LetterService().fetchLetterDetails(
@@ -48,14 +46,12 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         letters = response;
         totalPages = (response.length == 5) ? currentPage + 2 : currentPage + 1;
       });
-    } catch (e) {
+    } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('편지를 불러오는데 실패했습니다: $e')),
+        const SnackBar(content: Text('편지를 불러오는데 실패했습니다.')),
       );
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -69,9 +65,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         centerTitle: true,
         showBackButton: true,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : buildLetterList(),
+      body: isLoading ? const Center(child: CircularProgressIndicator()) : buildLetterList(),
     );
   }
 
@@ -80,36 +74,18 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
       itemCount: letters.length,
       itemBuilder: (context, index) {
         final letter = letters[index];
-        print("✅ Letter ID (from list): ${letter.letterId}");
 
         return ListTile(
-          title: Text(
-            letter.status == "READ" ? "읽은 편지" : "읽지 않은 편지",
-          ),
+          title: Text(letter.status == "READ" ? "읽은 편지" : "읽지 않은 편지"),
           subtitle: Text(letter.createdAt),
-          onTap: () {
-            if (letter.received) {
-              print("✅ Navigating to ReplyScreen2 with letterId: ${letter.letterId}");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LetterReplyScreen(
-                    letterId: letter.letterId,
-                  ),
-                ),
-              );
-            } else {
-              print("✅ Navigating to SendScreen with letterId: ${letter.letterId}");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LetterSendScreen(
-                    letterId: letter.letterId,
-                  ),
-                ),
-              );
-            }
-          },
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => letter.received
+                  ? LetterReplyScreen(letterId: letter.letterId)
+                  : LetterSendScreen(letterId: letter.letterId),
+            ),
+          ),
         );
       },
     );
