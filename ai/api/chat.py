@@ -8,11 +8,14 @@ from core.chatbot import chatbot
 import logging
 
 from core.jwt_auth import get_user_id_from_token
+
 router = APIRouter()
+
 
 class MessageRequest(BaseModel):
     message: str
-    is_voice: bool = False
+    is_voice_origin: bool = False  # 메시지가 원래 음성에서 STT로 변환되었는지 여부
+
 
 class MessageResponse(BaseModel):
     message: str
@@ -30,10 +33,13 @@ async def send_message(
 ):
     """
     사용자가 메시지를 보내는 API
-    텍스트와 음성 메시지를 모두 처리하며, 사용자 프로필과 컨텍스트를 활용하여
+    텍스트 메시지를 처리하며, 사용자 프로필과 컨텍스트를 활용하여
     개인화된 응답을 생성합니다.
+
+    Flutter에서 STT로 처리된 음성 메시지도 텍스트로 받아 처리하고,
+    원본이 음성인지 여부를 메타데이터로 기록합니다.
     """
-    
+
     try:
         # 사용자 인증 확인
         try:
@@ -43,44 +49,26 @@ async def send_message(
 
         now = datetime.now()
         logging.info(f"사용자 {user_id}로부터 메시지 수신: {request.message[:20]}...")
+        logging.info(f"음성 기원 메시지: {request.is_voice_origin}")
 
-        response_message = ""
+        # 텍스트 메시지 처리 - 비동기 방식으로 개인화된 응답 생성
+        response_message = await chatbot.get_response(
+            user_id,
+            request.message
+        )
 
-        # 음성 메시지 처리
-        if request.is_voice:
-            voice_result = chatbot.generate_voice_response(request.message, user_id)
-
-            if voice_result["success"]:
-                # 음성에서 텍스트로 변환된 메시지로 chatbot.get_response 호출
-                transcribed_text = voice_result["transcribed_text"]
-                logging.info(f"음성을 텍스트로 변환: {transcribed_text[:20]}...")
-
-                # 비동기 방식으로 개인화된 응답 생성
-                response_message = await chatbot.get_response(
-                    user_id,
-                    transcribed_text
-                )
-
-                # 음성 메시지임을 표시하여 저장
-                chroma_db.save_conversation(user_id, transcribed_text, response_message, is_voice=True)
-            else:
-                # 음성 인식 실패 시 기본 오류 메시지 반환
-                response_message = voice_result["response"]
-        else:
-            # 텍스트 메시지 - 비동기 방식으로 개인화된 응답 생성
-            response_message = await chatbot.get_response(
-                user_id,
-                request.message
-            )
-
-            # 텍스트 메시지 저장
-            chroma_db.save_conversation(user_id, request.message, response_message, is_voice=False)
+        # 메시지 저장 (음성 원본 여부 표시)
+        chroma_db.save_conversation(
+            user_id,
+            request.message,
+            response_message,
+            is_voice=request.is_voice_origin
+        )
 
         # 응답 반환
         return MessageResponse(
             message=response_message,
-            created_at=datetime.now(),
-            success=True
+            created_at=datetime.now()
         )
 
     except ValueError as e:
@@ -126,20 +114,13 @@ async def get_chat_history(
             # 음성 메시지 여부 확인
             is_voice = metadata.get("is_voice", False)
 
-            # 원본 음성 텍스트 (있는 경우)
-            original_voice_text = metadata.get("original_voice_text", None)
-
             message_data = {
                 "message_id": message_id,
                 "message": doc,
                 "is_user": metadata["type"] == "user",
-                "is_voice": is_voice,
+                "is_voice_origin": is_voice,  # 메시지가 원래 음성이었는지 여부
                 "created_at": created_at
             }
-
-            # 원본 음성 텍스트가 있는 경우 추가
-            if original_voice_text:
-                message_data["original_voice_text"] = original_voice_text
 
             messages.append(message_data)
 
@@ -159,7 +140,8 @@ async def get_chat_history(
         # 대화 순서 로깅 (디버깅용)
         logging.info(f"정렬된 채팅 기록: {len(messages)}개 메시지")
         for i, msg in enumerate(messages[:5]):  # 처음 5개 메시지만 로깅
-            logging.info(f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}")
+            logging.info(
+                f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}, 음성원본={msg['is_voice_origin']}")
 
         return messages
 
