@@ -36,6 +36,12 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
+
+    /** 문의 조회 **/
+    public GetQuestionsResDto getQuestionsOfUser(int userId) {
+        List<Question> questions = questionRepository.findByUser_id(userId);
+        return GetQuestionsResDto.toGetQuestionsResDto(questions);
+    }
     
     /** 문의 목록 조회 **/
     public List<GetAnsweredQuestionListReqDto> getAnsweredQuestionList(int adminId) {
