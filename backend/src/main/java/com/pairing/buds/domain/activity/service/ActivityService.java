@@ -76,16 +76,11 @@ public class ActivityService {
     /** 기상 시간 인증 **/
     @Transactional
     public void wakeVerify(int userId) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime start = today.atStartOfDay();
-        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+
         // 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        // 검증
-        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, ActivityType.WAKE, start, end)){
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
-        }
+
         user.setLetterCnt(user.getLetterCnt() + 3);
         // 활동, 유저 활동 생성
         Activity activity = WakeVerifyReqDto.toActivity(user);
@@ -94,6 +89,15 @@ public class ActivityService {
         userActivity.setActivity(activity);
         userActivity.setStatus(UserActivityStatus.DONE);
         userActivity.setProof("인증 완료");
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+        // 검증
+        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, ActivityType.WAKE, start, end)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
+        }
+
         // 뱃지 생성
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
@@ -125,10 +129,20 @@ public class ActivityService {
         if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
+
+
         Activity activity = new Activity();
         activity.setName(ActivityType.VOICE_TEXT);
         activity.setDescription("사용자 음성 텍스트 활동 인증");
         activity.setBonusLetter(3);
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+        // 검증
+        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, activity.getName(), start, end)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
+        }
 
         Activity createdActivity = activityRepository.save(activity);
 
@@ -207,6 +221,9 @@ public class ActivityService {
         if(userStepSet > userRealStep){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
+
+
+
         // 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
@@ -219,6 +236,15 @@ public class ActivityService {
                 .status(UserActivityStatus.DONE)
                 .proof("인증 완료")
                 .build();
+        // 검증
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+        // 검증
+        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, activity.getName(), start, end)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
+        }
+        
         // 뱃지 생성
         Badge badge = new Badge();
         badge.setBadgeType(RecordType.ACTIVE);
@@ -299,12 +325,20 @@ public class ActivityService {
     public void visitRecommendedPlaceReward(int userId) {
         // 변수
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        
+
         // 활동
         Activity activity = new Activity();
         activity.setName(ActivityType.VISIT_PLACE);
         activity.setDescription("추천 장소 방문 활동");
         activity.setBonusLetter(3);
+
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end   = today.plusDays(1).atStartOfDay();
+        // 검증
+        if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, activity.getName(), start, end)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
+        }
         
         // 유저 활동
         UserActivity userActivity = new UserActivity();
@@ -334,18 +368,15 @@ public class ActivityService {
         // 활성화된 사용자만
         // 10개만 수집
         // 랜덤은 parallel 메소드로 순서 보장 하지 않음
-        Set<UserDto> responseDto = FindFriendByTagResDto.toDto(recommendedUsers); // Set<User> users
-        return responseDto;
+        return FindFriendByTagResDto.toDto(recommendedUsers);
     }
 
     /** 명언 랜덤 조회 **/
     public GetQuoteByRandomResDto getQuoteByRandom(int userId) {
         // 명언 랜덤 조회
         Quote quote = activityRepository.getQuoteByRandom().orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.QUOTE_NOT_FOUND));
-        // dto 빌드
-        GetQuoteByRandomResDto responseDto = GetQuoteByRandomResDto.toDto(quote);
         // 응답
-        return responseDto;
+        return GetQuoteByRandomResDto.toDto(quote);
     }
 
 
