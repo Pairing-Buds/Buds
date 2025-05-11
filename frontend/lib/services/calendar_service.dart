@@ -21,7 +21,6 @@ class CalendarService {
     for (var item in resMsg) {
       final day = DateTime.parse(item['date']).day;
 
-      // badge가 null이면 스킵
       if (item['badge'] == null) continue;
 
       final badgeName = item['badge'] as String;

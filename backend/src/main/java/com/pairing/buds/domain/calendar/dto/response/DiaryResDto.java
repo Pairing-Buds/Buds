@@ -8,8 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class DiaryResDto {
-    private String diaryType;
-    private String content;
-    private String date;
+    private Integer diaryNo;
+    private String emotionDiary;
+    private String activeDiary;
 
 }

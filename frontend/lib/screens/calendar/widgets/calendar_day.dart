@@ -1,4 +1,3 @@
-// calendar_day.dart
 import 'package:flutter/material.dart';
 import 'package:buds/screens/diary/diary_list_screen.dart';
 import 'package:buds/config/theme.dart';

@@ -4,27 +4,37 @@ import '../../../config/theme.dart';
 class DiaryCard extends StatelessWidget {
   final DateTime date;
   final List<String> badgeIcons;
-  final String emotionContent;
-  final String activityContent;
   final bool showEditButton;
   final bool showRecordButton;
   final bool hasShadow;
   final VoidCallback? onEditPressed;
+  final VoidCallback? onRecordPressed;
+
+  // 값 기반 표시용
+  final String? emotionContent;
+  final String? activityContent;
+
+  // 입력 기반 (작성/수정용)
   final ValueChanged<String>? onEmotionChanged;
   final ValueChanged<String>? onActivityChanged;
+  final TextEditingController? emotionController;
+  final TextEditingController? activityController;
 
   const DiaryCard({
     Key? key,
     required this.date,
     required this.badgeIcons,
-    required this.emotionContent,
-    required this.activityContent,
     this.showEditButton = false,
     this.showRecordButton = false,
     this.hasShadow = false,
     this.onEditPressed,
+    this.onRecordPressed,
+    this.emotionContent,
+    this.activityContent,
     this.onEmotionChanged,
     this.onActivityChanged,
+    this.emotionController,
+    this.activityController,
   }) : super(key: key);
 
   @override
@@ -52,7 +62,7 @@ class DiaryCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, size: 28, color: Colors.grey),
+                  icon: const Icon(Icons.more_vert, size: 24, color: Colors.grey),
                   onPressed: onEditPressed,
                 ),
               ],
@@ -73,60 +83,81 @@ class DiaryCard extends StatelessWidget {
               style: TextStyle(color: Colors.grey[400], fontSize: 13),
             ),
           ),
+
           const SizedBox(height: 40),
           _buildLabel('감정일기'),
           const SizedBox(height: 12),
-          onEmotionChanged != null
-              ? TextField(
-            onChanged: onEmotionChanged,
-            maxLines: 4,
-            decoration: _inputDecoration('오늘의 감정을 입력해주세요'),
-            controller: TextEditingController(text: emotionContent),
-          )
-              : Text(
-            emotionContent,
-            style: const TextStyle(fontSize: 14, height: 1.6),
-          ),
+          _buildEmotionField(),
+
           const SizedBox(height: 24),
           _DashedLine(),
           const SizedBox(height: 24),
+
           _buildLabel('활동일기'),
           const SizedBox(height: 12),
-          onActivityChanged != null
-              ? TextField(
-            onChanged: onActivityChanged,
-            maxLines: 4,
-            decoration: _inputDecoration('오늘의 활동을 입력해주세요'),
-            controller: TextEditingController(text: activityContent),
-          )
-              : Text(
-            activityContent,
-            style: const TextStyle(fontSize: 14, height: 1.6),
-          ),
+          _buildActivityField(),
+
           if (showRecordButton) ...[
             const SizedBox(height: 40),
             Center(
               child: SizedBox(
                 width: 240,
                 child: ElevatedButton(
-                  onPressed: () {}, // 외부에서 처리
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: const Text('기록하기',
-                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                  onPressed: onRecordPressed,
+                  child: const Text('수정하기'),
                 ),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildEmotionField() {
+    if (emotionController != null) {
+      return TextField(
+        controller: emotionController,
+        maxLines: 4,
+        decoration: _inputDecoration('오늘의 감정을 입력해주세요'),
+      );
+    } else if (onEmotionChanged != null) {
+      return TextField(
+        onChanged: onEmotionChanged,
+        maxLines: 4,
+        decoration: _inputDecoration('오늘의 감정을 입력해주세요'),
+      );
+    } else if (emotionContent?.isNotEmpty == true) {
+      return Text(
+        emotionContent!,
+        style: const TextStyle(fontSize: 14, height: 1.6),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildActivityField() {
+    if (activityController != null) {
+      return TextField(
+        controller: activityController,
+        maxLines: 4,
+        decoration: _inputDecoration('오늘의 활동을 입력해주세요'),
+      );
+    } else if (onActivityChanged != null) {
+      return TextField(
+        onChanged: onActivityChanged,
+        maxLines: 4,
+        decoration: _inputDecoration('오늘의 활동을 입력해주세요'),
+      );
+    } else if (activityContent?.isNotEmpty == true) {
+      return Text(
+        activityContent!,
+        style: const TextStyle(fontSize: 14, height: 1.6),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
   static Widget _buildLabel(String text) {

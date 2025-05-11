@@ -15,8 +15,22 @@ class DiaryDetailScreen extends StatefulWidget {
 }
 
 class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
-  String emotionContent = '';
-  String activityContent = '';
+  late TextEditingController _emotionController;
+  late TextEditingController _activityController;
+
+  @override
+  void initState() {
+    super.initState();
+    _emotionController = TextEditingController();
+    _activityController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _emotionController.dispose();
+    _activityController.dispose();
+    super.dispose();
+  }
 
   void _showDeleteDialog() {
     showDialog(
@@ -38,7 +52,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
   }
 
   void _handleSave() async {
-    if (emotionContent.trim().isEmpty && activityContent.trim().isEmpty) {
+    if (_emotionController.text.trim().isEmpty && _activityController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('내용을 입력해주세요.')),
       );
@@ -46,8 +60,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
     }
 
     final diary = DiaryCreateRequest(
-      emotionDiary: emotionContent,
-      activeDiary: activityContent,
+      emotionDiary: _emotionController.text,
+      activeDiary: _activityController.text,
       date: widget.selectedDate.toIso8601String().split('T')[0],
     );
 
@@ -111,13 +125,11 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
               child: DiaryCard(
                 date: widget.selectedDate,
                 badgeIcons: const [],
-                emotionContent: emotionContent,
-                activityContent: activityContent,
                 showEditButton: false,
                 showRecordButton: false,
                 hasShadow: false,
-                onEmotionChanged: (text) => setState(() => emotionContent = text),
-                onActivityChanged: (text) => setState(() => activityContent = text),
+                emotionController: _emotionController,
+                activityController: _activityController,
               ),
             ),
             const SizedBox(height: 12),

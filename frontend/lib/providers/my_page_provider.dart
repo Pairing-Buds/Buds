@@ -19,7 +19,7 @@ class MyPageProvider extends ChangeNotifier {
   bool _isWakeUpTimeLoaded = false;
 
   MyPageProvider(this._characterProvider) {
-    _initializeStepCounter();
+    // _initializeStepCounter();
     _loadWakeUpTime();
     // 생성 직후 저장된 걸음 수 로드
     _loadSavedSteps();

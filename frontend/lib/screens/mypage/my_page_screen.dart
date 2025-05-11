@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'widgets/wake_up_section.dart';
 import 'widgets/step_section.dart';
 import 'package:buds/screens/mypage/withdraw_screen.dart';
+import 'package:buds/screens/customercenter/customer_center_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({Key? key}) : super(key: key);
@@ -170,9 +171,22 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       ),
                       child: Column(
                         children: [
-                          Text(
-                            '고객센터에 문의하기',
-                            style: TextStyle(fontSize: 25, color: Colors.grey),
+                          InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => const CustomerCenterScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '고객센터에 문의하기',
+                              style: TextStyle(
+                                fontSize: 25,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                           SizedBox(height: 24),
                           InkWell(
