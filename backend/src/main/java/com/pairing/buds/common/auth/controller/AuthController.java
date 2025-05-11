@@ -4,7 +4,6 @@ import com.pairing.buds.common.auth.dto.request.PasswordResetReqDto;
 import com.pairing.buds.common.auth.dto.request.UserCompleteReqDto;
 import com.pairing.buds.common.auth.dto.request.UserSignupReqDto;
 import com.pairing.buds.common.auth.service.AuthService;
-import com.pairing.buds.common.auth.utils.NicknameGenerator;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
@@ -24,7 +23,6 @@ public class AuthController {
     private final AuthService authService;
     private final EmailService emailService;
     private final VerificationService verificationService;
-    private final NicknameGenerator ng;
 
     /** 회원가입 이메일 인증 메일 요청 **/
     @PostMapping("/email/request")
@@ -51,8 +49,8 @@ public class AuthController {
 
     /** 중복 없는 닉네임 랜덤 제공 **/
     @GetMapping("/random-nickname")
-    public ResponseDto randomNickname() {
-        return new ResponseDto(StatusCode.OK, ng.generateName());
+    public ResponseDto getRandomName() {
+        return new ResponseDto(StatusCode.OK, authService.getAvailableRandomName());
     }
 
     /** 닉네임/캐릭터 저장 **/
