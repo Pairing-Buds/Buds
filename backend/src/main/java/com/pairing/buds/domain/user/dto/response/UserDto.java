@@ -1,5 +1,6 @@
 package com.pairing.buds.domain.user.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pairing.buds.domain.user.entity.SignupStatus;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.entity.UserCharacter;
@@ -23,7 +24,7 @@ public class UserDto {
 
     private String userEmail;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
     private UserRole role;
