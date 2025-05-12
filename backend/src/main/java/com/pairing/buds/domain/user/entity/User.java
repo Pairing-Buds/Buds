@@ -43,7 +43,7 @@ public class User extends CUBaseTime {
     @Column(name = "letter_cnt", nullable = false)
     private Integer letterCnt;
 
-    @Column(name = "user_name", nullable = false, unique = true)
+    @Column(name = "user_name", nullable = false)
     private String userName;
 
     @Enumerated(EnumType.STRING)

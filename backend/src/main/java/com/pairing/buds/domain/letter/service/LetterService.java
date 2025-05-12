@@ -172,11 +172,11 @@ public class LetterService {
     @Transactional
     /** 유저 지정 편지 작성 **/
     public void createLetterByUsername(int userId, CreateLetterByUsernameReqDto dto) {
-        String username = dto.getUsername();
+        int receiverId = dto.getReceiverId();
         String content = dto.getContent();
         // 발신, 수신자 조회
        User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-       User receiver = userRepository.findByUserName(username).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+       User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
        // 편지 빌드 및 저장
        Letter letter = new Letter();
        letter.setSender(sender);
