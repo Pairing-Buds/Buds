@@ -104,6 +104,7 @@ public class UserService {
         ).collect(Collectors.toSet());
         // 수정
         User userToUpdate = SaveSurveyResultReqDto.toUser(user, dto);
+
         userToUpdate.getTags().addAll(newTags);
         userRepository.save(userToUpdate);
     }
