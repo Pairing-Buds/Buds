@@ -6,19 +6,8 @@ services:
     container_name: spring
     ports:
       - "8080:8080"
-    environment:
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - MYSQL_HOST=${MYSQL_HOST}
-      - MYSQL_PORT=${MYSQL_PORT}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USERNAME=${MYSQL_USERNAME}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - KAKAO_API_KEY=${KAKAO_API_KEY}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    env_file:
+      - .env
     depends_on:
       mysql:
         condition: service_healthy
@@ -30,14 +19,8 @@ services:
     container_name: fastapi
     ports:
       - "8000:8000"
-    environment:
-      - MYSQL_HOST=${MYSQL_HOST}
-      - MYSQL_PORT=${MYSQL_PORT}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USERNAME=${MYSQL_USERNAME}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - .env
     depends_on:
       mysql:
         condition: service_healthy
@@ -46,12 +29,8 @@ services:
   mysql:
     image: mysql:8
     container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USERNAME}
+    env_file:
+      - .env
     ports:
       - "3306:3306"
     volumes:
@@ -89,143 +68,6 @@ services:
       - spring
       - fastapi
 
-  # Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    restart: unless-stopped
-
-  # Grafana
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-      - GF_USERS_ALLOW_SIGN_UP=false
-    restart: unless-stopped
-
-  # Node Exporter
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: node-exporter
-    restart: unless-stopped
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    ports:
-      - "9100:9100"
-
-  # cAdvisor
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    ports:
-      - "8082:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    restart: unless-stopped
-
-  # Alert Manager
-  alertmanager:
-    image: prom/alertmanager:latest
-    container_name: alertmanager
-    ports:
-      - "9093:9093"
-    volumes:
-      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-    restart: unless-stopped
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
-
-  # Elasticsearch
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    restart: unless-stopped
-
-  # Logstash
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.16.3
-    container_name: logstash
-    volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-    ports:
-      - "5044:5044"
-      - "5000:5000/tcp"
-      - "5000:5000/udp"
-      - "9600:9600"
-    environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-    depends_on:
-      - elasticsearch
-    restart: unless-stopped
-
-  # Kibana
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.16.3
-    container_name: kibana
-    ports:
-      - "5601:5601"
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-    depends_on:
-      - elasticsearch
-    restart: unless-stopped
-
-  # Filebeat
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:7.16.3
-    container_name: filebeat
-    user: root
-    volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - filebeat_data:/usr/share/filebeat/data
-    depends_on:
-      - elasticsearch
-      - logstash
-    restart: unless-stopped
 
 networks:
   default:
@@ -234,7 +76,3 @@ networks:
 volumes:
   mysql-data:
   redis-data:
-  prometheus_data:
-  grafana_data:
-  elasticsearch_data:
-  filebeat_data:

@@ -40,7 +40,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RedisService redisService;
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private final String[] publicPath = {"/login"};
+    private final String[] publicPath = {"/login","/auth/sign-up"};
 
     // 메소드
     public boolean isPublicPath(HttpServletRequest request){

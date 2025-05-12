@@ -9,7 +9,7 @@ import com.pairing.buds.domain.activity.dto.response.GetQuoteByRandomResDto;
 import com.pairing.buds.domain.activity.entity.*;
 import com.pairing.buds.domain.activity.repository.ActivityRepository;
 import com.pairing.buds.domain.activity.repository.QuoteRepository;
-import com.pairing.buds.domain.activity.repository.SleepRepository;
+import com.pairing.buds.domain.activity.repository.WakeRepository;
 import com.pairing.buds.domain.activity.repository.UserActivityRepository;
 import com.pairing.buds.domain.calendar.entity.*;
 import com.pairing.buds.domain.calendar.repository.BadgeRepository;
@@ -17,6 +17,7 @@ import com.pairing.buds.domain.calendar.repository.CalendarBadgeRepository;
 import com.pairing.buds.domain.calendar.repository.CalendarRepository;
 import com.pairing.buds.domain.user.dto.response.UserDto;
 import com.pairing.buds.domain.user.entity.Tag;
+import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class ActivityService {
 
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
-    private final SleepRepository sleepRepository;
+    private final WakeRepository wakeRepository;
     private final UserActivityRepository userActivityRepository;
     private final QuoteRepository quoteRepository;
     private final CalendarRepository calendarRepository;
@@ -47,18 +49,18 @@ public class ActivityService {
     /** 기상 시간 등록 **/
     @Transactional
     public void createWakeTime(int userId , @Valid CreateWakeTimeReqDto dto) {
-
         String wakeTime = dto.getWakeTime();
-
         // 유저 유무 조회
         User userToSave = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-
+        if(wakeRepository.existsByUser_id(userId)){
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ARGUMENT_NOT_PROPER);
+        }
         // 저장
         Wake newSleep = Wake.builder()
                 .user(userToSave)
                 .wakeTime(wakeTime)
                 .build();
-        sleepRepository.save(newSleep);
+        wakeRepository.save(newSleep);
     }
     /** 최초 페이지 방문 리워드 **/
     @Transactional
@@ -286,7 +288,7 @@ public class ActivityService {
 
         // user, sleep 유무 검증
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        Wake wakeToUpdate = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
+        Wake wakeToUpdate = wakeRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToUpdate = wakeToUpdate.getUser().getId();
 
@@ -297,7 +299,7 @@ public class ActivityService {
         
         // 저장
         wakeToUpdate.setWakeTime(wakeTime);
-        sleepRepository.save(wakeToUpdate);
+        wakeRepository.save(wakeToUpdate);
     }
     
     /** 기상 시간 삭제 **/
@@ -308,7 +310,7 @@ public class ActivityService {
 
         // exists...
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        Wake wakeToDelete = sleepRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
+        Wake wakeToDelete = wakeRepository.findById(wakeId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.SLEEP_NOT_FOUND));
 
         int userIdOfWakeToDelete = wakeToDelete.getUser().getId();
 
@@ -317,7 +319,7 @@ public class ActivityService {
         }
 
         // DB에 데이터 부재 시 OptimisticLockingFailureException 발생
-        sleepRepository.delete(wakeToDelete);
+        wakeRepository.delete(wakeToDelete);
     }
 
     /** 추천 장소 방문 리워드 **/
@@ -360,8 +362,9 @@ public class ActivityService {
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Set<Tag> userTags = user.getTags();
+        Set<TagType> userTagsType = userTags.stream().map(Tag::getTagName).collect(Collectors.toSet());
         // 취향 맞는 추천 친구 조회
-        Set<User> recommendedUsers = userRepository.findDistinctTop10ByIdNotAndIsActiveTrueAndTagsIn(userId, userTags);
+        Set<User> recommendedUsers = userRepository.findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(userId, userTagsType);
         // 사용자 태그 수집
         // 유저가 아닌 다른 사람만
         // IN으로 사용자 태그 리스트 안에 있는 것 수집

@@ -126,7 +126,7 @@ class _ShellScreenState extends State<ShellScreen> {
 
 // 홈 화면으로 리다이렉트 함수
   void _redirectToHome() {
-    Navigator.of(context).pushReplacementNamed('/home_screen');
+    Navigator.of(context).pushReplacementNamed('/main');
   }
 
   @override
@@ -170,7 +170,7 @@ class _ShellScreenState extends State<ShellScreen> {
                         const Text('오늘의 한마디', style: TextStyle(fontSize: 18)),
                         const SizedBox(height: 10),
                         Text(
-                          _quote?.sentence ?? '"명언을 불러오는 중..."',
+                          _quote?.sentence ?? '"명언 불러오는 중..."',
                           style: const TextStyle(fontSize: 14, color: Colors.black87),
                           textAlign: TextAlign.center,
                         ),
@@ -237,7 +237,7 @@ class _ShellScreenState extends State<ShellScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('편지지 선물🎁', style: TextStyle(color: Color(0xFF5D4037))),
+              child: const Text('편지지 받기', style: TextStyle(color: Color(0xFF5D4037))),
             ),
         ],
       ),
@@ -245,7 +245,7 @@ class _ShellScreenState extends State<ShellScreen> {
   }
 }
 
-// 🔹 Levenshtein 거리 (한국어 비교)
+// Levenshtein 거리 (한국어 비교)
 double similarity(String s1, String s2) {
   final dist = jamoLevenshtein(s1, s2);
   final maxLen = max(s1.length, s2.length);

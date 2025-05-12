@@ -102,4 +102,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("DELETE FROM Tag t WHERE t.user.id = :userId")
     void deleteTagsByUserId(@Param("userId") Integer userId);
 
+    Set<User> findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(int userId, Set<TagType> userTags);
+
 }

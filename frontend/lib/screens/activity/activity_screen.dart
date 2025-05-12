@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/activity/shell_screen.dart';
 import 'package:buds/screens/activity/widgets/book_recommendation.dart';
+// import 'package:buds/services/activity/widgets/user_recommendation.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class ActivityScreen extends StatelessWidget {
