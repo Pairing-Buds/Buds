@@ -12,7 +12,7 @@ class MySQLDB:
                 host=os.getenv("MYSQL_HOST"),
                 port=os.getenv("MYSQL_PORT"),
                 user=os.getenv("MYSQL_USERNAME"),
-                password=os.getenv("MYSQL_ROOT_PASSWORD"),
+                password=os.getenv("MYSQL_PASSWORD"),
                 database=os.getenv("MYSQL_DATABASE")
             )
 
@@ -35,7 +35,7 @@ class MySQLDB:
                     host=os.getenv("MYSQL_HOST"),
                     port=os.getenv("MYSQL_PORT"),
                     user=os.getenv("MYSQL_USERNAME"),
-                    password=os.getenv("MYSQL_ROOT_PASSWORD"),
+                    password=os.getenv("MYSQL_PASSWORD"),
                     database=os.getenv("MYSQL_DATABASE")
                 )
                 logging.info("MySQL 데이터베이스 재연결 성공")
