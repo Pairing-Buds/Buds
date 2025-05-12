@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/inquiry.dart';
+import '../../services/inquiry_service.dart';
 
 class InquiryChatScreen extends StatefulWidget {
   const InquiryChatScreen({Key? key}) : super(key: key);
@@ -19,14 +20,20 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
     _loadInquiries();
   }
 
-  void _loadInquiries() {
-    // TODO: API 호출로 변경
-    final mockResponse = {
-      "statusCode": "OK",
-      "resMsg": {"questions": []},
-    };
+  void _loadInquiries() async {
+    final inquiryService = DioInquiryService();
+    final response = await inquiryService.fetchInquiries();
+    
+    if (response == null) {
+      // 에러 처리
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('문의 내역을 불러오는데 실패했습니다.')),
+        );
+      }
+      return;
+    }
 
-    final response = InquiryResponse.fromJson(mockResponse);
     _inquiryResponse = response;
 
     final messages = <_ChatMessage>[];
@@ -79,7 +86,7 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
@@ -88,7 +95,18 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
       _messages.add(_ChatMessage(sender: 'user', content: text, date: now));
       _controller.clear();
     });
-    // TODO: 문의 생성 API 호출
+
+    final inquiryService = DioInquiryService();
+    final success = await inquiryService.createInquiry('문의', text);
+
+    if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('문의 전송에 실패했습니다.')),
+      );
+    } else {
+      // 문의 전송 성공 후 목록 새로고침
+      _loadInquiries();
+    }
   }
 
   @override

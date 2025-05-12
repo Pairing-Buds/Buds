@@ -38,4 +38,32 @@ class DioInquiryService {
       return null;
     }
   }
+
+  // 문의 생성
+  Future<bool> createInquiry(String subject, String content) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: {
+          'subject': subject,
+          'content': content,
+        },
+      );
+
+      if (kDebugMode) {
+        print('문의 생성 응답: ${response.data}');
+      }
+
+      if (response is Response && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('문의 생성 오류: $e');
+      }
+      return false;
+    }
+  }
 }

@@ -81,4 +81,5 @@ class ApiConstants {
 
   // 문의 관련 엔드포인트
   static String get inquiryListUrl => '$baseUrl/cs';
+  static String get inquiryCreateUrl => '$baseUrl/cs';
 }
