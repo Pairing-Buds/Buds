@@ -51,7 +51,7 @@ class DiaryScheduler:
 
             # 각 사용자에 대해 일기 생성
             for user in active_users:
-                user_id = user['id']
+                user_id = user['user_id']
 
                 try:
                     # 1. 사용자의 오늘 대화 내용 가져오기

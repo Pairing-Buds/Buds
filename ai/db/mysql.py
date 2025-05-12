@@ -89,7 +89,7 @@ class MySQLDB:
 
             # 이미 해당 날짜의 일기가 있는지 확인
             cursor.execute(
-                "SELECT id FROM diaries WHERE user_id = %s AND date = %s",
+                "SELECT diary_id FROM diaries WHERE user_id = %s AND date = %s",
                 (user_id, date)
             )
             existing_diary = cursor.fetchone()
@@ -97,13 +97,13 @@ class MySQLDB:
             if existing_diary:
                 # 기존 일기 업데이트
                 cursor.execute(
-                    "UPDATE diaries SET emotion_diary = %s, active_diary = %s, updated_at = NOW() WHERE id = %s",
+                    "UPDATE diaries SET emotion_diary = %s, active_diary = %s WHERE id = %s",
                     (emotion_diary, active_diary, existing_diary['id'])
                 )
             else:
                 # 새 일기 삽입
                 cursor.execute(
-                    "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at, updated_at) VALUES (%s, %s, %s, %s, NOW(), NOW())",
+                    "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at) VALUES (%s, %s, %s, %s, NOW())",
                     (user_id, date, emotion_diary, active_diary)
                 )
 
