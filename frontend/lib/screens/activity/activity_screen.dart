@@ -32,7 +32,7 @@ class ActivityScreen extends StatelessWidget {
               children: [
                 const ActivityBox(
                   imagePath: 'assets/icons/book_icon.png',
-                  label: '도서관\n가기',
+                  label: '도서관가기',
                   color: Color(0xFFE6F7FF),
                 ),
                 const ActivityBox(
@@ -48,8 +48,8 @@ class ActivityScreen extends StatelessWidget {
                     );
                   },
                   child: const ActivityBox(
-                    imagePath: 'assets/icons/rec_letter_icon.png',
-                    label: '필사 하기',
+                    imagePath: 'assets/icons/shell_icon.png',
+                    label: '필사하기',
                     color: Color(0xFFFFF8E6),
                   ),
                 ),

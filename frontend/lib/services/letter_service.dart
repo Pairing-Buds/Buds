@@ -8,7 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/models/letter_detail_model.dart';
-import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/models/letter_latest_model.dart';
 import 'package:buds/models/letter_response_model.dart';
 import 'api_service.dart';
 
@@ -98,6 +98,33 @@ class LetterService {
     } catch (e) {
       if (kDebugMode) {
         print('fetchSingleLetter 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// 최근 수신 편지 1건 조회
+  Future<LatestLetterModel> fetchLetterLatest() async {
+    try {
+      final response = await _apiService.get(
+        ApiConstants.letterLastUrl.replaceFirst(ApiConstants.baseUrl, ''),
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+
+        if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
+          final letterData = data['resMsg']; // ⭐ resMsg 내부 데이터로 접근
+          return LatestLetterModel.fromJson(letterData);
+        } else {
+          throw Exception('응답 형식 오류');
+        }
+      } else {
+        throw Exception('최근 편지 목록 조회 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('fetchLetterLatest 오류: $e');
       }
       rethrow;
     }

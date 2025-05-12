@@ -83,7 +83,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
       itemCount: letters.length,
       itemBuilder: (context, index) {
         final letter = letters[index];
-        print("✅ Letter ID (from list): ${letter.letterId}");
+        print("Letter ID (from list): ${letter.letterId}");
 
         return ListTile(
           title: Text(
@@ -92,7 +92,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
           subtitle: Text(letter.createdAt),
           onTap: () {
             if (letter.received) {
-              print("✅ Navigating to ReplyScreen2 with letterId: ${letter.letterId}");
+              print("Navigating to ReplyScreen2 with letterId: ${letter.letterId}");
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -102,7 +102,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                 ),
               );
             } else {
-              print("✅ Navigating to SendScreen with letterId: ${letter.letterId}");
+              print("Navigating to SendScreen with letterId: ${letter.letterId}");
               Navigator.push(
                 context,
                 MaterialPageRoute(

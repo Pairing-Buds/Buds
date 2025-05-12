@@ -75,7 +75,7 @@ class _UserRecommendationState extends State<UserRecommendation> {
 
               return Container(
                 width: cardWidth,
-                margin: const EdgeInsets.only(right: 12),
+                margin: const EdgeInsets.only(right: 13),
                 decoration: BoxDecoration(
                   image: const DecorationImage(
                     image: AssetImage('assets/icons/rec_letter_icon.png'),
@@ -102,7 +102,7 @@ class _UserRecommendationState extends State<UserRecommendation> {
                               : user.userName,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            // fontWeight: FontWeight.bold,
                             fontSize: fontSize,
                             color: Colors.black,
                           ),
