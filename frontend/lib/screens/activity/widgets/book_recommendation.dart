@@ -77,18 +77,12 @@ class _BookRecommendationState extends State<BookRecommendation> {
           '버즈의 책 추천',
           style: TextStyle(fontSize: 18),
         ),
-        const Text(
-          '이번 달 책 추천입니다',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
         const SizedBox(height: 12),
         Container(
-          height: cardHeight,
-          padding: const EdgeInsets.all(30),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            // color: const Color(0xFFF9F9F9),
             color: AppColors.lightGrey,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black12,
@@ -98,29 +92,34 @@ class _BookRecommendationState extends State<BookRecommendation> {
             ],
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              AspectRatio(
-                aspectRatio: 1 / 2, // 책 비율 유지 (보통 2:3)
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    cover!,
-                    fit: BoxFit.contain, // 비율 깨지지 않게
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
+              cover != null
+                  ? Image.network(
+                cover!,
+                width: 100,
+                height: 120,
+                fit: BoxFit.cover,
+              )
+                  : const SizedBox(width: 60, height: 90),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title ?? '제목 없음',
+                      style: const TextStyle(
+                        fontSize: 16,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      '저자: ${author ?? '저자 없음'}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
             ],

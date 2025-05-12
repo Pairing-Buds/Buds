@@ -8,15 +8,13 @@ import 'package:http/http.dart' as http;
 
 // Project imports:
 import 'package:buds/constants/api_constants.dart';
-import 'package:buds/models/activity_model.dart';
-import 'api_service.dart';
-
-// import`1 'package:flutter/foundation.dart';
-// import 'package:flutter/material.dart';
+import 'package:buds/models/activity_quote_model.dart';
+import 'package:buds/models/activity_user_model.dart';
+import 'package:buds/services/api_service.dart';
 
 class ActivityService {
   final DioApiService _apiService = DioApiService();
-
+  // 1. STT
   // 명언 API 조회
   Future<ActivityQuoteModel> fetchDailyQuote() async {
     final quoteSearchUrl = '${ApiConstants.baseUrl}/activities/quote';
@@ -56,19 +54,19 @@ class ActivityService {
       );
 
       if (response.statusCode == 200) {
-        print("📤 STT 제출 성공: ${response.data}");
+        print("STT 제출 성공: ${response.data}");
         return true;
       } else {
-        print("❌ STT 제출 실패: ${response.statusCode} - ${response.data}");
+        print("STT 제출 실패: ${response.statusCode} - ${response.data}");
         return false;
       }
     } catch (e) {
-      print("❌ STT 제출 에러: $e");
+      print("STT 제출 에러: $e");
       return false;
     }
   }
 
-  // 알라딘 API 조회
+  // 2. 알라딘 API 조회
   Future<Map<String, String>> fetchMentalHealthBook() async {
     final bookUrl = dotenv.env['BOOK_URL'];
     final ttbKey = dotenv.env['TTBKEY'];
@@ -109,7 +107,25 @@ class ActivityService {
     };
   }
 
-  // 걸음수 목표 달성 리워드 요청
+  // 3. 태그 기반 추천 유저
+  Future<List<ActivityUserModel>> fetchActivityUser() async {
+    try {
+      final response = await _apiService.get(ApiConstants.userRecommendUrl);
+      if (response.statusCode == 200) {
+        final List<dynamic> userList = response.data['resMsg'];
+        return userList
+            .map((user) => ActivityUserModel.fromJson(user))
+            .toList();
+      } else {
+        throw Exception('추천 사용자 조회 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('추천 사용자 조회 오류: $e');
+    }
+  }
+
+
+  //4. 걸음수 목표 달성 리워드 요청
   Future<Map<String, dynamic>> requestStepReward() async {
     try {
       print("걸음수 목표 달성 리워드 요청");
