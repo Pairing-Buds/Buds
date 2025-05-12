@@ -6,6 +6,7 @@ import 'package:buds/services/notification_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async'; // Timer 사용을 위한 import 추가
+import 'package:buds/services/wake_up_service.dart'; // 추가
 
 // main.dart에서 정의한 전역 알림 서비스 인스턴스를 가져오기 위한 import
 import 'package:buds/main.dart';
@@ -291,8 +292,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
     BuildContext context,
     MyPageProvider provider,
   ) {
-    final currentTime = provider.wakeUpTime;
-    TimeOfDay selectedTime = currentTime;
+    TimeOfDay selectedTime = provider.wakeUpTime; // 현재 저장된 시간 가져오기
 
     showModalBottomSheet(
       context: context,
@@ -322,7 +322,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
                   const SizedBox(height: 24),
                   Expanded(
                     child: TimePickerSpinner(
-                      time: currentTime,
+                      time: selectedTime,
                       onTimeChange: (time) {
                         setState(() {
                           selectedTime = time;
@@ -339,9 +339,11 @@ class _WakeUpSectionState extends State<WakeUpSection> {
                         // 선택한 시간을 프로바이더에 저장
                         provider.wakeUpTime = selectedTime;
 
-                        // 알람 설정
-                        _setWakeUpAlarm(context, selectedTime);
+                        // 바텀 시트 닫기
                         Navigator.pop(context);
+
+                        // 알람 설정 (바텀 시트가 닫힌 후 실행)
+                        _setWakeUpAlarm(context, selectedTime);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -370,11 +372,16 @@ class _WakeUpSectionState extends State<WakeUpSection> {
   }
 
   // 기상 알림 설정 함수
-  void _setWakeUpAlarm(BuildContext context, TimeOfDay wakeUpTime) async {
+  Future<void> _setWakeUpAlarm(
+    BuildContext context,
+    TimeOfDay wakeUpTime,
+  ) async {
     try {
-      // 알람 권한 확인 및 요청
-      final hasPermission = await NotificationService().requestPermission();
-      if (!hasPermission && context.mounted) {
+      // 모든 필요한 권한 확인 및 요청
+      final permissions =
+          await NotificationService().checkAndRequestAllPermissions();
+
+      if (!permissions['notification']! && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('알림 권한이 필요합니다. 설정에서 알림 권한을 허용해주세요.'),
@@ -385,6 +392,30 @@ class _WakeUpSectionState extends State<WakeUpSection> {
         return;
       }
 
+      if (!permissions['exactAlarm']! && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('정확한 알람 권한이 필요합니다. 설정에서 권한을 허용해주세요.'),
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      if (!permissions['batteryOptimization']! && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '배터리 최적화 예외 설정이 필요할 수 있습니다. 알람이 정시에 울리지 않으면 설정을 확인해주세요.',
+            ),
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        // 배터리 최적화는 선택적이므로 계속 진행
+      }
+
       // 알람 예약 전 진행 메시지
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -393,6 +424,23 @@ class _WakeUpSectionState extends State<WakeUpSection> {
             duration: Duration(seconds: 1),
           ),
         );
+      }
+
+      // 서버에 기상 시간 등록
+      final wakeUpService = WakeUpService();
+      final success = await wakeUpService.registerWakeTime(wakeUpTime);
+
+      if (!success) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('기상 시간 등록에 실패했습니다.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
       }
 
       // 알람 예약 전에 이전 알람 취소
@@ -408,7 +456,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       });
 
       // 실제 데이터 확인 (데이터 정합성)
-      _checkAlarmStatus();
+      await _checkAlarmStatus();
 
       // 성공 메시지 표시
       if (context.mounted) {
@@ -419,14 +467,11 @@ class _WakeUpSectionState extends State<WakeUpSection> {
             duration: const Duration(seconds: 3),
           ),
         );
-      }
 
-      // 알람 설정 성공 시 설명 추가 다이얼로그 표시
-      if (context.mounted) {
+        // 알람 설정 성공 시 설명 추가 다이얼로그 표시
         _showAlarmInfoDialog(context, wakeUpTime);
       }
     } catch (e) {
-      // 오류 메시지 표시
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

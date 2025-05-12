@@ -83,11 +83,16 @@ class MainActivity : FlutterActivity() {
         
         // 배터리 최적화 채널 설정
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BATTERY_CHANNEL).setMethodCallHandler { call, result ->
-            // 배터리 최적화 무시 요청
-            if (call.method == "requestBatteryOptimizationDisable") {
-                result.success(requestBatteryOptimizationDisable())
-            } else {
-                result.notImplemented()
+            when (call.method) {
+                "requestBatteryOptimization" -> {
+                    result.success(requestBatteryOptimizationDisable())
+                }
+                "isBatteryOptimizationDisabled" -> {
+                    result.success(isBatteryOptimizationDisabled())
+                }
+                else -> {
+                    result.notImplemented()
+                }
             }
         }
         
@@ -269,24 +274,34 @@ class MainActivity : FlutterActivity() {
             
             if (!pm.isIgnoringBatteryOptimizations(packageName)) {
                 try {
-                    // 배터리 최적화 무시 설정으로 이동
+                    // 직접 배터리 최적화 예외 설정
                     val intent = Intent().apply {
                         action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
                         data = Uri.parse("package:$packageName")
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     startActivity(intent)
                     return true
                 } catch (e: Exception) {
                     e.printStackTrace()
+                    return false
                 }
             } else {
                 // 이미 배터리 최적화 무시 상태
                 return true
             }
         }
-        
         return false
+    }
+    
+    // 배터리 최적화 상태 확인
+    private fun isBatteryOptimizationDisabled(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val packageName = packageName
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            return pm.isIgnoringBatteryOptimizations(packageName)
+        }
+        return true
     }
     
     // 걸음 수 측정 권한 확인

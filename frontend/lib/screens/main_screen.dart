@@ -9,6 +9,7 @@ import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -33,6 +34,32 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndRedirectAnonymousUser();
     });
+  }
+
+  // 앱 종료 확인 다이얼로그
+  Future<bool> _onWillPop() async {
+    return await showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('앱 종료'),
+                content: const Text('앱을 종료하시겠습니까?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('아니오'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // 앱 종료
+                      SystemNavigator.pop();
+                    },
+                    child: const Text('예'),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
   }
 
   // 익명 사용자 체크 및 리디렉션
@@ -80,11 +107,14 @@ class _MainScreenState extends State<MainScreen> {
           splashColor: Colors.transparent,
           highlightColor: Colors.transparent,
         ),
-        child: Scaffold(
-          body: _screens[_selectedIndex],
-          bottomNavigationBar: BottomNavBar(
-            selectedIndex: _selectedIndex,
-            onItemTapped: _onItemTapped,
+        child: WillPopScope(
+          onWillPop: _onWillPop,
+          child: Scaffold(
+            body: _screens[_selectedIndex],
+            bottomNavigationBar: BottomNavBar(
+              selectedIndex: _selectedIndex,
+              onItemTapped: _onItemTapped,
+            ),
           ),
         ),
       ),

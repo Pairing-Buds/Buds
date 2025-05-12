@@ -5,6 +5,8 @@ import 'package:buds/main.dart'; // navigatorKey, startedFromNotification, initi
 import 'dart:async'; // Timer 클래스를 위한 import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buds/services/lock_screen_manager.dart'; // 잠금화면 관리자 추가
+import 'package:buds/services/wake_up_service.dart'; // 추가
+import 'package:buds/services/auth_service.dart'; // 추가
 
 /// 알람이 울릴 때 표시되는 전체 화면
 class AlarmScreen extends StatefulWidget {
@@ -241,43 +243,107 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
 
   // 알람 끄기
   void _dismissAlarm() async {
-    // 알람 종료 로그
-    debugPrint('======================================');
-    debugPrint('사용자가 알람을 종료했습니다.');
-    debugPrint('알람 종료 시간: ${DateTime.now().toString()}');
-    debugPrint('======================================');
+    try {
+      // 기상 시간 검증 API 호출
+      final wakeUpService = WakeUpService();
+      final result = await wakeUpService.verifyWakeUp();
 
-    // 알림 취소
-    await NotificationService().cancelAllAlarms();
+      // 알람 종료 로그
+      debugPrint('======================================');
+      debugPrint('사용자가 알람을 종료했습니다.');
+      debugPrint('알람 종료 시간: ${DateTime.now().toString()}');
+      debugPrint('======================================');
 
-    // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
-    await NotificationService().deactivateAlarm();
+      // 알림 취소
+      await NotificationService().cancelAllAlarms();
 
-    // 잠금화면 바이패스 비활성화
-    await _disableLockScreenBypass();
+      // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
+      await NotificationService().deactivateAlarm();
 
-    // 메인 화면으로 이동
-    Navigator.of(context).pop();
+      // 잠금화면 바이패스 비활성화
+      await _disableLockScreenBypass();
+
+      if (mounted) {
+        // 결과 메시지 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: result['success'] ? Colors.green : Colors.red,
+          ),
+        );
+
+        // 로그인 상태 확인
+        final authService = DioAuthService();
+        final hasValidCookies = await authService.checkCookies();
+
+        if (hasValidCookies) {
+          // 로그인된 상태면 메인 화면으로
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/main', (route) => false);
+        } else {
+          // 로그인되지 않은 상태면 로그인 화면으로
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // 5분 후 다시 알림
   void _snoozeAlarm() async {
-    // 알람 스누즈 로그
-    debugPrint('======================================');
-    debugPrint('사용자가 알람을 5분 후로 스누즈했습니다.');
-    debugPrint('스누즈 요청 시간: ${DateTime.now().toString()}');
-    debugPrint('======================================');
+    try {
+      // 알람 스누즈 로그
+      debugPrint('======================================');
+      debugPrint('사용자가 알람을 5분 후로 스누즈했습니다.');
+      debugPrint('스누즈 요청 시간: ${DateTime.now().toString()}');
+      debugPrint('======================================');
 
-    // 스누즈 함수 호출
-    await NotificationService().snoozeAlarm();
+      // 스누즈 함수 호출
+      await NotificationService().snoozeAlarm();
 
-    // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
-    await NotificationService().deactivateAlarm();
+      // 알림을 통한 시작 상태 초기화 (완전히 모든 상태 초기화)
+      await NotificationService().deactivateAlarm();
 
-    // 잠금화면 바이패스 비활성화
-    await _disableLockScreenBypass();
+      // 잠금화면 바이패스 비활성화
+      await _disableLockScreenBypass();
 
-    // 메인 화면으로 이동
-    Navigator.of(context).pop();
+      if (mounted) {
+        // 로그인 상태 확인
+        final authService = DioAuthService();
+        final hasValidCookies = await authService.checkCookies();
+
+        if (hasValidCookies) {
+          // 로그인된 상태면 메인 화면으로
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/main', (route) => false);
+        } else {
+          // 로그인되지 않은 상태면 로그인 화면으로
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
