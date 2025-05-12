@@ -107,14 +107,14 @@ class LetterService {
   Future<LatestLetterModel> fetchLetterLatest() async {
     try {
       final response = await _apiService.get(
-        ApiConstants.letterLastUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        ApiConstants.letterLatestUrl.replaceFirst(ApiConstants.baseUrl, ''),
       );
 
       if (response is Response && response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
-          final letterData = data['resMsg']; // ⭐ resMsg 내부 데이터로 접근
+          final letterData = data['resMsg'];
           return LatestLetterModel.fromJson(letterData);
         } else {
           throw Exception('응답 형식 오류');
@@ -125,6 +125,31 @@ class LetterService {
     } catch (e) {
       if (kDebugMode) {
         print('fetchLetterLatest 오류: $e');
+      }
+      rethrow;
+    }
+  }
+
+  /// 편지 답장 기능
+  Future<bool> sendLetterAnswer(int letterId, String content) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.letterAnswerUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: {
+          'letterId': letterId,
+          'content': content,
+        },
+      );
+
+      if (response is Response && response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      } else {
+        throw Exception('답장 전송 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('sendLetterAnswer 오류: $e');
       }
       rethrow;
     }
