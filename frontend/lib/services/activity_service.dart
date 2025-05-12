@@ -65,7 +65,7 @@ class ActivityService {
   // 알라딘 API 조회
   Future<Map<String, String>> fetchMentalHealthBook() async {
     final bookUrl = dotenv.env['BOOK_URL'];
-    final ttbKey = dotenv.env['ttbKey'];
+    final ttbKey = dotenv.env['TTBKEY'];
 
     _validateEnvVariables(bookUrl, ttbKey);
 
