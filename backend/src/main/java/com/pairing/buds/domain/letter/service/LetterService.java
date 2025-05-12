@@ -5,6 +5,7 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.common.utils.BadWordFilter;
 import com.pairing.buds.domain.letter.dto.req.AnswerLetterReqDto;
+import com.pairing.buds.domain.letter.dto.req.CreateLetterByUsernameReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
@@ -168,6 +169,25 @@ public class LetterService {
         letterFavoriteRepository.save(letterFavorite);
     }
 
+    @Transactional
+    /** 특정 유저 대상 편지 작성 **/
+    public void createLetterByUsername(int userId, CreateLetterByUsernameReqDto dto) {
+        String username = dto.getUsername();
+        String content = dto.getContent();
+        // 발신, 수신자 조회
+       User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+       User receiver = userRepository.findByUserName(username).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+       // 편지 빌드 및 저장
+       Letter letter = new Letter();
+       letter.setSender(sender);
+       letter.setReceiver(receiver);
+       letter.setStatus(LetterStatus.UNREAD);
+       letter.setIsTagBased(true); // 
+       letter.setContent(content);
+
+       letterRepository.save(letter);
+    }
+
     /** 답장 작성 **/
     @Transactional
     public void answerLetter(int userId, AnswerLetterReqDto dto) {
@@ -260,5 +280,6 @@ public class LetterService {
         );
         letterFavoriteRepository.delete(letterFavorite);
     }
+
 
 }

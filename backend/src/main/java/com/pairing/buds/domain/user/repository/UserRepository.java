@@ -104,4 +104,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Set<User> findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(int userId, Set<TagType> userTags);
 
+    Optional<User> findByUserName(String username);
 }
