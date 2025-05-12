@@ -1,8 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:dio/dio.dart';
+
+// Project imports:
+import '../constants/api_constants.dart';
 import '../screens/character/models/character_data.dart';
 import '../services/api_service.dart';
-import '../constants/api_constants.dart';
-import 'package:dio/dio.dart';
 
 /// 캐릭터 관련 비즈니스 로직을 관리하는 Provider
 class CharacterProvider extends ChangeNotifier {

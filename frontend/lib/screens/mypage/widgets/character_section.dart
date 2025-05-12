@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
+
+// Project imports:
 import 'package:buds/providers/my_page_provider.dart';
 
 /// 캐릭터 섹션 위젯

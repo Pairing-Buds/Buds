@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/activity/shell_screen.dart';
 import 'package:buds/screens/activity/widgets/book_recommendation.dart';

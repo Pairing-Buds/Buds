@@ -1,5 +1,6 @@
-import 'package:buds/models/badge_model.dart';
+// Project imports:
 import 'package:buds/constants/api_constants.dart';
+import 'package:buds/models/badge_model.dart';
 import 'package:buds/services/api_service.dart';
 
 class CalendarService {

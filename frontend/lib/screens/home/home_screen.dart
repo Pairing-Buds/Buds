@@ -1,9 +1,12 @@
-import 'package:buds/screens/chat/chat_detail_screen.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/screens/activity/shell_screen.dart';
+import 'package:buds/screens/chat/chat_detail_screen.dart';
+import 'package:buds/screens/home/widgets/speech_bubble.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
-import 'package:buds/screens/home/widgets/speech_bubble.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);

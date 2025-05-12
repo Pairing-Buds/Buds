@@ -1,9 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/services/notification_service.dart';
+
 import 'package:buds/main.dart'; // navigatorKey, startedFromNotification, initialRoute 접근을 위한 import
 import 'dart:async'; // Timer 클래스를 위한 import
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:buds/services/lock_screen_manager.dart'; // 잠금화면 관리자 추가
 import 'package:buds/services/wake_up_service.dart'; // 추가
 import 'package:buds/services/auth_service.dart'; // 추가

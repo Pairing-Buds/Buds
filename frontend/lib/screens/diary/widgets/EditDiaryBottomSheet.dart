@@ -1,9 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/models/diary_model.dart';
+import 'package:buds/screens/diary/widgets/diary_card.dart';
 import 'package:buds/services/diary_service.dart';
 import 'package:buds/widgets/common_dialog.dart';
 import 'package:buds/widgets/toast_bar.dart';
-import 'package:buds/screens/diary/widgets/diary_card.dart';
 
 class EditDiaryBottomSheet extends StatefulWidget {
   final DiaryDay diaryDay;

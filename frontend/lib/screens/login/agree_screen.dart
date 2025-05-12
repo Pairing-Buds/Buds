@@ -1,9 +1,14 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
-import '../../providers/agree_provider.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
-import 'widgets/Terms_of_Use/agreement_widgets.dart';
+import '../../providers/agree_provider.dart';
 import 'signup_screen.dart';
+import 'widgets/Terms_of_Use/agreement_widgets.dart';
 
 class AgreeScreen extends StatelessWidget {
   const AgreeScreen({super.key});

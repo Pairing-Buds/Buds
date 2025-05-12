@@ -1,13 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/character_provider.dart';
-import '../../providers/auth_provider.dart';
-import 'package:buds/config/theme.dart';
-import 'widgets/character_selection_manager.dart';
-import 'package:buds/screens/main_screen.dart';
-import 'widgets/nickname_dialog.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:provider/provider.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
+import 'package:buds/screens/main_screen.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/character_provider.dart';
 import '../../services/auth_service.dart';
+import 'widgets/character_selection_manager.dart';
+import 'widgets/nickname_dialog.dart';
 
 /// 캐릭터 선택 화면
 class CharacterSelectScreen extends StatefulWidget {

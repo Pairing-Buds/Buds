@@ -1,5 +1,8 @@
-import 'package:buds/config/theme.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/services/activity_service.dart';
 
 class BookRecommendation extends StatefulWidget {

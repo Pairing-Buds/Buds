@@ -1,13 +1,17 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
-import 'package:buds/screens/character/character_select_screen.dart';
-import 'package:buds/services/auth_service.dart';
-import 'package:buds/models/user_model.dart';
-import 'package:intl/intl.dart';
+
+// Package imports:
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'login_screen.dart';
+import 'package:intl/intl.dart';
 
+// Project imports:
+import 'package:buds/config/theme.dart';
+import 'package:buds/models/user_model.dart';
+import 'package:buds/screens/character/character_select_screen.dart';
+import 'package:buds/services/auth_service.dart';
+import 'login_screen.dart';
 import 'widgets/signup_form_widgets.dart';
 
 class SignUpScreen extends StatefulWidget {

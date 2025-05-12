@@ -1,12 +1,18 @@
-import 'api_service.dart';
-import 'package:dio/dio.dart';
+// Dart imports:
 import 'dart:convert';
+
+// Package imports:
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+
+// Project imports:
+import 'package:buds/constants/api_constants.dart';
+import 'package:buds/models/activity_model.dart';
+import 'api_service.dart';
+
 // import`1 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:buds/constants/api_constants.dart';
-import 'package:http/http.dart' as http;
-import 'package:buds/models/activity_model.dart';
 
 class ActivityService {
   final DioApiService _apiService = DioApiService();

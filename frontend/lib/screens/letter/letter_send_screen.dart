@@ -1,7 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
-import 'package:buds/services/letter_service.dart';
 import 'package:buds/models/letter_content_model.dart';
+import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterSendScreen extends StatefulWidget {

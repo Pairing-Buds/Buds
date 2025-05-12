@@ -1,6 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
+// Dart imports:
 import 'dart:math';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import '../models/character_data.dart';
 import 'character_info_overlay.dart';
 

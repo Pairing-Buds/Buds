@@ -1,8 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/services/auth_service.dart';
+
+// Project imports:
 import 'package:buds/screens/login/login_main.dart';
-import 'widgets/withdraw_reason_selector.dart';
+import 'package:buds/services/auth_service.dart';
 import 'widgets/withdraw_confirm_dialog.dart';
+import 'widgets/withdraw_reason_selector.dart';
 
 class WithdrawScreen extends StatefulWidget {
   const WithdrawScreen({Key? key}) : super(key: key);

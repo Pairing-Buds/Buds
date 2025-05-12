@@ -1,7 +1,10 @@
 // Dio 로깅 인터셉터
 
-import 'package:dio/dio.dart';
+// Dart imports:
 import 'dart:developer' as developer;
+
+// Package imports:
+import 'package:dio/dio.dart';
 
 class DioLoggingInterceptor extends Interceptor {
   final bool request;

@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
+// Dart imports:
 import 'dart:async';
-import '../../../services/step_counter_manager.dart';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
+
+// Project imports:
 import '../../../providers/my_page_provider.dart';
+import '../../../services/step_counter_manager.dart';
 
 class StepInfoWidget extends StatefulWidget {
   const StepInfoWidget({Key? key}) : super(key: key);

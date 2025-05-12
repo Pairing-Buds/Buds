@@ -1,8 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
-import 'package:provider/provider.dart';
-import 'package:buds/providers/auth_provider.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:provider/provider.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
+import 'package:buds/providers/auth_provider.dart';
 import 'widgets/password_reset_widgets.dart';
 
 /// 비밀번호 재설정 화면 (토큰 + 새 비밀번호 입력)

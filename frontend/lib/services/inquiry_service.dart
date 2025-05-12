@@ -1,8 +1,13 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:dio/dio.dart';
+
+// Project imports:
+import '../constants/api_constants.dart';
 import '../models/inquiry.dart';
 import 'api_service.dart';
-import '../constants/api_constants.dart';
-import 'package:flutter/foundation.dart';
 
 class DioInquiryService {
   final DioApiService _apiService = DioApiService();

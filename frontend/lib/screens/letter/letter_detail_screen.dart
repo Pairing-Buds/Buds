@@ -1,8 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/models/letter_detail_model.dart';
-import 'package:buds/services/letter_service.dart';
 import 'package:buds/screens/letter/letter_reply_screen.dart';
 import 'package:buds/screens/letter/letter_send_screen.dart';
+import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterDetailScreen extends StatefulWidget {

@@ -1,10 +1,17 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'step_reward_service.dart';
+
+// Project imports:
 import 'notification_service.dart';
+import 'step_reward_service.dart';
 
 class StepCounterManager {
   // 싱글톤 패턴 구현
