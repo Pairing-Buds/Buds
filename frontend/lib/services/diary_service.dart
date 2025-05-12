@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:dio/dio.dart';
+
+// Project imports:
 import '../constants/api_constants.dart';
 import '../models/diary_model.dart';
 import 'api_service.dart';

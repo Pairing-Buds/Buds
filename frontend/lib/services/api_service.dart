@@ -1,14 +1,21 @@
 // Dio를 사용한 API 통신 서비스
 
-import 'package:dio/dio.dart';
-import '../constants/api_constants.dart';
-import '../utils/dio_logging_interceptor.dart';
+// Dart imports:
+import 'dart:async';
+import 'dart:io';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:async';
+
+// Project imports:
+import '../constants/api_constants.dart';
+import '../utils/dio_logging_interceptor.dart';
 
 class DioApiService {
   // 싱글턴 패턴

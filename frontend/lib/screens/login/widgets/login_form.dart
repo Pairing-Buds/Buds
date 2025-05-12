@@ -1,7 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/login/password_reset_email_screen.dart';

@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/services/survey_service.dart';

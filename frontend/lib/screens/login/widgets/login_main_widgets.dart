@@ -1,7 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/screens/login/agree_screen.dart';
 import 'package:buds/screens/login/login_screen.dart';
 import 'package:buds/screens/login/widgets/chat_bubble.dart';
-import 'package:buds/screens/login/agree_screen.dart';
 
 /// 상단 타이틀 위젯
 class MainTitleWidget extends StatelessWidget {

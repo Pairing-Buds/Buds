@@ -1,9 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
-// import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/models/letter_response_model.dart';
 import 'package:buds/screens/letter/letter_detail_screen.dart';
 import 'package:buds/services/letter_service.dart';
-import 'package:buds/models/letter_response_model.dart';
+
+// import 'package:buds/models/letter_list_model.dart';
 
 class LetterList extends StatefulWidget {
   final Function(int) onCountFetched;

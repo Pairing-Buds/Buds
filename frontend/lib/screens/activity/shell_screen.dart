@@ -1,6 +1,13 @@
+// Dart imports:
 import 'dart:math';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:speech_to_text/speech_to_text.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/models/activity_model.dart';
 import 'package:buds/services/activity_service.dart';

@@ -1,7 +1,12 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:dio/dio.dart';
+
+// Project imports:
 import '../constants/api_constants.dart';
 import 'api_service.dart';
-import 'package:flutter/foundation.dart';
 
 /// 걸음수 목표 달성 리워드 관련 서비스
 class StepRewardService {

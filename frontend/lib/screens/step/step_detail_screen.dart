@@ -1,10 +1,17 @@
+// Dart imports:
+import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
-import 'widgets/step_info_widget.dart';
-import 'widgets/step_action_buttons.dart';
+
+// Project imports:
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/services/step_counter_manager.dart';
-import 'dart:async';
+import 'widgets/step_action_buttons.dart';
+import 'widgets/step_info_widget.dart';
 
 class StepDetailScreen extends StatefulWidget {
   const StepDetailScreen({Key? key}) : super(key: key);

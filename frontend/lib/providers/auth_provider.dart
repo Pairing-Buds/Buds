@@ -1,10 +1,16 @@
 // 인증 상태 관리
-import 'package:flutter/material.dart';
-import 'package:buds/services/auth_service.dart';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:dio/dio.dart';
-import '../services/api_service.dart';
+
+// Project imports:
+import 'package:buds/services/auth_service.dart';
 import '../constants/api_constants.dart';
+import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isLoggedIn = false;

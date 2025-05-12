@@ -1,7 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/form_widgets.dart';
-import 'package:intl/intl.dart';
 
 /// 이메일 입력 필드
 class EmailInputField extends StatelessWidget {

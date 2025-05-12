@@ -1,8 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/login/widgets/index.dart';
-import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/home/home_screen.dart';
+import 'package:buds/screens/login/widgets/index.dart';
 import 'package:buds/screens/main_screen.dart';
 
 /// 로그인 메인 화면

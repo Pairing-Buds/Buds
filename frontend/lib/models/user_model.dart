@@ -1,4 +1,6 @@
 // 사용자 모델
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 
 class User {

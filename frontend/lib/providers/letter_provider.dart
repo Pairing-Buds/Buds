@@ -1,8 +1,12 @@
 /// lib/providers/letter_provider.dart
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/services/letter_service.dart';
-import 'package:buds/models/letter_detail_model.dart';
+
+// Project imports:
 import 'package:buds/models/letter_content_model.dart';
+import 'package:buds/models/letter_detail_model.dart';
+import 'package:buds/services/letter_service.dart';
 
 class LetterProvider extends ChangeNotifier {
   final LetterService _service = LetterService();

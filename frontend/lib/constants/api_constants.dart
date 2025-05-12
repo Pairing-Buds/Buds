@@ -1,6 +1,10 @@
 // API 관련 상수
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConstants {
   // 서버 기본 URL - .env 파일에서 로드

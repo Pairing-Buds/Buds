@@ -1,5 +1,10 @@
-import 'package:flutter/material.dart';
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'character_card.dart';
 
 /// 캐릭터 캐러셀 위젯

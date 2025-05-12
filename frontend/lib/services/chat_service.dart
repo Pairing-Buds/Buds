@@ -1,8 +1,10 @@
+// Package imports:
 import 'package:dio/dio.dart';
-import 'package:buds/constants/api_constants.dart';
-import 'package:buds/services/fast_api_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+// Project imports:
+import 'package:buds/constants/api_constants.dart';
+import 'package:buds/services/fast_api_service.dart';
 
 class ChatService {
   final FastApiService _fastApiService = FastApiService();

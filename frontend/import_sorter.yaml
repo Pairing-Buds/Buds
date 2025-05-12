@@ -1,0 +1,10 @@
+comments: true  # 구분 주석 추가 여부
+ignored_files:
+  - "**.g.dart"  # 자동 생성 파일 제외
+
+sorting_system:
+  - "dart"         # Dart 내장 패키지 (dart:)
+  - "flutter"      # Flutter 기본 패키지 (package:flutter/...)
+  - "third_party"  # 서드파티 패키지 (package:... - Provider, SharedPreferences 등)
+  - "buds"         # 프로젝트 내부 패키지 (package:buds/...)
+  - "relative"     # 상대 경로 import (../...)

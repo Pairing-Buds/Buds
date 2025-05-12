@@ -1,8 +1,11 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
-import 'package:flutter/material.dart';
-import 'voice_chatting_screen.dart';
 import 'chat_detail_screen.dart';
+import 'voice_chatting_screen.dart';
 
 class StartChattingScreen extends StatefulWidget {
   const StartChattingScreen({super.key});

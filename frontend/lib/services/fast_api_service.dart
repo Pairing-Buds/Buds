@@ -1,9 +1,14 @@
-import 'package:dio/dio.dart';
-import 'package:buds/constants/api_constants.dart';
+// Dart imports:
+import 'dart:io';
+
+// Package imports:
 import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+
+// Project imports:
+import 'package:buds/constants/api_constants.dart';
 
 class FastApiService {
   late final Dio _dio;

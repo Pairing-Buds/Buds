@@ -1,15 +1,20 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+// Package imports:
+import 'package:provider/provider.dart';
+
+// Project imports:
+import 'package:buds/providers/auth_provider.dart';
+import 'package:buds/providers/calendar_provider.dart';
+import 'package:buds/screens/calendar/calendar_screen.dart';
+import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
-import 'package:buds/screens/calendar/calendar_screen.dart';
 import 'package:buds/screens/mypage/my_page_screen.dart';
 import 'package:buds/widgets/bottom_nav_bar.dart';
-import 'package:buds/providers/calendar_provider.dart';
-import 'package:buds/providers/auth_provider.dart';
-import 'package:buds/screens/character/character_select_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);

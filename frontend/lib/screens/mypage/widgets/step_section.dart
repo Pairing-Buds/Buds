@@ -1,12 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import '../../../providers/my_page_provider.dart';
 import '../../../services/step_counter_manager.dart';
 import '../../../services/step_reward_service.dart';
-import 'package:buds/config/theme.dart';
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 /// 걸음 수 섹션 위젯
 class StepSection extends StatefulWidget {

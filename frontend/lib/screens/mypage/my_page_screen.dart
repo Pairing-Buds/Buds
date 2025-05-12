@@ -1,16 +1,21 @@
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
-import 'package:buds/providers/my_page_provider.dart';
-import 'package:buds/providers/character_provider.dart';
+
+// Project imports:
 import 'package:buds/providers/auth_provider.dart';
+import 'package:buds/providers/character_provider.dart';
+import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/character/models/character_data.dart';
-import 'package:flutter/foundation.dart';
-import 'widgets/wake_up_section.dart';
-import 'widgets/step_section.dart';
-import 'package:buds/screens/mypage/withdraw_screen.dart';
 import 'package:buds/screens/customercenter/customer_center_screen.dart';
+import 'package:buds/screens/mypage/withdraw_screen.dart';
 import 'package:buds/screens/step/step_detail_screen.dart';
+import 'widgets/step_section.dart';
+import 'widgets/wake_up_section.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({Key? key}) : super(key: key);
