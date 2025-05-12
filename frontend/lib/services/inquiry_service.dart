@@ -71,4 +71,60 @@ class DioInquiryService {
       return false;
     }
   }
+
+  // 문의 수정 
+  Future<bool> updateInquiry(int questionId, String subject, String content) async {
+    try {
+      final response = await _apiService.patch(
+        ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: {
+          'questionId': questionId,
+          'subject': subject,
+          'content': content,
+        },
+      );
+
+      if (kDebugMode) {
+        print('문의 수정 응답: ${response.data}');
+      }
+
+      if (response is Response && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('문의 수정 오류: $e');
+      }
+      return false;
+    }
+  }
+
+  // 문의 삭제
+  Future<bool> deleteInquiry(int questionId) async {
+    try {
+      final response = await _apiService.delete(
+        ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: {
+          'questionId': questionId,
+        },
+      );
+
+      if (kDebugMode) {
+        print('문의 삭제 응답: ${response.data}');
+      }
+
+      if (response is Response && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      }
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('문의 삭제 오류: $e');
+      }
+      return false;
+    }
+  }
 }

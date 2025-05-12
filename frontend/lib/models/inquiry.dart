@@ -114,3 +114,33 @@ class Answer {
     );
   }
 }
+
+// 문의 수정 응답 모델
+class InquiryUpdateResponse {
+  final String statusCode;
+  final String resMsg;
+
+  InquiryUpdateResponse({required this.statusCode, required this.resMsg});
+
+  factory InquiryUpdateResponse.fromJson(Map<String, dynamic> json) {
+    return InquiryUpdateResponse(
+      statusCode: json['statusCode'],
+      resMsg: json['resMsg'],
+    );
+  }
+}
+
+// 문의 삭제 응답 모델
+class InquiryDeleteResponse {
+  final String statusCode;
+  final String resMsg;
+
+  InquiryDeleteResponse({required this.statusCode, required this.resMsg});
+
+  factory InquiryDeleteResponse.fromJson(Map<String, dynamic> json) {
+    return InquiryDeleteResponse(
+      statusCode: json['statusCode'],
+      resMsg: json['resMsg'],
+    );
+  }
+}
