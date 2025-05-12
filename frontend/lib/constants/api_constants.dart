@@ -69,6 +69,7 @@ class ApiConstants {
   static String get quoteSearchUrl => '$baseUrl/activities/quote'; // 명언 랜덤 조회
   static String get voiceSendUrl =>
       '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
+  static String get stepRewardUrl => '$baseUrl/activities/walk'; // 걸음수 목표 달성 리워드
 
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
