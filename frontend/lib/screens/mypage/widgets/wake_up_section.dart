@@ -7,6 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async'; // Timer 사용을 위한 import 추가
 import 'package:buds/services/wake_up_service.dart'; // 추가
+import 'package:flutter/foundation.dart'; // kDebugMode 사용을 위한 import 추가
 
 // main.dart에서 정의한 전역 알림 서비스 인스턴스를 가져오기 위한 import
 import 'package:buds/main.dart';
@@ -179,74 +180,81 @@ class _WakeUpSectionState extends State<WakeUpSection> {
 
         // 테스트 알림 버튼과 알람 상태 관리 버튼
         const SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        
+        // 디버그 모드에서만 테스트 버튼들 표시
+        if (kDebugMode)
+          Column(
             children: [
-              // 알람 체크 버튼
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
-                label: const Text('알람 상태 확인'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () {
-                  _checkAlarmStatus();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('알람 상태를 확인했습니다.'),
-                      duration: Duration(seconds: 2),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 알람 체크 버튼
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('알람 상태 확인'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        _checkAlarmStatus();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('알람 상태를 확인했습니다.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
-              const SizedBox(width: 16),
-              // 알람 테스트 버튼
-              ElevatedButton.icon(
-                icon: const Icon(Icons.notifications_active),
-                label: const Text('알람 테스트'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.white,
+                    const SizedBox(width: 16),
+                    // 알람 테스트 버튼
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.notifications_active),
+                      label: const Text('알람 테스트'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => _sendTestNotification(context),
+                    ),
+                  ],
                 ),
-                onPressed: () => _sendTestNotification(context),
               ),
-            ],
-          ),
-        ),
 
-        // 알람 제거 및 인텐트 테스트 버튼 추가
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 알람 끄기 버튼
-              ElevatedButton.icon(
-                icon: const Icon(Icons.delete),
-                label: const Text('알람 제거'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+              // 알람 제거 및 인텐트 테스트 버튼 추가
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 알람 끄기 버튼
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete),
+                      label: const Text('알람 제거'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => _cancelAllAlarms(context),
+                    ),
+                    const SizedBox(width: 16),
+                    // 인텐트 테스트 버튼
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.app_registration),
+                      label: const Text('인텐트 테스트'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => _testAlarmIntent(context),
+                    ),
+                  ],
                 ),
-                onPressed: () => _cancelAllAlarms(context),
-              ),
-              const SizedBox(width: 16),
-              // 인텐트 테스트 버튼
-              ElevatedButton.icon(
-                icon: const Icon(Icons.app_registration),
-                label: const Text('인텐트 테스트'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: () => _testAlarmIntent(context),
               ),
             ],
           ),
-        ),
       ],
     );
   }

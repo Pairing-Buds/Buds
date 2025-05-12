@@ -320,6 +320,15 @@ class MyPageProvider extends ChangeNotifier {
     }
   }
 
+  // 서비스 상태 업데이트
+  void updateServiceStatus(bool isRunning) {
+    if (_isServiceRunning != isRunning) {
+      _isServiceRunning = isRunning;
+      notifyListeners();
+      debugPrint('MyPageProvider: 서비스 상태 업데이트 - $isRunning');
+    }
+  }
+
   @override
   void dispose() {
     // 스트림 구독 해제

@@ -1,16 +1,46 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import '../../../services/step_counter_manager.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/my_page_provider.dart';
 
-class StepInfoWidget extends StatelessWidget {
-  final int goalSteps;
-  final int currentSteps;
-  const StepInfoWidget({
-    Key? key,
-    required this.goalSteps,
-    required this.currentSteps,
-  }) : super(key: key);
+class StepInfoWidget extends StatefulWidget {
+  const StepInfoWidget({Key? key}) : super(key: key);
+
+  @override
+  State<StepInfoWidget> createState() => _StepInfoWidgetState();
+}
+
+class _StepInfoWidgetState extends State<StepInfoWidget> {
+  // 걸음 수 매니저
+  final StepCounterManager _stepCounterManager = StepCounterManager();
+
+  // 걸음 수 새로고침
+  Future<void> _refreshStepCount() async {
+    try {
+      // 걸음 수 직접 가져오기
+      final steps = await _stepCounterManager.getCurrentSteps();
+      
+      if (mounted) {
+        // Provider에게 갱신 요청
+        final myPageProvider = Provider.of<MyPageProvider>(
+          context,
+          listen: false,
+        );
+        myPageProvider.updateSteps(steps);
+      }
+    } catch (e) {
+      debugPrint('StepInfoWidget: 걸음 수 새로고침 오류 - $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // MyPageProvider에서 최신 데이터 가져오기
+    final myPageProvider = Provider.of<MyPageProvider>(context);
+    final currentSteps = myPageProvider.currentSteps;
+    final goalSteps = myPageProvider.targetSteps;
+    
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
@@ -57,6 +87,19 @@ class StepInfoWidget extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+            // 새로고침 버튼 추가
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                icon: const Icon(Icons.refresh, size: 20),
+                onPressed: _refreshStepCount,
+                tooltip: '걸음 수 새로고침',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                iconSize: 20,
+                color: Colors.green.shade700,
+              ),
             ),
           ],
         ),
