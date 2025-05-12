@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/home/home_screen.dart';
+import 'package:buds/screens/main_screen.dart';
 import 'package:buds/services/survey_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
@@ -53,9 +53,9 @@ class _SurveyScreenState extends State<SurveyScreen> {
   };
 
   // 각 질문에 대한 선택값 저장
-  List<int?> selectedIndexes = List.filled(15, 0);
-  List<String> surveyTags = [];
-  List<String> selectedTags = [];
+  List<int?> selectedIndexes = List.filled(15, null);
+  List<String> surveyTags = []; // 서버에서 가져온 태그
+  List<String> selectedTags = []; // 백으로 보내는 태그
 
   @override
   void initState() {
@@ -71,6 +71,26 @@ class _SurveyScreenState extends State<SurveyScreen> {
   }
 
   void submitSurvey() async {
+    if (selectedIndexes.contains(null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('설문조사가 끝나지 않았습니다. 모든 질문에 응답해주세요.')),
+      );
+      return;
+    }
+    if (selectedTags.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('관심 분야를 선택해주세요.')),
+      );
+      return;
+    }
+
+    if (selectedTags.length > 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('관심 분야는 최대 3개까지 선택할 수 있습니다.')),
+      );
+      return;
+    }
+
     // 점수 계산
     int seclusionScore = selectedIndexes.sublist(0, 10).fold(0, (sum, score) => sum + (score ?? 0));
     int opennessScore = selectedIndexes[10] ?? 0;
@@ -97,10 +117,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
         const SnackBar(content: Text('설문조사 결과가 제출되었습니다.')),
       );
       Future.delayed(const Duration(seconds: 1), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+        Navigator.pushReplacementNamed(context, '/main');
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +140,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
           // 상단 진행바
           Container(
             height: 4,
-            width: MediaQuery.of(context).size.width * 0.3,
+            width: MediaQuery.of(context).size.width * 1,
             color: AppColors.primary,
           ),
 
