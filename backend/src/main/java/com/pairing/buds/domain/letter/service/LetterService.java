@@ -170,7 +170,7 @@ public class LetterService {
     }
 
     @Transactional
-    /** 특정 유저 대상 편지 작성 **/
+    /** 유저 지정 편지 작성 **/
     public void createLetterByUsername(int userId, CreateLetterByUsernameReqDto dto) {
         String username = dto.getUsername();
         String content = dto.getContent();
