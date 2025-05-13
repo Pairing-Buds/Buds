@@ -9,10 +9,7 @@ import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
 import com.pairing.buds.domain.letter.dto.res.GetLetterDetailResDto;
-import com.pairing.buds.domain.letter.dto.response.ChatUserInfoResDto;
-import com.pairing.buds.domain.letter.dto.response.LetterChatListResDto;
-import com.pairing.buds.domain.letter.dto.response.LetterDetailListResDto;
-import com.pairing.buds.domain.letter.dto.response.LetterDetailResDto;
+import com.pairing.buds.domain.letter.dto.response.*;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.letter.entity.LetterFavorite;
 import com.pairing.buds.domain.letter.entity.LetterFavoriteId;
@@ -131,22 +128,23 @@ public class LetterService {
     }
 
     /** 최근 수신 편지 1건 조회 **/
-    public LetterDetailResDto getLatestReceivedLetter(Integer userId) {
+    public LatestLetterDetailResDto getLatestReceivedLetter(Integer userId) {
         User loginUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
         // 가장 최근 편지 한 건 조회
-        Letter letter = letterRepository.findFirstByReceiver_IdOrderByCreatedAtDesc(loginUser.getId())
+        Letter letter = letterRepository.findFirstByReceiver_IdOrderByCreatedAtDescIdDesc(loginUser.getId())
                 .orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
 
         // 상태 읽음으로 변경
         letter.setStatus(LetterStatus.READ);
         letterRepository.save(letter);
 
-        return new LetterDetailResDto(
+        return new LatestLetterDetailResDto(
                 letter.getId(),
                 letter.getSender().getUserName(),
                 letter.getCreatedAt().toLocalDate(),
+                letter.getContent(),
                 true,
                 letter.getStatus()
         );
