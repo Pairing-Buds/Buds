@@ -1,27 +1,20 @@
 package com.pairing.buds.domain.user.dto.request;
 
-import com.pairing.buds.domain.user.entity.Tag;
-import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
-import jakarta.persistence.Column;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.*;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Valid
-public class SaveSurveyResultReqDto {
-
+@Getter
+@Setter
+public class SaveReSurveyResultReqDto {
+    
     /**
      * 설문조사 결과는 각 항목 별로 0 ~ 40점
      * **/
@@ -50,9 +43,8 @@ public class SaveSurveyResultReqDto {
     @NotNull
     private int expressionScore;
 
-    private Set<TagType> tags;
 
-    public static User toUser(User user, SaveSurveyResultReqDto dto){
+    public static User toUser(User user, SaveReSurveyResultReqDto dto){
         user.setSeclusionScore(dto.getSeclusionScore());
         user.setSociabilityScore(dto.getSociabilityScore());
         user.setRoutineScore(dto.getRoutineScore());
@@ -61,7 +53,4 @@ public class SaveSurveyResultReqDto {
         user.setExpressionScore(dto.getExpressionScore());
         return user;
     }
-
-
-
 }
