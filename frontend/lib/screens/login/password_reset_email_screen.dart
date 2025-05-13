@@ -13,7 +13,7 @@ import 'widgets/password_reset_widgets.dart';
 
 /// 비밀번호 재설정 이메일 입력 화면
 class PasswordResetEmailScreen extends StatefulWidget {
-  const PasswordResetEmailScreen({Key? key}) : super(key: key);
+  const PasswordResetEmailScreen({super.key});
 
   @override
   State<PasswordResetEmailScreen> createState() =>

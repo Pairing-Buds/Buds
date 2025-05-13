@@ -8,7 +8,7 @@ import 'package:buds/config/theme.dart';
 class PageIndicator extends StatelessWidget {
   final int currentPage;
 
-  const PageIndicator({Key? key, required this.currentPage}) : super(key: key);
+  const PageIndicator({super.key, required this.currentPage});
 
   @override
   Widget build(BuildContext context) {

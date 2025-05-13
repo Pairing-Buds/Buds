@@ -21,11 +21,11 @@ class AlarmScreen extends StatefulWidget {
   final int notificationId;
 
   const AlarmScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.message,
     required this.notificationId,
-  }) : super(key: key);
+  });
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();

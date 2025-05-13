@@ -9,7 +9,8 @@ import 'package:buds/providers/my_page_provider.dart';
 
 /// 캐릭터 섹션 위젯
 class CharacterSection extends StatelessWidget {
-  const CharacterSection({Key? key}) : super(key: key);
+  const CharacterSection({super.key});
+
 
   @override
   Widget build(BuildContext context) {

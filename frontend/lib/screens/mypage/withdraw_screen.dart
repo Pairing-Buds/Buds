@@ -8,7 +8,7 @@ import 'widgets/withdraw_confirm_dialog.dart';
 import 'widgets/withdraw_reason_selector.dart';
 
 class WithdrawScreen extends StatefulWidget {
-  const WithdrawScreen({Key? key}) : super(key: key);
+  const WithdrawScreen({super.key});
 
   @override
   State<WithdrawScreen> createState() => _WithdrawScreenState();

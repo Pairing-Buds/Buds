@@ -8,7 +8,7 @@ import 'package:buds/screens/login/widgets/chat_bubble.dart';
 
 /// 상단 타이틀 위젯
 class MainTitleWidget extends StatelessWidget {
-  const MainTitleWidget({Key? key}) : super(key: key);
+  const MainTitleWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,7 @@ class MainTitleWidget extends StatelessWidget {
 
 /// 채팅 대화 컨테이너 위젯
 class ChatContainer extends StatelessWidget {
-  const ChatContainer({Key? key}) : super(key: key);
+  const ChatContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +101,7 @@ class ChatContainer extends StatelessWidget {
 
 /// 새롭게 시작하기 버튼 위젯
 class StartButton extends StatelessWidget {
-  const StartButton({Key? key}) : super(key: key);
+  const StartButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +135,7 @@ class StartButton extends StatelessWidget {
 }
 
 class LoginButton extends StatelessWidget {
-  const LoginButton({Key? key}) : super(key: key);
+  const LoginButton({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -11,11 +11,11 @@ class NicknameDialog extends StatefulWidget {
   final Function(String) onConfirm;
 
   const NicknameDialog({
-    Key? key,
+    super.key,
     required this.initialNickname,
     required this.onRefresh,
     required this.onConfirm,
-  }) : super(key: key);
+  });
 
   @override
   State<NicknameDialog> createState() => _NicknameDialogState();
