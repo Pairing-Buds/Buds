@@ -71,7 +71,7 @@ class ChatContainer extends StatelessWidget {
           // 대화 버블 1 - 토끼
           ChatBubble(
             color: Colors.pink,
-            text: '오늘은 무슨 좋은 일 있었어??',
+            text: '오늘은 좋은 일 있었어??',
             isLeft: true,
             iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
