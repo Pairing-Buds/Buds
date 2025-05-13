@@ -3,6 +3,7 @@ import 'dart:convert';
 
 // Package imports:
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -112,9 +113,10 @@ class ActivityService {
   }
 
   // 3. 태그 기반 추천 유저
+  // 유저 및 태그 조회
   Future<List<TagRecUserModel>> fetchRecUser() async {
     try {
-      final response = await _apiService.get(ApiConstants.userRecommendUrl);
+      final response = await _apiService.get(ApiConstants.userRecUrl);
       if (response.statusCode == 200) {
         final List<dynamic> userList = response.data['resMsg'];
         return userList.map((user) {
@@ -130,6 +132,25 @@ class ActivityService {
       }
     } catch (e) {
       throw Exception('추천 사용자 조회 오류: $e');
+    }
+  }
+
+  // 조회된 유저에게 편지 전송
+  Future<bool> sendUserLetter(int receiverId, String content) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.userIdLetterSendUrl,
+        data: {'receiverId': receiverId, 'content': content},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      } else {
+        throw Exception('편지 전송 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('편지 전송 오류: $e');
     }
   }
 }
