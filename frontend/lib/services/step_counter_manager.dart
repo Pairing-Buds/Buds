@@ -1,8 +1,17 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import 'notification_service.dart';
+import 'step_reward_service.dart';
 
 class StepCounterManager {
   // 싱글톤 패턴 구현
@@ -27,6 +36,7 @@ class StepCounterManager {
   bool _isServiceRunning = false;
   bool _isEventListenerSet = false;
   bool _isInitialized = false; // 초기화 여부 확인
+  bool _isRewardRequested = false; // 오늘 리워드를 이미 요청했는지 여부
 
   // 걸음 수 스트림 컨트롤러
   final _stepCountController = StreamController<int>.broadcast();
@@ -36,10 +46,18 @@ class StepCounterManager {
   final _serviceStatusController = StreamController<bool>.broadcast();
   Stream<bool> get serviceStatusStream => _serviceStatusController.stream;
 
+  // 리워드 상태 스트림 컨트롤러
+  final _rewardStatusController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get rewardStatusStream => _rewardStatusController.stream;
+
+  // 리워드 서비스
+  final StepRewardService _stepRewardService = StepRewardService();
+
   // 걸음 수 getter
   int get currentSteps => _currentSteps;
   int get targetSteps => _targetSteps;
   bool get isServiceRunning => _isServiceRunning;
+  bool get isRewardRequested => _isRewardRequested;
   double get stepAchievementRate =>
       _targetSteps > 0 ? _currentSteps / _targetSteps : 0;
 
@@ -56,6 +74,9 @@ class StepCounterManager {
     try {
       // 이전에 저장된 걸음 수 로드
       await _loadSavedSteps();
+      
+      // 이전에 저장된 리워드 요청 상태 로드
+      await _loadRewardRequestStatus();
 
       // 권한 확인
       final hasPermission = await checkPermission();
@@ -115,6 +136,42 @@ class StepCounterManager {
     }
   }
 
+  // 저장된 리워드 요청 상태 불러오기
+  Future<void> _loadRewardRequestStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastRewardDate = prefs.getString('last_step_reward_date');
+      
+      if (lastRewardDate != null) {
+        final today = DateTime.now().toString().split(' ')[0]; // YYYY-MM-DD 형식
+        _isRewardRequested = lastRewardDate == today;
+        debugPrint('저장된 리워드 요청 상태 로드됨: $_isRewardRequested (마지막 요청일: $lastRewardDate)');
+      } else {
+        _isRewardRequested = false;
+      }
+    } catch (e) {
+      debugPrint('저장된 리워드 요청 상태 로드 오류: $e');
+      _isRewardRequested = false;
+    }
+  }
+
+  // 리워드 요청 상태 저장
+  Future<void> _saveRewardRequestStatus(bool requested) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final today = DateTime.now().toString().split(' ')[0]; // YYYY-MM-DD 형식
+      
+      if (requested) {
+        await prefs.setString('last_step_reward_date', today);
+      }
+      
+      _isRewardRequested = requested;
+      debugPrint('리워드 요청 상태 저장됨: $_isRewardRequested (날짜: $today)');
+    } catch (e) {
+      debugPrint('리워드 요청 상태 저장 오류: $e');
+    }
+  }
+
   // 서비스 상태 확인
   Future<void> _checkServiceStatus() async {
     try {
@@ -141,6 +198,9 @@ class StepCounterManager {
           _currentSteps = event;
           _stepCountController.add(event);
           debugPrint('걸음 수 이벤트 수신: $_currentSteps');
+          
+          // 목표 달성 확인 및 리워드 요청
+          _checkGoalAchievement();
         }
       },
       onError: (error) {
@@ -152,7 +212,57 @@ class StepCounterManager {
     debugPrint('걸음 수 이벤트 리스너 설정됨');
   }
 
-  // 권한 확인
+  // 목표 달성 확인 및 리워드 요청
+  Future<void> _checkGoalAchievement() async {
+    // 목표를 달성했고, 오늘 아직 리워드를 요청하지 않았다면
+    if (_currentSteps >= _targetSteps && !_isRewardRequested) {
+      debugPrint('목표 걸음 수 $_targetSteps 달성! 현재: $_currentSteps');
+      await requestStepReward();
+    }
+  }
+
+  // 걸음수 목표 달성 리워드 요청
+  Future<Map<String, dynamic>> requestStepReward() async {
+    // 이미 오늘 리워드를 요청했다면 중복 요청 방지
+    if (_isRewardRequested) {
+      final result = {
+        'success': true,
+        'isNewReward': false,
+        'message': '이미 오늘의 걸음수 리워드를 받았습니다.',
+      };
+      _rewardStatusController.add(result);
+      return result;
+    }
+
+    try {
+      debugPrint('걸음수 목표 달성 리워드 요청 시작');
+      final result = await _stepRewardService.requestStepReward(
+        currentSteps: _currentSteps,
+        targetSteps: _targetSteps
+      );
+      
+      // 요청 성공 시 상태 저장
+      if (result['success'] == true) {
+        await _saveRewardRequestStatus(true);
+      }
+      
+      // 결과 스트림에 전송
+      _rewardStatusController.add(result);
+      
+      return result;
+    } catch (e) {
+      debugPrint('걸음수 리워드 요청 오류: $e');
+      final result = {
+        'success': false,
+        'isNewReward': false,
+        'message': '걸음수 리워드 요청 실패: $e',
+      };
+      _rewardStatusController.add(result);
+      return result;
+    }
+  }
+
+  // 권한 확인 (활동 인식 권한만 확인)
   Future<bool> checkPermission() async {
     try {
       // Android 10 이상에서는 ACTIVITY_RECOGNITION 권한 필요
@@ -164,15 +274,45 @@ class StepCounterManager {
     }
   }
 
-  // 권한 요청
-  Future<bool> requestPermission() async {
+  // 권한 요청 - 활동 인식 및 알림 권한 함께 요청
+  // 반환값: 'activity' - 활동 인식 권한 상태, 'notification' - 알림 권한 상태
+  Future<Map<String, bool>> requestPermissions() async {
     try {
-      final status = await Permission.activityRecognition.request();
-      if (status.isGranted && !_isInitialized) {
+      // 활동 인식 권한 요청 (걸음수 측정에 필수)
+      final activityStatus = await Permission.activityRecognition.request();
+      final activityGranted = activityStatus.isGranted;
+      
+      // 알림 권한 요청 (걸음수 상태 알림에 필요)
+      final notificationService = NotificationService();
+      final notificationPermissions = await notificationService.checkAndRequestAllPermissions();
+      final notificationGranted = notificationPermissions['notification'] ?? false;
+      
+      debugPrint('권한 요청 결과 - 활동 인식: $activityGranted, 알림: $notificationGranted');
+      
+      if (activityGranted && !_isInitialized) {
         // 권한을 얻은 후 초기화가 아직 완료되지 않았다면 초기화 재시도
         await initialize();
       }
-      return status.isGranted;
+      
+      return {
+        'activity': activityGranted,
+        'notification': notificationGranted
+      };
+    } catch (e) {
+      debugPrint('권한 요청 오류: $e');
+      return {
+        'activity': false,
+        'notification': false
+      };
+    }
+  }
+
+  // 기존 requestPermission 메서드는 하위 호환성을 위해 유지
+  // 활동 인식 권한만 요청하고 결과를 반환
+  Future<bool> requestPermission() async {
+    try {
+      final permissions = await requestPermissions();
+      return permissions['activity'] ?? false;
     } catch (e) {
       debugPrint('Error requesting permission: $e');
       return false;
@@ -182,21 +322,12 @@ class StepCounterManager {
   // 서비스 시작
   Future<bool> startService() async {
     try {
-      // 권한 확인
-      final hasPermission = await checkPermission();
-      if (!hasPermission) {
-        debugPrint('StepCounterManager: 권한이 없어 서비스를 시작할 수 없습니다.');
-        final granted = await requestPermission();
-        if (!granted) {
-          return false;
-        }
-      }
-
       // 아직 초기화되지 않았다면 초기화 실행
       if (!_isInitialized) {
         await initialize();
       }
 
+      // 서비스 시작 (권한 요청은 호출자가 이미 requestPermissions()를 통해 처리)
       final result = await _methodChannel.invokeMethod<bool>(
         'startStepCounterService',
       );
@@ -250,6 +381,9 @@ class StepCounterManager {
           _currentSteps = steps;
           _stepCountController.add(_currentSteps);
           debugPrint('현재 걸음 수 확인됨: $_currentSteps');
+          
+          // 목표 달성 확인 및 리워드 요청
+          _checkGoalAchievement();
         } else {
           // 새 값이 0이고 현재 값이 0보다 크면 기존 값 유지하고 로그 출력
           debugPrint('걸음 수 값이 0으로 반환됨, 기존 값 $_currentSteps 유지');
@@ -266,11 +400,15 @@ class StepCounterManager {
   void setTargetSteps(int steps) {
     _targetSteps = steps;
     debugPrint('목표 걸음 수 설정됨: $_targetSteps');
+    
+    // 목표 변경 후 달성 여부 확인
+    _checkGoalAchievement();
   }
 
   // 자원 해제
   void dispose() {
     _stepCountController.close();
     _serviceStatusController.close();
+    _rewardStatusController.close();
   }
 }

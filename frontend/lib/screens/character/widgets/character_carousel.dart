@@ -1,5 +1,10 @@
-import 'package:flutter/material.dart';
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'character_card.dart';
 
 /// 캐릭터 캐러셀 위젯
@@ -11,13 +16,13 @@ class CharacterCarousel extends StatefulWidget {
   final Function(int) onCardSelect;
 
   const CharacterCarousel({
-    Key? key,
+    super.key,
     required this.currentPage,
     required this.flippedCardIndex,
     required this.onPageChanged,
     required this.onCardTap,
     required this.onCardSelect,
-  }) : super(key: key);
+  });
 
   @override
   State<CharacterCarousel> createState() => _CharacterCarouselState();

@@ -1,11 +1,14 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/screens/login/agree_screen.dart';
 import 'package:buds/screens/login/login_screen.dart';
 import 'package:buds/screens/login/widgets/chat_bubble.dart';
-import 'package:buds/screens/login/agree_screen.dart';
 
 /// 상단 타이틀 위젯
 class MainTitleWidget extends StatelessWidget {
-  const MainTitleWidget({Key? key}) : super(key: key);
+  const MainTitleWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +51,7 @@ class MainTitleWidget extends StatelessWidget {
 
 /// 채팅 대화 컨테이너 위젯
 class ChatContainer extends StatelessWidget {
-  const ChatContainer({Key? key}) : super(key: key);
+  const ChatContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +71,7 @@ class ChatContainer extends StatelessWidget {
           // 대화 버블 1 - 토끼
           ChatBubble(
             color: Colors.pink,
-            text: '오늘은 무슨 좋은 일 있었어??',
+            text: '오늘은 좋은 일 있었어??',
             isLeft: true,
             iconPath: 'assets/icons/characters/rabbiticon.png',
           ),
@@ -98,7 +101,7 @@ class ChatContainer extends StatelessWidget {
 
 /// 새롭게 시작하기 버튼 위젯
 class StartButton extends StatelessWidget {
-  const StartButton({Key? key}) : super(key: key);
+  const StartButton({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +135,7 @@ class StartButton extends StatelessWidget {
 }
 
 class LoginButton extends StatelessWidget {
-  const LoginButton({Key? key}) : super(key: key);
+  const LoginButton({super.key});
 
   @override
   Widget build(BuildContext context) {

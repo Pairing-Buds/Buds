@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/activity/shell_screen.dart';
-import 'package:buds/screens/activity/widgets/book_recommendation.dart';
-// import 'package:buds/services/activity/widgets/user_recommendation.dart';
+import 'package:buds/screens/activity/widgets/book_rec.dart';
+import 'package:buds/screens/activity/widgets/user_rec.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class ActivityScreen extends StatelessWidget {
@@ -23,7 +23,7 @@ class ActivityScreen extends StatelessWidget {
           children: [
             const Text('버즈의 추천활동', style: TextStyle(fontSize: 18)),
             const Text(
-              '오늘 이런 활동 어때요?',
+              '추천활동을 하고 편지를 받아봐요',
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 16),
@@ -31,46 +31,36 @@ class ActivityScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const ActivityBox(
-                  icon: Icons.book,
-                  label: '도서관 가기',
-                  color: AppColors.skyblue,
+                  imagePath: 'assets/icons/book_icon.png',
+                  label: '도서관가기',
+                  color: Color(0xFFE6F7FF),
                 ),
                 const ActivityBox(
-                  icon: Icons.park,
-                  label: '공원 가기',
-                  color: AppColors.lightgreen,
+                  imagePath: 'assets/icons/tree_icon.png',
+                  label: '공원가기',
+                  color: Color(0xFFE6FFE6),
                 ),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ShellScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const ShellScreen(),
+                      ),
                     );
                   },
                   child: const ActivityBox(
-                    icon: Icons.edit,
-                    label: '필사 하기',
+                    imagePath: 'assets/icons/shell_icon.png',
+                    label: '필사하기',
                     color: Color(0xFFFFF8E6),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 32),
-            const BookRecommendation(),
+            const BookRec(),
             const SizedBox(height: 32),
-            const Text(
-              '취향에 맞는 친구 찾기',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: const [
-                PreferenceBox(label: '에스파'),
-                PreferenceBox(label: '뉴진스'),
-                PreferenceBox(label: '아이브'),
-              ],
-            ),
+            const UserRec(),
           ],
         ),
       ),
@@ -79,12 +69,12 @@ class ActivityScreen extends StatelessWidget {
 }
 
 class ActivityBox extends StatelessWidget {
-  final IconData icon;
+  final String imagePath;
   final String label;
   final Color color;
 
   const ActivityBox({
-    required this.icon,
+    required this.imagePath,
     required this.label,
     required this.color,
     super.key,
@@ -93,39 +83,44 @@ class ActivityBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 90,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      width: 100,
+      height: 130, // 높이 살짝 조정
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 40),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 14)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(4, 4),
+          ),
         ],
       ),
-    );
-  }
-}
-
-class PreferenceBox extends StatelessWidget {
-  final String label;
-
-  const PreferenceBox({required this.label, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      height: 120,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Image.asset(
+              imagePath,
+              width: 50,
+              height: 50,
+              fit: BoxFit.contain,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              // fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
-      child: Text(label, style: const TextStyle(fontSize: 14)),
     );
   }
 }

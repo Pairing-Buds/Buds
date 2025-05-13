@@ -1,9 +1,16 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import '../screens/character/models/character_data.dart';
-import 'character_provider.dart';
-import '../services/step_counter_manager.dart';
+
+// Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import '../screens/character/models/character_data.dart';
+import '../services/step_counter_manager.dart';
+import 'character_provider.dart';
 
 /// 마이페이지 상태를 관리하는 프로바이더
 class MyPageProvider extends ChangeNotifier {
@@ -317,6 +324,15 @@ class MyPageProvider extends ChangeNotifier {
       debugPrint('MyPageProvider: 걸음 수 강제 갱신 - $steps');
     } catch (e) {
       debugPrint('MyPageProvider: 걸음 수 강제 갱신 실패 - $e');
+    }
+  }
+
+  // 서비스 상태 업데이트
+  void updateServiceStatus(bool isRunning) {
+    if (_isServiceRunning != isRunning) {
+      _isServiceRunning = isRunning;
+      notifyListeners();
+      debugPrint('MyPageProvider: 서비스 상태 업데이트 - $isRunning');
     }
   }
 

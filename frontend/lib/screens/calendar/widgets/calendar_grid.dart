@@ -1,6 +1,9 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'calendar_day.dart';
+
+// Project imports:
 import 'package:buds/models/badge_model.dart';
+import 'calendar_day.dart';
 
 class CalendarGrid extends StatelessWidget {
   final DateTime currentMonth;

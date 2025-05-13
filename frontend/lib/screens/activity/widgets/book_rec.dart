@@ -1,15 +1,18 @@
-import 'package:buds/config/theme.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/services/activity_service.dart';
 
-class BookRecommendation extends StatefulWidget {
-  const BookRecommendation({super.key});
+class BookRec extends StatefulWidget {
+  const BookRec({super.key});
 
   @override
-  State<BookRecommendation> createState() => _BookRecommendationState();
+  State<BookRec> createState() => _BookRecState();
 }
 
-class _BookRecommendationState extends State<BookRecommendation> {
+class _BookRecState extends State<BookRec> {
   final ActivityService _activityService = ActivityService();
 
   String? title;
@@ -61,31 +64,19 @@ class _BookRecommendationState extends State<BookRecommendation> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
-    final cardHeight = screenHeight * 0.2;
+    final screenHeight = MediaQuery.of(context).size.height;
+    // final cardHeight = screenHeight * 0.2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '버즈의 책 추천',
-          style: TextStyle(fontSize: 18),
-        ),
-        const Text(
-          '이번 달 책 추천입니다',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+        const Text('버즈의 책 추천', style: TextStyle(fontSize: 18)),
         const SizedBox(height: 12),
         Container(
-          height: cardHeight,
-          padding: const EdgeInsets.all(30),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            // color: const Color(0xFFF9F9F9),
             color: AppColors.lightGrey,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black12,
@@ -95,29 +86,32 @@ class _BookRecommendationState extends State<BookRecommendation> {
             ],
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              AspectRatio(
-                aspectRatio: 1 / 2, // 책 비율 유지 (보통 2:3)
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
+              cover != null
+                  ? Image.network(
                     cover!,
-                    fit: BoxFit.contain, // 비율 깨지지 않게
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
+                    width: 100,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  )
+                  : const SizedBox(width: 60, height: 90),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  title!,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title ?? '제목 없음',
+                      style: const TextStyle(fontSize: 16),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      '저자: ${author ?? '저자 없음'}',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
             ],

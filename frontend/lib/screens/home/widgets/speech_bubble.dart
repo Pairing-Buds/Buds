@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/screens/activity/activity_screen.dart';
 
 class SpeechBubbleScreen extends StatelessWidget {

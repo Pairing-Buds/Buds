@@ -1,9 +1,14 @@
-import 'package:buds/config/theme.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:intl/intl.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/models/badge_model.dart';
-import 'package:buds/services/calendar_service.dart';
 import 'package:buds/screens/calendar/widgets/calendar_grid.dart';
+import 'package:buds/services/calendar_service.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});

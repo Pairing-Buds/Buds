@@ -1,12 +1,18 @@
-import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
-import 'dart:math';
-import '../models/character_data.dart';
+// Dart imports:
 import 'dart:async';
+import 'dart:math';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
+import '../models/character_data.dart';
 
 /// 헤더 텍스트 위젯
 class HeaderText extends StatelessWidget {
-  const HeaderText({Key? key}) : super(key: key);
+  const HeaderText({super.key});
+
 
   @override
   Widget build(BuildContext context) {

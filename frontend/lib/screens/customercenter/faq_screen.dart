@@ -1,11 +1,16 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:provider/provider.dart';
-import 'widgets/faq_section.dart';
+
+// Project imports:
 import '../../providers/auth_provider.dart';
 import '../character/models/character_data.dart';
+import 'widgets/faq_section.dart';
 
 class FaqScreen extends StatelessWidget {
-  const FaqScreen({Key? key}) : super(key: key);
+  const FaqScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,101 +1,72 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/login/widgets/index.dart';
-import 'package:buds/screens/home/home_screen.dart';
-import 'package:buds/screens/chat/start_chatting_screen.dart';
-import 'package:buds/screens/main_screen.dart';
 
 /// 로그인 메인 화면
 class LoginMainScreen extends StatelessWidget {
-  const LoginMainScreen({Key? key}) : super(key: key);
+  const LoginMainScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 화면 크기 가져오기
-    final size = MediaQuery.of(context).size;
-    final height = size.height;
-    final width = size.width;
-
-    // 기기 크기에 따른 스케일 계산
-    final double titleScale = width < 360 ? 0.8 : 1.0;
-    final double imageScale = width < 360 ? 3.0 : 2.5;
-
-    // 세로 간격 조정
-    final double topPadding = height * 0.05;
-    final double middlePadding = height * 0.02;
-    final double bottomPadding = height * 0.03;
-
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: SafeArea(
-        // 스크롤이 가능하도록 SingleChildScrollView 적용
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: height - MediaQuery.of(context).padding.vertical,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        // LayoutBuilder로 화면 크기에 맞춰 위젯 크기와 여백 계산
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final height = constraints.maxHeight;
+
+            // 화면이 작을수록 요소를 더 줄여서 배치
+            final titleScale = width < 360 ? 0.8 : 1.0;
+            final imgRatio = width < 360 ? 0.28 : 0.33; // 전체 높이 대비 이미지 비율
+            final topPad = height * 0.05;
+            final middlePad = height * 0.02;
+            final bottomPad = height * 0.03;
+
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.06),
               child: Column(
                 children: [
-                  SizedBox(height: topPadding),
+                  SizedBox(height: topPad),
 
-                  // 상단 타이틀 위젯 (반응형 스케일 적용)
+                  // 타이틀
                   Transform.scale(
                     scale: titleScale,
                     child: const MainTitleWidget(),
                   ),
 
-                  SizedBox(height: middlePadding),
+                  SizedBox(height: middlePad),
 
-                  // 채팅 컨테이너 위젯
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const StartChattingScreen(),
-                        ),
-                      );
-                    },
-                    child: const ChatContainer(),
-                  ),
+                  // 채팅 버블 
+                  const ChatContainer(),
 
-                  SizedBox(height: middlePadding),
+                  SizedBox(height: middlePad),
 
-                  // 곰 캐릭터 이미지 (반응형 스케일 적용)
-                  GestureDetector(
-                    onTap: () {
-                      // HomeScreen으로 이동
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainScreen(),
-                        ),
-                      );
-                    },
-                    child: Image.asset(
-                      'assets/images/newmarmetmain.png',
-                      scale: imageScale,
-                      fit: BoxFit.contain,
+                  // 곰 캐릭터 – Flexible로 여유 공간에 맞춰 크기 조정
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown, // 너무 클 경우만 축소
+                      child: Image.asset(
+                        'assets/images/newmarmetmain.png',
+                        height: height * imgRatio, // 비율 기반 높이
+                      ),
                     ),
                   ),
 
-                  // SizedBox(height: bottomPadding),
-
-                  // 시작하기 버튼 위젯 (버튼은 크기 자동 조절)
                   const StartButton(),
 
-                  SizedBox(height: middlePadding),
+                  SizedBox(height: middlePad),
 
-                  // 로그인 버튼 위젯
                   const LoginButton(),
 
-                  SizedBox(height: bottomPadding),
+                  SizedBox(height: bottomPad),
                 ],
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );

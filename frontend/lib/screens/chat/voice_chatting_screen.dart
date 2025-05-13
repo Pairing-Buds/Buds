@@ -1,12 +1,19 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+// Package imports:
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:buds/config/theme.dart';
-import 'package:buds/services/chat_service.dart';
-import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+
+// Project imports:
+import 'package:buds/config/theme.dart';
+import 'package:buds/screens/chat/chat_detail_screen.dart';
+import 'package:buds/services/chat_service.dart';
 
 class VoiceChattingScreen extends StatefulWidget {
   const VoiceChattingScreen({super.key});

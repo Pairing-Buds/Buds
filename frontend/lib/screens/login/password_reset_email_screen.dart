@@ -1,14 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
-import 'package:provider/provider.dart';
-import 'package:buds/providers/auth_provider.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:provider/provider.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
+import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/login/password_reset_screen.dart';
 import 'widgets/password_reset_widgets.dart';
 
 /// 비밀번호 재설정 이메일 입력 화면
 class PasswordResetEmailScreen extends StatefulWidget {
-  const PasswordResetEmailScreen({Key? key}) : super(key: key);
+  const PasswordResetEmailScreen({super.key});
 
   @override
   State<PasswordResetEmailScreen> createState() =>

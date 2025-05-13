@@ -1,3 +1,4 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 /// 채팅 버블 위젯
@@ -9,13 +10,13 @@ class ChatBubble extends StatelessWidget {
   final String? iconPath;
 
   const ChatBubble({
-    Key? key,
+    super.key,
     required this.color,
     required this.text,
     required this.isLeft,
     this.backgroundColor,
     this.iconPath,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

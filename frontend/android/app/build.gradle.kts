@@ -11,6 +11,13 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
+// local.properties에서 API 키 가져오기
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.budsapp"
     compileSdk = flutter.compileSdkVersion
@@ -48,6 +55,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Google Maps API 키 설정
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProperties.getProperty("google.maps.key") ?: System.getenv("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {

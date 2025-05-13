@@ -1,10 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
+import 'character_card.dart';
 import 'character_carousel.dart';
 import 'character_info_overlay.dart';
-import 'character_card.dart';
-import 'page_indicator.dart';
-import 'header_text.dart';
 import 'footer_text.dart';
+import 'header_text.dart';
+import 'page_indicator.dart';
 
 /// 캐릭터 선택 화면의 메인 UI를 관리하는 위젯
 class CharacterSelectionManager extends StatelessWidget {
@@ -15,13 +18,13 @@ class CharacterSelectionManager extends StatelessWidget {
   final Function(int) onCharacterSelect;
 
   const CharacterSelectionManager({
-    Key? key,
+    super.key,
     required this.currentPage,
     required this.flippedCardIndex,
     required this.onPageChanged,
     required this.onCardFlip,
     required this.onCharacterSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

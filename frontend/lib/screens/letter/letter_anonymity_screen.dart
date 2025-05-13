@@ -1,9 +1,14 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/config/theme.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
+
+// Package imports:
 import 'package:intl/intl.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/services/api_service.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterAnonymityScreen extends StatefulWidget {
   const LetterAnonymityScreen({Key? key}) : super(key: key);

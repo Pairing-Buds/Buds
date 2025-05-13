@@ -1,9 +1,12 @@
-import 'package:buds/screens/chat/chat_detail_screen.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/screens/activity/shell_screen.dart';
-import 'package:buds/screens/letter/letter_screen.dart';
-import 'package:buds/screens/survey/survey_screen.dart';
+import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/screens/home/widgets/speech_bubble.dart';
+import 'package:buds/screens/home/latest_letter_screen.dart';
+import 'package:buds/screens/survey/survey_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -110,7 +113,7 @@ class HomeScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LetterScreen(),
+                      builder: (context) => const LastLetterScreen(),
                     ),
                   );
                 },

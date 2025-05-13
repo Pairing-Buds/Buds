@@ -1,9 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
-import 'package:buds/widgets/common_dialog.dart';
-import 'package:buds/services/diary_service.dart';
+
+// Project imports:
 import 'package:buds/models/diary_create_model.dart';
 import 'package:buds/screens/diary/widgets/diary_card.dart';
+import 'package:buds/services/diary_service.dart';
+import 'package:buds/widgets/common_dialog.dart';
+import '../../config/theme.dart';
 
 class DiaryDetailScreen extends StatefulWidget {
   final DateTime selectedDate;

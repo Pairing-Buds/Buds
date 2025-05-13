@@ -1,9 +1,9 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 class FaqSection extends StatefulWidget {
   final String characterImagePath;
-  const FaqSection({Key? key, required this.characterImagePath})
-    : super(key: key);
+  const FaqSection({super.key, required this.characterImagePath});
 
   @override
   State<FaqSection> createState() => _FaqSectionState();

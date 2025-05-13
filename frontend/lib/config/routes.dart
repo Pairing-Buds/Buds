@@ -1,11 +1,15 @@
 // 라우트 설정
 
+// Flutter imports:
 import 'package:flutter/material.dart';
-import '../screens/home/home_screen.dart';
-import '../screens/diary/diary_list_screen.dart';
+
+// Project imports:
 import '../screens/diary/diary_detail_screen.dart';
-// import '../screens/login/login_screen.dart';
+import '../screens/diary/diary_list_screen.dart';
+import '../screens/home/home_screen.dart';
 import 'route_names.dart';
+
+// import '../screens/login/login_screen.dart';
 
 class AppRouter {
   static final Map<String, WidgetBuilder> routes = {

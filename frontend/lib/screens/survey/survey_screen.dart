@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/services/survey_service.dart';
@@ -12,13 +15,7 @@ class SurveyScreen extends StatefulWidget {
 }
 
 class _SurveyScreenState extends State<SurveyScreen> {
-  final List<String> labels = [
-    '전혀\n아니다',
-    '',
-    '보통',
-    '',
-    '완전\n그렇다',
-  ];
+  final List<String> labels = ['전혀\n아니다', '', '보통', '', '완전\n그렇다'];
 
   final List<String> questions = [
     '나는 대부분의 시간을 집 안에서 보낸다.',
@@ -54,20 +51,13 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
   // 각 질문에 대한 선택값 저장
   List<int?> selectedIndexes = List.filled(15, null);
-  List<String> surveyTags = []; // 서버에서 가져온 태그
+  List<String> surveyTags = [];
   List<String> selectedTags = []; // 백으로 보내는 태그
 
   @override
   void initState() {
     super.initState();
-    loadSurveyTags();
-  }
-
-  Future<void> loadSurveyTags() async {
-    final tags = await SurveyService().fetchSurveyTags();
-    setState(() {
-      surveyTags = tags;
-    });
+    surveyTags = tagTranslation.keys.toList();
   }
 
   void submitSurvey() async {
@@ -78,9 +68,9 @@ class _SurveyScreenState extends State<SurveyScreen> {
       return;
     }
     if (selectedTags.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('관심 분야를 선택해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('관심 분야를 선택해주세요.')));
       return;
     }
 
@@ -92,7 +82,9 @@ class _SurveyScreenState extends State<SurveyScreen> {
     }
 
     // 점수 계산
-    int seclusionScore = selectedIndexes.sublist(0, 10).fold(0, (sum, score) => sum + (score ?? 0));
+    int seclusionScore = selectedIndexes
+        .sublist(0, 10)
+        .fold(0, (sum, score) => sum + (score ?? 0));
     int opennessScore = selectedIndexes[10] ?? 0;
     int sociabilityScore = selectedIndexes[11] ?? 0;
     int routineScore = selectedIndexes[12] ?? 0;
@@ -100,7 +92,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
     int expressionScore = selectedIndexes[14] ?? 0;
 
     // 선택된 태그를 영어로 변환
-    List<String> englishTags = selectedTags.map((tag) => tagTranslation[tag] ?? tag).toList();
+    List<String> englishTags =
+        selectedTags.map((tag) => tagTranslation[tag] ?? tag).toList();
 
     bool success = await SurveyService().submitSurveyResult(
       seclusionScore: seclusionScore,
@@ -113,16 +106,16 @@ class _SurveyScreenState extends State<SurveyScreen> {
     );
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('설문조사 결과가 제출되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('설문조사 결과가 제출되었습니다.')));
       Future.delayed(const Duration(seconds: 1), () {
         Navigator.pushReplacementNamed(context, '/main');
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제출에 실패했습니다. 다시 시도해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제출에 실패했습니다. 다시 시도해주세요.')));
     }
   }
 
@@ -147,10 +140,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
           const SizedBox(height: 20),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              '유저님의 성향은?',
-              style: TextStyle(fontSize: 18),
-            ),
+            child: Text('유저님의 성향은?', style: TextStyle(fontSize: 18)),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -168,8 +158,11 @@ class _SurveyScreenState extends State<SurveyScreen> {
                 // 질문 목록 부분
                 ...List.generate(
                   questions.length,
-                      (idx) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  (idx) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -216,7 +209,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                   ),
                                 ),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: List.generate(5, (i) {
                                     return GestureDetector(
                                       onTap: () {
@@ -228,15 +222,19 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                         children: [
                                           CircleAvatar(
                                             radius: 10,
-                                            backgroundColor: selectedIndexes[idx] == i
-                                                ? const Color(0xFF9BE3D7)
-                                                : Colors.grey.shade300,
+                                            backgroundColor:
+                                                selectedIndexes[idx] == i
+                                                    ? const Color(0xFF9BE3D7)
+                                                    : Colors.grey.shade300,
                                           ),
                                           const SizedBox(height: 6),
                                           Text(
                                             labels[i],
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -276,37 +274,48 @@ class _SurveyScreenState extends State<SurveyScreen> {
                       alignment: WrapAlignment.center,
                       spacing: 8.0,
                       runSpacing: 8.0,
-                      children: surveyTags.map((tag) {
-                        final isSelected = selectedTags.contains(tag);
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (isSelected) {
-                                selectedTags.remove(tag);
-                              } else {
-                                selectedTags.add(tag);
-                              }
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4), // 태그 간격 조정
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.blue : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(30),
-                              border: Border.all(
-                                color: isSelected ? AppColors.blue : Colors.grey.shade300,
+                      children:
+                          surveyTags.map((tag) {
+                            final isSelected = selectedTags.contains(tag);
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (isSelected) {
+                                    selectedTags.remove(tag);
+                                  } else {
+                                    selectedTags.add(tag);
+                                  }
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 6,
+                                ),
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                  horizontal: 4,
+                                ), // 태그 간격 조정
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? AppColors.blue
+                                          : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color:
+                                        isSelected
+                                            ? AppColors.blue
+                                            : Colors.grey.shade300,
+                                  ),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(fontSize: 14),
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              tag,
-                              style: TextStyle(
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
                     ),
                   ),
                 ),
@@ -331,7 +340,10 @@ class _SurveyScreenState extends State<SurveyScreen> {
                           vertical: 12,
                         ),
                       ),
-                      child: const Text('제출하기', style: TextStyle(color: Colors.black)),
+                      child: const Text(
+                        '제출하기',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ),

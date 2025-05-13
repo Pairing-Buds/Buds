@@ -27,6 +27,6 @@ public interface LetterRepository extends JpaRepository<Letter, Integer> {
                                          @Param("opponentId") Integer opponentId,
                                          Pageable pageable);
 
-    Optional<Letter> findFirstByReceiver_IdOrderByCreatedAtDesc(Integer receiverId);
+    Optional<Letter> findFirstByReceiver_IdOrderByCreatedAtDescIdDesc(Integer receiverId);
 
 }

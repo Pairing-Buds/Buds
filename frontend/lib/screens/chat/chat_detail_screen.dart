@@ -1,13 +1,19 @@
 // ChatDetailScreen.dart (voice + text 통합)
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/services/chat_service.dart';
-import 'package:buds/config/theme.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
+
+// Package imports:
 import 'package:intl/intl.dart';
-import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:buds/screens/chat/voice_chatting_screen.dart';
+
+// Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/screens/chat/start_chatting_screen.dart';
+import 'package:buds/screens/chat/voice_chatting_screen.dart';
+import 'package:buds/screens/chat/widgets/typing_indicator.dart';
+import 'package:buds/services/chat_service.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String? initialText;

@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import '../models/character_data.dart';
 
@@ -8,10 +11,10 @@ class CharacterInfoOverlay extends StatelessWidget {
   final VoidCallback onSelect;
 
   const CharacterInfoOverlay({
-    Key? key,
+    super.key,
     required this.index,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

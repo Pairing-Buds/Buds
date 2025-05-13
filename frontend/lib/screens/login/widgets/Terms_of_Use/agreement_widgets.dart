@@ -1,4 +1,7 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'terms_contents.dart';
 
@@ -9,11 +12,11 @@ class AgreementItem extends StatelessWidget {
   final Function(bool) onChanged;
 
   const AgreementItem({
-    Key? key,
+    super.key,
     required this.title,
     required this.isChecked,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -109,10 +112,10 @@ class AllAgreementItem extends StatelessWidget {
   final Function(bool) onChanged;
 
   const AllAgreementItem({
-    Key? key,
+    super.key,
     required this.isChecked,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -149,8 +152,7 @@ class NextButton extends StatelessWidget {
   final bool isEnabled;
   final VoidCallback? onPressed;
 
-  const NextButton({Key? key, required this.isEnabled, this.onPressed})
-    : super(key: key);
+  const NextButton({super.key, required this.isEnabled, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -181,10 +183,10 @@ class AnimatedCheckboxButton extends StatefulWidget {
   final Function(bool) onChanged;
 
   const AnimatedCheckboxButton({
-    Key? key,
+    super.key,
     required this.isChecked,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedCheckboxButton> createState() => _AnimatedCheckboxButtonState();

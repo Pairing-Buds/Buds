@@ -1,12 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'widgets/faq_section.dart';
+
+// Project imports:
 import 'faq_screen.dart';
 import 'inquiry_chat_screen.dart';
+import 'widgets/faq_section.dart';
 
 class CustomerCenterScreen extends StatelessWidget {
   final VoidCallback? onBack;
 
-  const CustomerCenterScreen({Key? key, this.onBack}) : super(key: key);
+  const CustomerCenterScreen({super.key, this.onBack});
 
   @override
   Widget build(BuildContext context) {

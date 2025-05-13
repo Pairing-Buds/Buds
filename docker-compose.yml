@@ -2,7 +2,7 @@ version: "3.8"
 services:
   # Spring Boot (Backend)
   spring:
-    image: kimkyeongeun/springboot:${IMAGE_TAG}
+    image: kimkyeongeun/springboot:latest
     container_name: spring
     ports:
       - "8080:8080"
@@ -15,7 +15,7 @@ services:
         condition: service_healthy
 
   fastapi:
-    image: kimkyeongeun/fastapi:${IMAGE_TAG}
+    image: kimkyeongeun/fastapi:latest
     container_name: fastapi
     ports:
       - "8000:8000"
@@ -24,6 +24,15 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+
+  # Emotion API Server 수정
+  emotion-api:
+    image: kimkyeongeun/emotion-api:latest
+    container_name: emotion-api
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
 
   # MySQL (RDB)
   mysql:
@@ -68,7 +77,6 @@ services:
       - spring
       - fastapi
 
-
 networks:
   default:
     driver: bridge
@@ -76,7 +84,3 @@ networks:
 volumes:
   mysql-data:
   redis-data:
-  prometheus_data:
-  grafana_data:
-  elasticsearch_data:
-  filebeat_data:

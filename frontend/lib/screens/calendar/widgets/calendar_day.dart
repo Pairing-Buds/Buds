@@ -1,7 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/screens/diary/diary_list_screen.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/models/badge_model.dart';
+import 'package:buds/screens/diary/diary_list_screen.dart';
 
 class CalendarDay extends StatelessWidget {
   final int day;

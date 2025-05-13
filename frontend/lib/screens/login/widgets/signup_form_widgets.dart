@@ -1,15 +1,19 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/form_widgets.dart';
-import 'package:intl/intl.dart';
 
 /// 이메일 입력 필드
 class EmailInputField extends StatelessWidget {
   final TextEditingController controller;
   final Widget? suffixIcon;
 
-  const EmailInputField({Key? key, required this.controller, this.suffixIcon})
-    : super(key: key);
+  const EmailInputField({super.key, required this.controller, this.suffixIcon});
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +43,10 @@ class BirthDateInputField extends StatelessWidget {
   final Function(BuildContext) onSelectDate;
 
   const BirthDateInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSelectDate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +73,11 @@ class SignupPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const SignupPasswordField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.obscurePassword,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,8 +90,8 @@ class SignupPasswordField extends StatelessWidget {
         if (value == null || value.isEmpty) {
           return '비밀번호를 입력해주세요';
         }
-        if (value.length < 8) {
-          return '비밀번호는 8자 이상이어야 합니다';
+        if (value.length < 6) {
+          return '비밀번호는 6자 이상이어야 합니다';
         }
         return null;
       },
@@ -103,12 +107,12 @@ class ConfirmPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const ConfirmPasswordField({
-    Key? key,
+    super.key,
     required this.passwordController,
     required this.confirmController,
     required this.obscurePassword,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +156,7 @@ class SignupForm extends StatelessWidget {
   final bool isEmailVerified;
 
   const SignupForm({
-    Key? key,
+    super.key,
     required this.formKey,
     required this.emailController,
     required this.passwordController,
@@ -171,7 +175,7 @@ class SignupForm extends StatelessWidget {
     this.onVerifyToken,
     this.emailAuthMsg,
     this.isEmailVerified = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
