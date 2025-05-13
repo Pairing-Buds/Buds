@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 // Project imports:
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/services/step_counter_manager.dart';
-import 'package:buds/screens/map/map_screen.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 import 'widgets/step_action_buttons.dart';
 import 'widgets/step_info_widget.dart';
 
@@ -85,7 +85,7 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
     try {
       // 걸음 수 직접 가져오기
       final steps = await _stepCounterManager.getCurrentSteps();
-      
+
       if (mounted) {
         // Provider에게 갱신 요청
         final myPageProvider = Provider.of<MyPageProvider>(
@@ -99,57 +99,28 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
     }
   }
 
-  // 지도 화면으로 이동
-  void _navigateToMapScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const MapScreen()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final myPageProvider = Provider.of<MyPageProvider>(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('만보기'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          // 새로고침 버튼 추가
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshStepCount,
-            tooltip: '걸음 수 새로고침',
-          ),
-          // 지도 버튼 추가
-          IconButton(
-            icon: const Icon(Icons.map),
-            onPressed: _navigateToMapScreen,
-            tooltip: '지도 보기',
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: '만보기',
+        showBackButton: true,
+        centerTitle: true,
+        // actions: [
+        //   // 새로고침 버튼 추가
+        //   IconButton(
+        //     icon: const Icon(Icons.refresh, color: Colors.black),
+        //     onPressed: _refreshStepCount,
+        //     tooltip: '걸음 수 새로고침',
+        //   ),
+        // ],
       ),
       backgroundColor: Colors.white,
       body: Column(
         children: [
           const StepInfoWidget(),
-          const StepActionButtons(),
-          // 지도 화면 이동 버튼 추가
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: ElevatedButton.icon(
-              onPressed: _navigateToMapScreen,
-              icon: const Icon(Icons.directions_walk),
-              label: const Text('주변 공원 찾기'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          ),
+          const Expanded(child: StepActionButtons()),
         ],
       ),
     );

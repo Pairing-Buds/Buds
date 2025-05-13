@@ -6,6 +6,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? leftIconPath;
   final bool centerTitle;
   final bool showBackButton; // 추가
+  final List<Widget>? actions; // actions 파라미터 추가
 
   const CustomAppBar({
     Key? key,
@@ -13,6 +14,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.leftIconPath,
     this.centerTitle = true,
     this.showBackButton = true, // 기본값 true
+    this.actions, // actions 파라미터 추가
   }) : super(key: key);
 
   @override
@@ -22,35 +24,38 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: centerTitle,
-      leading: showBackButton
-          ? IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-        onPressed: () => Navigator.pop(context),
-      )
-          : null, // showBackButton이 false면 leading 자체를 없앰
-      title: title != null
-          ? Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (leftIconPath != null) ...[
-            Image.asset(
-              leftIconPath!,
-              width: 30,
-              height: 30,
-            ),
-            const SizedBox(width: 6),
-          ],
-          Text(
-            title!,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      )
-          : null,
+      leading:
+          showBackButton
+              ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Colors.black,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+              : null, // showBackButton이 false면 leading 자체를 없앰
+      title:
+          title != null
+              ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (leftIconPath != null) ...[
+                    Image.asset(leftIconPath!, width: 30, height: 30),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(
+                    title!,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+              : null,
+      actions: actions, // actions 추가
     );
   }
 

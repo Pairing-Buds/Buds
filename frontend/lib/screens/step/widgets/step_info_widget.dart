@@ -27,7 +27,7 @@ class _StepInfoWidgetState extends State<StepInfoWidget> {
     try {
       // 걸음 수 직접 가져오기
       final steps = await _stepCounterManager.getCurrentSteps();
-      
+
       if (mounted) {
         // Provider에게 갱신 요청
         final myPageProvider = Provider.of<MyPageProvider>(
@@ -47,7 +47,7 @@ class _StepInfoWidgetState extends State<StepInfoWidget> {
     final myPageProvider = Provider.of<MyPageProvider>(context);
     final currentSteps = myPageProvider.currentSteps;
     final goalSteps = myPageProvider.targetSteps;
-    
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
@@ -61,15 +61,41 @@ class _StepInfoWidgetState extends State<StepInfoWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // 왼쪽 - 목표 걸음
                 const Text(
                   '목표 걸음',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
                 ),
-                const Spacer(),
-                const Text(
-                  '현재',
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
+
+                // 오른쪽 - 현재 걸음 + 새로고침
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 새로고침 버튼
+                    GestureDetector(
+                      onTap: _refreshStepCount,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        margin: const EdgeInsets.only(right: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.refresh,
+                          size: 18,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      '현재',
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -94,19 +120,6 @@ class _StepInfoWidgetState extends State<StepInfoWidget> {
                   ),
                 ),
               ],
-            ),
-            // 새로고침 버튼 추가
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                icon: const Icon(Icons.refresh, size: 20),
-                onPressed: _refreshStepCount,
-                tooltip: '걸음 수 새로고침',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                iconSize: 20,
-                color: Colors.green.shade700,
-              ),
             ),
           ],
         ),

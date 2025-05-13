@@ -57,7 +57,7 @@ android {
         versionName = flutter.versionName
         
         // Google Maps API 키 설정
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProperties.getProperty("google.maps.key") ?: System.getenv("GOOGLE_MAPS_API_KEY") ?: "AIzaSyCqWmOBMgV6W2vUMeEAtc-Q3nJVYA4wp_4"
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProperties.getProperty("google.maps.key") ?: System.getenv("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {

@@ -33,6 +33,18 @@ class ApiConstants {
     return fastUrl;
   }
 
+  /// Google Maps API 키
+  static String get googleMapsApiKey {
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      if (kDebugMode) {
+        print('경고: GOOGLE_MAPS_API_KEY 환경 변수가 설정되지 않았습니다.');
+      }
+      return '';
+    }
+    return apiKey;
+  }
+
   // 인증 관련 엔드포인트
   static String get loginUrl => '$baseUrl/login';
   static String get registerUrl => '$baseUrl/auth/sign-up';
@@ -55,10 +67,12 @@ class ApiConstants {
 
   // 편지 관련 엔드포인트
   static String get letterListUrl => '$baseUrl/letters/chats'; // 편지 목록 조회
-  static String get letterDetailUrl => '$baseUrl/letters/chats/details'; // 랜덤 편지(특정 사용자와 주고 받은 편지)
+  static String get letterDetailUrl =>
+      '$baseUrl/letters/chats/details'; // 랜덤 편지(특정 사용자와 주고 받은 편지)
   static String get letterSingleUrl => '$baseUrl/letters/detail'; // 편지 상세 조회
   static String get letterAnonymityUrl => '$baseUrl/letters/send'; // 편지 발송
-  static String get letterLatestUrl => '$baseUrl/letters/latest-received'; // 최근 수신 편지
+  static String get letterLatestUrl =>
+      '$baseUrl/letters/latest-received'; // 최근 수신 편지
   static String get letterAnswerUrl => '$baseUrl/letters/answer'; // 편지 id로 답장
 
   // 캘린더 관련 엔드포인트
@@ -70,12 +84,14 @@ class ApiConstants {
   // 활동관련 엔드포인트
   // STT
   static String get quoteSearchUrl => '$baseUrl/activities/quote'; // 명언 랜덤 조회
-  static String get voiceSendUrl=> '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
-  static String get stepRewardUrl => '$baseUrl/activities/walk'; // 걸음수 목표 달성 리워드
-
+  static String get voiceSendUrl =>
+      '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
+  static String get stepRewardUrl =>
+      '$baseUrl/activities/walk'; // 걸음수 목표 달성 리워드
 
   // 추천 친구
-  static String get userRecommendUrl => '$baseUrl/activities/find-friend-by-tag'; // 추천 친구 url
+  static String get userRecommendUrl =>
+      '$baseUrl/activities/find-friend-by-tag'; // 추천 친구 url
 
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
