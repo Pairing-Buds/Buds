@@ -5,13 +5,18 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc build-essential default-libmysqlclient-dev pkg-config ffmpeg && \
+    apt-get install -y --no-install-recommends gcc build-essential default-libmysqlclient-dev pkg-config ffmpeg git && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir pydantic-settings && \
     apt-get purge -y --auto-remove gcc build-essential && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+# PyAnimalese 저장소 클론
+RUN git clone https://github.com/hwi-middle/PyAnimalese.git && \
+    cd PyAnimalese && \
+    pip install -r requirements.txt
 
 # 소스 코드 복사
 COPY . .
