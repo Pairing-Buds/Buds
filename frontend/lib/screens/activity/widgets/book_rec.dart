@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/services/activity_service.dart';
 
-class BookRecommendation extends StatefulWidget {
-  const BookRecommendation({super.key});
+class BookRec extends StatefulWidget {
+  const BookRec({super.key});
 
   @override
-  State<BookRecommendation> createState() => _BookRecommendationState();
+  State<BookRec> createState() => _BookRecState();
 }
 
-class _BookRecommendationState extends State<BookRecommendation> {
+class _BookRecState extends State<BookRec> {
   final ActivityService _activityService = ActivityService();
 
   String? title;
@@ -64,19 +64,13 @@ class _BookRecommendationState extends State<BookRecommendation> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
-    final cardHeight = screenHeight * 0.2;
+    final screenHeight = MediaQuery.of(context).size.height;
+    // final cardHeight = screenHeight * 0.2;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '버즈의 책 추천',
-          style: TextStyle(fontSize: 18),
-        ),
+        const Text('버즈의 책 추천', style: TextStyle(fontSize: 18)),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
@@ -95,11 +89,11 @@ class _BookRecommendationState extends State<BookRecommendation> {
             children: [
               cover != null
                   ? Image.network(
-                cover!,
-                width: 100,
-                height: 120,
-                fit: BoxFit.cover,
-              )
+                    cover!,
+                    width: 100,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  )
                   : const SizedBox(width: 60, height: 90),
               const SizedBox(width: 12),
               Expanded(
@@ -108,9 +102,7 @@ class _BookRecommendationState extends State<BookRecommendation> {
                   children: [
                     Text(
                       title ?? '제목 없음',
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
+                      style: const TextStyle(fontSize: 16),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

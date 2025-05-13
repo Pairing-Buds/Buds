@@ -47,7 +47,7 @@ class ApiConstants {
   // 사용자 관련 엔드포인트
   static String get userProfileUrl => '$baseUrl/users/my-info';
   static String get randomNicknameUrl => '$baseUrl/auth/random-nickname';
-  static String get tagUrl => '$baseUrl/users/all-tags';
+  static String get tagUrl => '$baseUrl/users/all-tags'; // 전체 태그 조회
 
   // 일기 관련 엔드포인트
   static String get diariesUrl => '$baseUrl/diaries';
@@ -55,27 +55,34 @@ class ApiConstants {
 
   // 편지 관련 엔드포인트
   static String get letterListUrl => '$baseUrl/letters/chats'; // 편지 목록 조회
-  static String get letterDetailUrl => '$baseUrl/letters/chats/details'; // 랜덤 편지(특정 사용자와 주고 받은 편지)
+  static String get letterDetailUrl =>
+      '$baseUrl/letters/chats/details'; // 랜덤 편지(특정 사용자와 주고 받은 편지)
   static String get letterSingleUrl => '$baseUrl/letters/detail'; // 편지 상세 조회
   static String get letterAnonymityUrl => '$baseUrl/letters/send'; // 편지 발송
-  static String get letterLatestUrl => '$baseUrl/letters/latest-received'; // 최근 수신 편지
+  static String get letterLatestUrl =>
+      '$baseUrl/letters/latest-received'; // 최근 수신 편지
   static String get letterAnswerUrl => '$baseUrl/letters/answer'; // 편지 id로 답장
 
   // 캘린더 관련 엔드포인트
   static String get calendarDiaryUrl => '$baseUrl/calendars/'; // 뒤에 yyyy-MM 붙이기
 
   // 설문조사 관련 엔드포인트
-  static String get surveyUrl => '$baseUrl/users/survey-result';
+  static String get surveyUrl => '$baseUrl/users/survey-result'; // 설문조사 제출
+  static String get userTagUrl => '$baseUrl/users/tags'; // 유저 태그 조회
 
   // 활동관련 엔드포인트
-  // STT
+  // 1. 활동 - STT
   static String get quoteSearchUrl => '$baseUrl/activities/quote'; // 명언 랜덤 조회
-  static String get voiceSendUrl=> '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
-  static String get stepRewardUrl => '$baseUrl/activities/walk'; // 걸음수 목표 달성 리워드
+  static String get voiceSendUrl =>
+      '$baseUrl/activities/sentence-voice'; // 문장 음성 텍스트 입력
+  static String get stepRewardUrl =>
+      '$baseUrl/activities/walk'; // 걸음수 목표 달성 리워드
 
-
-  // 추천 친구
-  static String get userRecommendUrl => '$baseUrl/activities/find-friend-by-tag'; // 추천 친구 url
+  // 2. 활동 - 추천 친구
+  static String get userRecUrl =>
+      '$baseUrl/activities/find-friend-by-tag'; // 추천 친구 url
+  static String get userIdLetterSendUrl =>
+      '$baseUrl/letters/to-specific-user'; // 유저 id로 편지 보내기
 
   // 기타 설정
   static const connectionTimeout = 30000; // 밀리초
