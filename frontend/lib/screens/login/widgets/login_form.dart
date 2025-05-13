@@ -12,7 +12,7 @@ import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/login/password_reset_email_screen.dart';
 
 class LoginForm extends StatefulWidget {
-  const LoginForm({Key? key}) : super(key: key);
+  const LoginForm({super.key});
 
   @override
   State<LoginForm> createState() => _LoginFormState();

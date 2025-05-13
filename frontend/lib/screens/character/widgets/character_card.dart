@@ -13,7 +13,7 @@ import 'character_info_overlay.dart';
 class CharacterCardFront extends StatelessWidget {
   final int index;
 
-  const CharacterCardFront({Key? key, required this.index}) : super(key: key);
+  const CharacterCardFront({super.key, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +54,10 @@ class CharacterCardBack extends StatelessWidget {
   final VoidCallback onSelect;
 
   const CharacterCardBack({
-    Key? key,
+    super.key,
     required this.index,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,12 +112,12 @@ class FlippableCharacterCard extends StatefulWidget {
   final VoidCallback onSelect;
 
   const FlippableCharacterCard({
-    Key? key,
+    super.key,
     required this.index,
     required this.isFlipped,
     required this.onTap,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   State<FlippableCharacterCard> createState() => _FlippableCharacterCardState();

@@ -12,7 +12,7 @@ import '../../../providers/my_page_provider.dart';
 import '../../../services/step_counter_manager.dart';
 
 class StepInfoWidget extends StatefulWidget {
-  const StepInfoWidget({Key? key}) : super(key: key);
+  const StepInfoWidget({super.key});
 
   @override
   State<StepInfoWidget> createState() => _StepInfoWidgetState();

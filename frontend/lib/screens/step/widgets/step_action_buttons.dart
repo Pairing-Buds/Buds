@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class StepActionButtons extends StatelessWidget {
-  const StepActionButtons({Key? key}) : super(key: key);
+  const StepActionButtons({super.key});
 
   @override
   Widget build(BuildContext context) {

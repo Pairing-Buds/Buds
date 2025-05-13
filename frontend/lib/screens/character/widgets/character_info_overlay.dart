@@ -11,10 +11,10 @@ class CharacterInfoOverlay extends StatelessWidget {
   final VoidCallback onSelect;
 
   const CharacterInfoOverlay({
-    Key? key,
+    super.key,
     required this.index,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

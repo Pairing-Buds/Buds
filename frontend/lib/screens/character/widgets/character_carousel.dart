@@ -16,13 +16,13 @@ class CharacterCarousel extends StatefulWidget {
   final Function(int) onCardSelect;
 
   const CharacterCarousel({
-    Key? key,
+    super.key,
     required this.currentPage,
     required this.flippedCardIndex,
     required this.onPageChanged,
     required this.onCardTap,
     required this.onCardSelect,
-  }) : super(key: key);
+  });
 
   @override
   State<CharacterCarousel> createState() => _CharacterCarouselState();

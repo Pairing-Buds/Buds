@@ -14,7 +14,7 @@ import 'widgets/password_reset_widgets.dart';
 class PasswordResetScreen extends StatefulWidget {
   final String email;
 
-  const PasswordResetScreen({Key? key, required this.email}) : super(key: key);
+  const PasswordResetScreen({super.key, required this.email});
 
   @override
   State<PasswordResetScreen> createState() => _PasswordResetScreenState();

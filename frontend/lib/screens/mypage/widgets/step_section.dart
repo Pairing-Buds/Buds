@@ -17,7 +17,8 @@ import '../../../services/step_reward_service.dart';
 
 /// 걸음 수 섹션 위젯
 class StepSection extends StatefulWidget {
-  const StepSection({Key? key}) : super(key: key);
+  const StepSection({super.key});
+
 
   @override
   State<StepSection> createState() => _StepSectionState();

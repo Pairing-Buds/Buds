@@ -13,8 +13,7 @@ class EmailInputField extends StatelessWidget {
   final TextEditingController controller;
   final Widget? suffixIcon;
 
-  const EmailInputField({Key? key, required this.controller, this.suffixIcon})
-    : super(key: key);
+  const EmailInputField({super.key, required this.controller, this.suffixIcon});
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +43,10 @@ class BirthDateInputField extends StatelessWidget {
   final Function(BuildContext) onSelectDate;
 
   const BirthDateInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.onSelectDate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -74,11 +73,11 @@ class SignupPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const SignupPasswordField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.obscurePassword,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -108,12 +107,12 @@ class ConfirmPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const ConfirmPasswordField({
-    Key? key,
+    super.key,
     required this.passwordController,
     required this.confirmController,
     required this.obscurePassword,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +156,7 @@ class SignupForm extends StatelessWidget {
   final bool isEmailVerified;
 
   const SignupForm({
-    Key? key,
+    super.key,
     required this.formKey,
     required this.emailController,
     required this.passwordController,
@@ -176,7 +175,7 @@ class SignupForm extends StatelessWidget {
     this.onVerifyToken,
     this.emailAuthMsg,
     this.isEmailVerified = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

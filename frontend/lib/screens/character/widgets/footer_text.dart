@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 /// 푸터 텍스트 위젯
 class FooterText extends StatelessWidget {
-  const FooterText({Key? key}) : super(key: key);
+  const FooterText({super.key});
 
   @override
   Widget build(BuildContext context) {

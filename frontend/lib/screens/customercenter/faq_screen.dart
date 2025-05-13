@@ -10,7 +10,7 @@ import '../character/models/character_data.dart';
 import 'widgets/faq_section.dart';
 
 class FaqScreen extends StatelessWidget {
-  const FaqScreen({Key? key}) : super(key: key);
+  const FaqScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

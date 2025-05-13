@@ -15,7 +15,7 @@ import 'login_screen.dart';
 import 'widgets/signup_form_widgets.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({Key? key}) : super(key: key);
+  const SignUpScreen({super.key});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();

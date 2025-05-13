@@ -9,7 +9,7 @@ import 'widgets/faq_section.dart';
 class CustomerCenterScreen extends StatelessWidget {
   final VoidCallback? onBack;
 
-  const CustomerCenterScreen({Key? key, this.onBack}) : super(key: key);
+  const CustomerCenterScreen({super.key, this.onBack});
 
   @override
   Widget build(BuildContext context) {

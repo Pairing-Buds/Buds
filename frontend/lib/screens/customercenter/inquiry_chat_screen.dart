@@ -6,7 +6,7 @@ import '../../models/inquiry.dart';
 import '../../services/inquiry_service.dart';
 
 class InquiryChatScreen extends StatefulWidget {
-  const InquiryChatScreen({Key? key}) : super(key: key);
+  const InquiryChatScreen({super.key});
 
   @override
   State<InquiryChatScreen> createState() => _InquiryChatScreenState();

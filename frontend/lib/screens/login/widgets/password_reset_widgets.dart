@@ -14,13 +14,13 @@ class PasswordResetEmailForm extends StatelessWidget {
   final VoidCallback onSubmit;
 
   const PasswordResetEmailForm({
-    Key? key,
+    super.key,
     required this.formKey,
     required this.emailController,
     required this.isLoading,
     this.errorMessage,
     required this.onSubmit,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +77,7 @@ class PasswordResetEmailForm extends StatelessWidget {
 class ResetEmailField extends StatelessWidget {
   final TextEditingController controller;
 
-  const ResetEmailField({Key? key, required this.controller}) : super(key: key);
+  const ResetEmailField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +120,7 @@ class PasswordResetForm extends StatelessWidget {
   final String email;
 
   const PasswordResetForm({
-    Key? key,
+    super.key,
     required this.formKey,
     required this.tokenController,
     required this.passwordController,
@@ -133,7 +133,7 @@ class PasswordResetForm extends StatelessWidget {
     required this.isLoading,
     required this.onSubmit,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +206,7 @@ class PasswordResetForm extends StatelessWidget {
 class ResetTokenField extends StatelessWidget {
   final TextEditingController controller;
 
-  const ResetTokenField({Key? key, required this.controller}) : super(key: key);
+  const ResetTokenField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -237,11 +237,11 @@ class ResetPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const ResetPasswordField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.isVisible,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -295,12 +295,12 @@ class ResetConfirmPasswordField extends StatelessWidget {
   final VoidCallback onToggleVisibility;
 
   const ResetConfirmPasswordField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.passwordController,
     required this.isVisible,
     required this.onToggleVisibility,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -350,8 +350,7 @@ class ResetConfirmPasswordField extends StatelessWidget {
 class PasswordResetSuccess extends StatelessWidget {
   final VoidCallback onGoToLogin;
 
-  const PasswordResetSuccess({Key? key, required this.onGoToLogin})
-    : super(key: key);
+  const PasswordResetSuccess({super.key, required this.onGoToLogin});
 
   @override
   Widget build(BuildContext context) {

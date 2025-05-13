@@ -14,7 +14,7 @@ import 'widgets/step_action_buttons.dart';
 import 'widgets/step_info_widget.dart';
 
 class StepDetailScreen extends StatefulWidget {
-  const StepDetailScreen({Key? key}) : super(key: key);
+  const StepDetailScreen({super.key});
 
   @override
   State<StepDetailScreen> createState() => _StepDetailScreenState();

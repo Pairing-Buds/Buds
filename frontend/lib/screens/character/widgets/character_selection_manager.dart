@@ -18,13 +18,13 @@ class CharacterSelectionManager extends StatelessWidget {
   final Function(int) onCharacterSelect;
 
   const CharacterSelectionManager({
-    Key? key,
+    super.key,
     required this.currentPage,
     required this.flippedCardIndex,
     required this.onPageChanged,
     required this.onCardFlip,
     required this.onCharacterSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

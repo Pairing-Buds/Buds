@@ -20,7 +20,8 @@ import 'package:flutter/foundation.dart'; // kDebugMode 사용을 위한 import 
 
 /// 기상 시간 섹션 위젯
 class WakeUpSection extends StatefulWidget {
-  const WakeUpSection({Key? key}) : super(key: key);
+  const WakeUpSection({super.key});
+
 
   @override
   State<WakeUpSection> createState() => _WakeUpSectionState();
