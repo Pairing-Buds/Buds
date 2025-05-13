@@ -13,11 +13,6 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# PyAnimalese 저장소 클론
-RUN git clone https://github.com/hwi-middle/PyAnimalese.git && \
-    cd PyAnimalese && \
-    pip install -r requirements.txt
-
 # 소스 코드 복사
 COPY . .
 
