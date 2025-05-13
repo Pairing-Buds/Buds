@@ -20,6 +20,8 @@ import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,8 @@ public class ActivityService {
     private final CalendarRepository calendarRepository;
     private final BadgeRepository badgeRepository;
     private final CalendarBadgeRepository calendarBadgeRepository;
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     /** 기상 시간 등록 **/
     @Transactional
@@ -216,6 +220,9 @@ public class ActivityService {
     /** 만보기 리워드 신청 **/
     @Transactional
     public void walkRewardReq(int userId, WalkRewardReqDto dto) {
+
+        entityManager.clear();
+
         // 변수
         int userStepSet = dto.getUserStepSet();
         int userRealStep = dto.getUserRealStep();
