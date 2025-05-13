@@ -19,7 +19,6 @@ public class Badge {
     @Column(name = "badge_id")
     private Integer id;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "badge_type")
     private RecordType badgeType;
 
