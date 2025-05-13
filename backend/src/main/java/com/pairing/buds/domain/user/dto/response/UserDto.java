@@ -1,16 +1,15 @@
 package com.pairing.buds.domain.user.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.pairing.buds.domain.user.entity.SignupStatus;
-import com.pairing.buds.domain.user.entity.User;
-import com.pairing.buds.domain.user.entity.UserCharacter;
-import com.pairing.buds.domain.user.entity.UserRole;
+import com.pairing.buds.domain.user.entity.*;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -35,6 +34,8 @@ public class UserDto {
 
     private String userName;
 
+    private List<String> tagTypes;
+
     public static UserDto toDto(User user){
         return UserDto.builder()
                 .userId(user.getId())
@@ -44,7 +45,10 @@ public class UserDto {
                 .isActive(user.getIsActive())
                 .letterCnt(user.getLetterCnt())
                 .userName(user.getUserName())
+                .tagTypes(user.getTags().stream().map(tag -> tag.getTagName().getDisplayName()).collect(Collectors.toList()))
                 .build();
     }
+
+
 
 }
