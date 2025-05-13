@@ -72,7 +72,7 @@ public class LetterController {
     @PostMapping("/to-specific-user")
     public ResponseDto createLetterByUserId(
             @AuthenticationPrincipal int userId,
-            @Valid @RequestBody CreateLetterByUsernameReqDto dto
+            @Valid @RequestBody CreateLetterByUserIdReqDto dto
     ){
         letterService.createLetterByUserId(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);

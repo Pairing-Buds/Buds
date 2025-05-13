@@ -5,7 +5,7 @@ import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.common.utils.BadWordFilter;
 import com.pairing.buds.domain.letter.dto.req.AnswerLetterReqDto;
-import com.pairing.buds.domain.letter.dto.req.CreateLetterByUsernameReqDto;
+import com.pairing.buds.domain.letter.dto.req.CreateLetterByUserIdReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
 import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
@@ -169,7 +169,7 @@ public class LetterService {
 
     @Transactional
     /** 유저 지정 편지 작성 **/
-    public void createLetterByUserId(int userId, CreateLetterByUsernameReqDto dto) {
+    public void createLetterByUserId(int userId, CreateLetterByUserIdReqDto dto) {
         int receiverId = dto.getReceiverId();
         String content = dto.getContent();
         // 욕설 포함 시 에러
@@ -199,6 +199,7 @@ public class LetterService {
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
 
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
+        answeredLetter.setIsTagBased(false);gi
         letterRepository.save(answeredLetter);
     }
 
