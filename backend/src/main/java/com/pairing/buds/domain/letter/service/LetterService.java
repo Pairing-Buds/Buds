@@ -171,9 +171,11 @@ public class LetterService {
 
     @Transactional
     /** 유저 지정 편지 작성 **/
-    public void createLetterByUsername(int userId, CreateLetterByUsernameReqDto dto) {
+    public void createLetterByUserId(int userId, CreateLetterByUsernameReqDto dto) {
         int receiverId = dto.getReceiverId();
         String content = dto.getContent();
+        // 욕설 포함 시 에러
+        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
         // 발신, 수신자 조회
        User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
        User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));

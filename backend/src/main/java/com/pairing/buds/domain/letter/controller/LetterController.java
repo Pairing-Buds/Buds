@@ -69,12 +69,12 @@ public class LetterController {
     }
     
     /** 유저 지정 편지 작성 **/
-    @PostMapping("/send-by-username")
-    public ResponseDto createLetterByUsername(
+    @PostMapping("/to-specific-user")
+    public ResponseDto createLetterByUserId(
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody CreateLetterByUsernameReqDto dto
     ){
-        letterService.createLetterByUsername(userId, dto);
+        letterService.createLetterByUserId(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
