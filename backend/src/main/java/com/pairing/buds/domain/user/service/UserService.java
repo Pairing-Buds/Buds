@@ -5,6 +5,7 @@ import com.pairing.buds.common.auth.utils.JwtTokenProvider;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.user.dto.request.SaveReSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
@@ -109,11 +110,18 @@ public class UserService {
         userRepository.save(userToUpdate);
     }
 
+    /** 재설문 조사 결과 저장 **/
+    public void saveReSurveyResult(Integer userId, SaveReSurveyResultReqDto dto) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        // 수정
+        User userToUpdate = SaveReSurveyResultReqDto.toUser(user, dto);
+        userRepository.save(userToUpdate);
+    }
+
     /** 내 정보 조회 **/
     public MyInfoResDto getMyInfo(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
-
         return MyInfoResDto.toMyInfoRes(user);
     }
 
