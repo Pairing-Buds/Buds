@@ -5,6 +5,7 @@ from apscheduler.triggers.cron import CronTrigger
 from db.mysql import mysql_db
 from db.chroma import chroma_db
 from core.chatbot import chatbot
+import aiohttp
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -51,7 +52,7 @@ class DiaryScheduler:
 
             # 각 사용자에 대해 일기 생성
             for user in active_users:
-                user_id = user['id']
+                user_id = user['user_id']
 
                 try:
                     # 1. 사용자의 오늘 대화 내용 가져오기
@@ -82,6 +83,7 @@ class DiaryScheduler:
                     # 3. 감정 일기와 행동 일기 생성
                     emotion_diary = chatbot.generate_emotion_diary(chat_text)
                     active_diary = chatbot.generate_active_diary(chat_text)
+                    emotion_group = await analyze_emotion_via_api(emotion_diary)
 
                     # 4. 생성된 일기 저장
                     mysql_db.save_diary(
@@ -89,6 +91,13 @@ class DiaryScheduler:
                         date=today,
                         emotion_diary=emotion_diary,
                         active_diary=active_diary
+                    )
+
+                    # 감정 뱃지 저장
+                    mysql_db.save_calendar_emotion_badge(
+                        user_id=user_id,
+                        date=today,
+                        emotion_group=emotion_group
                     )
 
                     logger.info(f"사용자 {user_id}의 일기가 성공적으로 생성되었습니다.")
@@ -117,3 +126,15 @@ def shutdown_scheduler():
 # 테스트 또는 수동 실행을 위한 함수
 async def manual_generate_diaries():
     await diary_scheduler.generate_and_save_diaries()
+
+
+async def analyze_emotion_via_api(text: str) -> str:
+    url = "http://localhost:8000/predict"  # emotion-ai-server 주소에 맞게 수정
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json={"texts": [text]}) as resp:
+                data = await resp.json()
+                return data["results"][0]["group"]
+    except Exception as e:
+        logger.error(f"감정 분석 API 호출 오류: {str(e)}")
+        return "중립"

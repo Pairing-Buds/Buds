@@ -89,7 +89,7 @@ class MySQLDB:
 
             # 이미 해당 날짜의 일기가 있는지 확인
             cursor.execute(
-                "SELECT id FROM diaries WHERE user_id = %s AND date = %s",
+                "SELECT diary_id FROM diaries WHERE user_id = %s AND date = %s",
                 (user_id, date)
             )
             existing_diary = cursor.fetchone()
@@ -97,13 +97,13 @@ class MySQLDB:
             if existing_diary:
                 # 기존 일기 업데이트
                 cursor.execute(
-                    "UPDATE diaries SET emotion_diary = %s, active_diary = %s, updated_at = NOW() WHERE id = %s",
-                    (emotion_diary, active_diary, existing_diary['id'])
+                    "UPDATE diaries SET emotion_diary = %s, active_diary = %s WHERE diary_id = %s",
+                    (emotion_diary, active_diary, existing_diary['diary_id'])
                 )
             else:
                 # 새 일기 삽입
                 cursor.execute(
-                    "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at, updated_at) VALUES (%s, %s, %s, %s, NOW(), NOW())",
+                    "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at) VALUES (%s, %s, %s, %s, NOW())",
                     (user_id, date, emotion_diary, active_diary)
                 )
 
@@ -142,6 +142,66 @@ class MySQLDB:
         finally:
             if cursor:
                 cursor.close()
+
+    def save_calendar_emotion_badge(self, user_id: int, date: str, emotion_group: str):
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+
+            # 1. calendar_id 확인 또는 생성
+            cursor.execute("""
+                SELECT calendar_id FROM calendars
+                WHERE user_id = %s AND date = %s
+            """, (user_id, date))
+            row = cursor.fetchone()
+
+            if row:
+                calendar_id = row[0]
+            else:
+                cursor.execute("""
+                    INSERT INTO calendars (user_id, date, created_at)
+                    VALUES (%s, %s, NOW())
+                """, (user_id, date))
+                calendar_id = cursor.lastrowid
+
+            # 2. badge_id 가져오기
+            EMOTION_GROUP_MAPPING = {
+                '기쁨': 'JOY',
+                '슬픔': 'SADNESS',
+                '분노': 'ANGER',
+                '불안': 'FEAR',
+                '혐오': 'DISGUST',
+                '놀람': 'SURPRISE',
+                '중립': 'NEUTRAL'
+            }
+            emotion_group = EMOTION_GROUP_MAPPING.get(emotion_group, emotion_group.upper())
+
+            cursor.execute("""
+                           INSERT INTO badges (badge_type, name)
+                           VALUES (0, %s)
+                           """, (emotion_group,))
+            badge_id = cursor.lastrowid  # 새로 생성된 badge_id 가져오기
+
+            # 3. 중복 삽입 방지 후 저장
+            cursor.execute("""
+                SELECT 1 FROM calendar_badges WHERE calendar_id = %s
+                AND badge_id = %s
+            """, (calendar_id, badge_id))
+            if cursor.fetchone() is None:
+                cursor.execute("""
+                    INSERT INTO calendar_badges (calendar_id, badge_id)
+                    VALUES (%s, %s)
+            """, (calendar_id, badge_id))
+
+            conn.commit()
+            logging.info(f"🎉 감정 뱃지 [{emotion_group}] 저장 완료")
+
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            logging.error(f"감정 뱃지 저장 오류: {str(e)}")
+        finally:
+            cursor.close()
 
 
 # 전역 MySQL 인스턴스

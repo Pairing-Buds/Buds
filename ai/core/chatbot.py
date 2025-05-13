@@ -12,10 +12,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime, timedelta
-
-# PyAnimalese 경로 설정 (실제 경로에 맞게 수정 필요)
-PYANIMALESE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "PyAnimalese")
-sys.path.append(PYANIMALESE_PATH)
+from PyAnimalese.pyanimalese_cli import convert_text_to_animalese
 
 
 class Chatbot:
@@ -51,7 +48,8 @@ class Chatbot:
                 logging.info("ffmpeg 확인 완료")
 
             # PyAnimalese CLI 스크립트 확인
-            pyanimalese_cli_path = os.path.join(PYANIMALESE_PATH, "pyanimalese_cli.py")
+            # 수정된 부분: 현재 프로젝트 구조에 맞게 경로 수정
+            pyanimalese_cli_path = os.path.join("PyAnimalese", "pyanimalese_cli.py")
             if not os.path.exists(pyanimalese_cli_path):
                 logging.warning(f"PyAnimalese CLI 스크립트를 찾을 수 없습니다: {pyanimalese_cli_path}")
                 logging.warning("TTS 기능이 작동하지 않을 수 있습니다.")
@@ -353,38 +351,19 @@ class Chatbot:
             output_filename = f"animalese{user_part}_{timestamp}.wav"
             output_path = os.path.join(output_dir, output_filename)
 
-            # PyAnimalese CLI 스크립트 경로
-            pyanimalese_cli_path = os.path.join(PYANIMALESE_PATH, "pyanimalese_cli.py")
+            # 직접 함수 호출
+            success = convert_text_to_animalese(text, output_path)
 
-            # PyAnimalese CLI 실행 (실제 파라미터는 PyAnimalese 문서를 참고하여 조정 필요)
-            cmd = [
-                "python3",
-                pyanimalese_cli_path,
-                "-t", text,  # 텍스트 파라미터 (-t 또는 실제 사용되는 파라미터명)
-                "-o", output_path  # 출력 파일 파라미터 (-o 또는 실제 사용되는 파라미터명)
-            ]
-
-            # 프로세스 실행
-            logging.info(f"PyAnimalese TTS 실행: {' '.join(cmd)}")
-            result = subprocess.run(cmd, cwd=PYANIMALESE_PATH, capture_output=True, text=True)
-
-            # 실행 결과 확인
-            if result.returncode != 0:
-                logging.error(f"PyAnimalese TTS 오류: {result.stderr}")
+            if success and os.path.exists(output_path):
+                logging.info(f"PyAnimalese TTS 파일 생성 성공: {output_path}")
+                return output_path
+            else:
+                logging.error(f"PyAnimalese TTS 파일 생성 실패")
                 return None
-
-            # 파일 존재 확인
-            if not os.path.exists(output_path):
-                logging.error(f"PyAnimalese TTS 파일을 찾을 수 없음: {output_path}")
-                return None
-
-            logging.info(f"PyAnimalese TTS 파일 생성 성공: {output_path}")
-            return output_path
 
         except Exception as e:
             logging.error(f"PyAnimalese TTS 생성 오류: {str(e)}")
             return None
-
 
 # 전역 Chatbot 인스턴스
 chatbot = Chatbot()

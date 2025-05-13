@@ -18,3 +18,4 @@ jamo==0.4.1
 pipwin==0.5.2
 pydub==0.25.1
 ffmpeg
+aiohttp

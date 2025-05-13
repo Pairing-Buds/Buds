@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:buds/services/activity_service.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/config/theme.dart';
 
 class LetterAnswerScreen extends StatefulWidget {
-  final int letterId; // 편지 ID를 전달받도록 추가
-  final String senderName; // 받는 사람 닉네임
-  final String receiverName; // 사용자 닉네임
+  final int? letterId; // 편지 세부내역 : 답장할 편지 ID (optional)
+  final int? userId; // 추천 친구 : 새로 보낼 사용자 ID (optional)
+  final String? senderName; // 받는 사람 닉네임
+  final String? receiverName; // 사용자 닉네임
 
   const LetterAnswerScreen({
     Key? key,
-    required this.letterId,
-    required this.senderName,
-    required this.receiverName,
+    this.letterId,
+    this.userId,
+    this.senderName,
+    this.receiverName,
   }) : super(key: key);
 
   @override
@@ -72,8 +75,9 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                           flex: 5,
                           child: Center(
                             child: Text(
-                              'To: ${widget.senderName}',
-                              style: const TextStyle(fontSize: 16),
+                              widget.letterId != null
+                                  ? 'To: ${widget.senderName ?? "익명"}'
+                                  : 'To: ${widget.receiverName ?? "나"}',
                             ),
                           ),
                         ),
@@ -85,7 +89,10 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                       alignment: Alignment.bottomLeft,
                       child: Text(
                         today,
-                        style: const TextStyle(fontSize: 13, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -101,7 +108,10 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                           keyboardType: TextInputType.multiline,
                           decoration: const InputDecoration(
                             hintText: '클릭하고 편지를 입력해보세요',
-                            hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                            hintStyle: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
                             border: InputBorder.none,
                           ),
                           style: const TextStyle(fontSize: 14),
@@ -114,7 +124,9 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                     Align(
                       alignment: Alignment.bottomRight,
                       child: Text(
-                        'From: ${widget.receiverName}', // 사용자 이름 (수신자)
+                        widget.letterId != null
+                            ? 'From: ${widget.receiverName ?? "익명"}'
+                            : 'From: ${widget.senderName ?? "나"}', // 사용자 이름 (수신자)
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
@@ -123,7 +135,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                     // 답장 보내기 버튼
                     Center(
                       child: GestureDetector(
-                        onTap: _isLoading ? null : _sendLetterAnswer,
+                        onTap: _isLoading ? null : _sendLetter,
 
                         child: Container(
                           width: 140,
@@ -133,12 +145,18 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: Center(
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text(
-                              '편지보내기',
-                              style: TextStyle(color: Colors.black, fontSize: 16),
-                            ),
+                            child:
+                                _isLoading
+                                    ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : const Text(
+                                      '편지보내기',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                           ),
                         ),
                       ),
@@ -153,42 +171,58 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       ),
     );
   }
-  /// 답장 전송 함수
-  Future<void> _sendLetterAnswer() async {
+
+  /// 편지 또는 답장 전송 함수
+  Future<void> _sendLetter() async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('편지 내용을 입력해주세요')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('편지 내용을 입력해주세요')));
       return;
     }
+
     setState(() {
-      _isLoading = true; // 로딩 상태 시작
+      _isLoading = true;
     });
 
     try {
-      final success = await LetterService().fetchLetterAnswer(widget.letterId, content);
+      bool success;
+      if (widget.letterId != null) {
+        // 답장 전송 (Letter ID 사용)
+        success = await LetterService().sendletterAnswer(
+          widget.letterId!,
+          content,
+        );
+      } else if (widget.userId != null) {
+        // 새 편지 전송 (User ID 사용)
+        success = await ActivityService().sendUserLetter(
+          widget.userId!,
+          content,
+        );
+      } else {
+        throw Exception('잘못된 요청: letterId나 userId 중 하나가 필요합니다.');
+      }
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('답장을 성공적으로 보냈습니다')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('편지를 성공적으로 보냈습니다')));
         _controller.clear();
-        Navigator.pop(context); // 답장 성공 시 이전 화면으로 이동
+        Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('답장 전송에 실패했습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('편지 전송에 실패했습니다.')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('답장 전송 오류: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('편지 전송 오류: $e')));
     } finally {
       setState(() {
-        _isLoading = false; // 로딩 상태 종료
+        _isLoading = false;
       });
     }
   }
 }
-

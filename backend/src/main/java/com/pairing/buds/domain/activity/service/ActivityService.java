@@ -20,6 +20,8 @@ import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,14 +54,16 @@ public class ActivityService {
         String wakeTime = dto.getWakeTime();
         // 유저 유무 조회
         User userToSave = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        if(wakeRepository.existsByUser_id(userId)){
-            throw new ApiException(StatusCode.NOT_FOUND, Message.ARGUMENT_NOT_PROPER);
-        }
-        // 저장
+        // 기상 시간 중복 등록 방지        
+//        if(wakeRepository.existsByUser_id(userId)){
+//            throw new ApiException(StatusCode.NOT_FOUND, Message.ARGUMENT_NOT_PROPER);
+//        }
+        // Wake 빌드
         Wake newSleep = Wake.builder()
                 .user(userToSave)
                 .wakeTime(wakeTime)
                 .build();
+        // 저장
         wakeRepository.save(newSleep);
     }
     /** 최초 페이지 방문 리워드 **/
@@ -216,6 +220,7 @@ public class ActivityService {
     /** 만보기 리워드 신청 **/
     @Transactional
     public void walkRewardReq(int userId, WalkRewardReqDto dto) {
+
         // 변수
         int userStepSet = dto.getUserStepSet();
         int userRealStep = dto.getUserRealStep();
