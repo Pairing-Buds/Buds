@@ -3,10 +3,7 @@ package com.pairing.buds.domain.letter.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.letter.dto.req.AnswerLetterReqDto;
-import com.pairing.buds.domain.letter.dto.req.GetLetterDetailReqDto;
-import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
-import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
+import com.pairing.buds.domain.letter.dto.req.*;
 import com.pairing.buds.domain.letter.service.LetterService;
 import jakarta.validation.Valid;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
@@ -30,13 +27,11 @@ public class LetterController {
     ) {
         return new ResponseDto(StatusCode.OK, letterService.getLetterDetail(userId, letterId));
     }
-
     /** 편지 채팅 리스트 조회 **/
     @GetMapping("/chats")
     public ResponseDto getLetterChatList(@AuthenticationPrincipal Integer userId) {
         return new ResponseDto(StatusCode.OK, letterService.getLetterChatList(userId));
     }
-
     /** 특정 사용자와의 편지 상세 목록 조회 **/
     @GetMapping("/chats/details")
     public ResponseDto getLetterDetailList(
@@ -46,7 +41,6 @@ public class LetterController {
             @RequestParam(name = "size", defaultValue = "5") int size) {
         return new ResponseDto(StatusCode.OK, letterService.getLetterDetailList(userId, opponentId, page, size));
     }
-
     /** 최근 수신 편지 1건 조회 **/
     @GetMapping("/latest-received")
     public ResponseDto getLatestReceivedLetter(@AuthenticationPrincipal Integer userId) {
@@ -71,6 +65,16 @@ public class LetterController {
             @Valid @RequestBody AnswerLetterReqDto dto
     ){
         letterService.answerLetter(userId, dto);
+        return new ResponseDto(StatusCode.OK, Message.OK);
+    }
+    
+    /** 유저 지정 편지 작성 **/
+    @PostMapping("/to-specific-user")
+    public ResponseDto createLetterByUserId(
+            @AuthenticationPrincipal int userId,
+            @Valid @RequestBody CreateLetterByUsernameReqDto dto
+    ){
+        letterService.createLetterByUserId(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 
