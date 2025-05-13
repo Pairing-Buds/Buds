@@ -53,12 +53,13 @@ class ApiConstants {
   static String get diariesUrl => '$baseUrl/diaries';
   static String get diaryDetailUrl => '$baseUrl/diaries/'; // ID를 뒤에 붙여서 사용
 
-  /// 편지 관련 엔드포인트
+  // 편지 관련 엔드포인트
   static String get letterListUrl => '$baseUrl/letters/chats'; // 편지 목록 조회
   static String get letterDetailUrl => '$baseUrl/letters/chats/details'; // 랜덤 편지(특정 사용자와 주고 받은 편지)
-  static String get letterSingleUrl => '$baseUrl/letters/detail'; // 답장 작성(편지 상세 조회)
-  static String get letterLastUrl => '$baseUrl/letter/latest-received'; // 최신 수신 편지
+  static String get letterSingleUrl => '$baseUrl/letters/detail'; // 편지 상세 조회
   static String get letterAnonymityUrl => '$baseUrl/letters/send'; // 편지 발송
+  static String get letterLatestUrl => '$baseUrl/letters/latest-received'; // 최근 수신 편지
+  static String get letterAnswerUrl => '$baseUrl/letters/answer'; // 편지 id로 답장
 
   // 캘린더 관련 엔드포인트
   static String get calendarDiaryUrl => '$baseUrl/calendars/'; // 뒤에 yyyy-MM 붙이기

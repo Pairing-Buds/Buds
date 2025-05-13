@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 // Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/models/letter_content_model.dart';
-import 'package:buds/screens/letter/letter_anonymity_screen.dart';
-import 'package:buds/screens/letter/letter_send_screen.dart';
+import 'package:buds/screens/letter/letter_answer_screen.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
@@ -56,7 +55,7 @@ class _LetterReplyScreenState extends State<LetterReplyScreen> {
     }
   }
 
-  /// ✅ 스크랩 토글
+  /// 스크랩 토글
   Future<void> _toggleScrap() async {
     if (_isLoading || _letterDetail == null) return;
 
@@ -238,7 +237,10 @@ class _LetterReplyScreenState extends State<LetterReplyScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LetterAnonymityScreen()
+                    builder: (context) => LetterAnswerScreen(
+                        letterId: widget.letterId,
+                        receiverName: _letterDetail?.receiverName ?? '상대방',
+                        senderName: _letterDetail?.senderName ?? '나')
                   ),
                 );
               },
