@@ -19,7 +19,7 @@ public class FindFriendByTagResDto {
     private Set<UserDto> users;
 
     public static Set<UserDto> toDto(Set<User> users){
-        return users.parallelStream().map(UserDto::toDto).collect(Collectors.toSet());
+        return users.stream().map(UserDto::toDto).collect(Collectors.toSet());
     }
 
 }
