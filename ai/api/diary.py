@@ -6,6 +6,10 @@ from db.mysql import mysql_db
 from db.chroma import chroma_db
 from core.chatbot import chatbot
 import aiohttp
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -129,7 +133,8 @@ async def manual_generate_diaries():
 
 
 async def analyze_emotion_via_api(text: str) -> str:
-    url = "http://localhost:8000/predict"  # emotion-ai-server 주소에 맞게 수정
+    url = os.getenv("EMOTION_API_URL", "http://localhost:8000/predict")
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json={"texts": [text]}) as resp:
