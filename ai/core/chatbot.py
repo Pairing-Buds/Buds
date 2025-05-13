@@ -9,7 +9,13 @@ from db.chroma import chroma_db
 from core.prompts import generate_system_prompt
 import base64
 import re
+import subprocess
+import sys
 from datetime import datetime, timedelta
+
+# PyAnimalese 경로 설정 (실제 경로에 맞게 수정 필요)
+PYANIMALESE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "PyAnimalese")
+sys.path.append(PYANIMALESE_PATH)
 
 
 class Chatbot:
@@ -29,7 +35,31 @@ class Chatbot:
         # 사용자별 일일 메시지 카운트 저장 딕셔너리
         self.daily_message_count = {}
 
+        # PyAnimalese 사용 가능 여부 확인
+        self._check_pyanimalese_setup()
+
         logging.info("Chatbot 인스턴스가 초기화되었습니다.")
+
+    def _check_pyanimalese_setup(self):
+        """PyAnimalese 설치 및 필요한 의존성을 확인합니다."""
+        try:
+            # ffmpeg 설치 확인
+            result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
+            if result.returncode != 0:
+                logging.warning("ffmpeg가 설치되지 않았습니다. TTS 기능이 작동하지 않을 수 있습니다.")
+            else:
+                logging.info("ffmpeg 확인 완료")
+
+            # PyAnimalese CLI 스크립트 확인
+            pyanimalese_cli_path = os.path.join(PYANIMALESE_PATH, "pyanimalese_cli.py")
+            if not os.path.exists(pyanimalese_cli_path):
+                logging.warning(f"PyAnimalese CLI 스크립트를 찾을 수 없습니다: {pyanimalese_cli_path}")
+                logging.warning("TTS 기능이 작동하지 않을 수 있습니다.")
+            else:
+                logging.info(f"PyAnimalese CLI 스크립트 확인 완료: {pyanimalese_cli_path}")
+        except Exception as e:
+            logging.error(f"PyAnimalese 설정 확인 중 오류: {str(e)}")
+            logging.warning("TTS 기능이 제한될 수 있습니다.")
 
     def _sanitize_input(self, text):
         """
@@ -77,8 +107,11 @@ class Chatbot:
         self.daily_message_count[user_key] += 1
         return True
 
-    async def get_response(self, user_id, message, message_count=0):
-        """사용자 메시지에 대한 응답을 생성합니다."""
+    async def get_response(self, user_id, message, message_count=0, is_voice=False):
+        """
+        사용자 메시지에 대한 응답을 생성합니다.
+        is_voice가 True인 경우 음성 응답도 생성합니다.
+        """
         try:
             # 0. 메시지 정제
             sanitized_message = self._sanitize_input(message)
@@ -134,13 +167,22 @@ class Chatbot:
 
             # 7. LLM을 사용하여 응답 생성
             response = await self.chat.ainvoke(messages)
+            text_response = response.content
 
             # 8. 새로운 대화가 20개 이상 쌓였을 때 자동 요약 생성 및 저장
             message_total = chroma_db.get_message_count(user_id)
             if message_total % 20 == 0:  # 20개 메시지마다 요약 생성
                 await self._update_conversation_summary(user_id)
 
-            return response.content
+            # 9. 음성 응답이 필요한 경우 TTS 생성
+            if is_voice:
+                audio_path = self.generate_animalese_tts(text_response, user_id)
+                return {
+                    "text": text_response,
+                    "audio_path": audio_path
+                }
+
+            return text_response
 
         except ValueError as e:
             # 사용자 프로필 조회 실패 (로그인되지 않은 사용자 등)
@@ -198,11 +240,12 @@ class Chatbot:
             logging.error(f"대화 요약 생성 오류: {str(e)}")
             return None
 
-    def generate_response(self, message, user_id=None):
+    def generate_response(self, message, user_id=None, is_voice=False):
         """
         사용자 메시지에 대한 동기식 응답 생성 (chat_routes에서 사용)
 
         OpenAI API를 사용하여 응답을 생성합니다.
+        is_voice가 True인 경우 음성 응답도 함께 생성합니다.
         """
         try:
             # 메시지 정제
@@ -227,7 +270,7 @@ class Chatbot:
                 )
 
                 # 응답 추출
-                result = response.choices[0].message.content.strip()
+                text_response = response.choices[0].message.content.strip()
             except AttributeError:
                 # 이전 OpenAI API 형식 시도
                 response = openai.ChatCompletion.create(
@@ -240,9 +283,17 @@ class Chatbot:
                 )
 
                 # 응답 추출
-                result = response.choices[0].message.content.strip()
+                text_response = response.choices[0].message.content.strip()
 
-            return result
+            # 음성 응답이 필요한 경우 TTS 생성
+            if is_voice:
+                audio_path = self.generate_animalese_tts(text_response, user_id)
+                return {
+                    "text": text_response,
+                    "audio_path": audio_path
+                }
+
+            return text_response
 
         except Exception as e:
             # 오류 발생 시 기본 응답
@@ -286,6 +337,53 @@ class Chatbot:
 
         response = self.generate_response(prompt)
         return response
+
+    def generate_animalese_tts(self, text, user_id=None):
+        """
+        텍스트를 동물의 숲 스타일 TTS로 변환합니다.
+        성공 시 오디오 파일 경로를 반환하고, 실패 시 None을 반환합니다.
+        """
+        try:
+            # 임시 디렉토리 생성 또는 사용
+            output_dir = tempfile.gettempdir()
+
+            # 사용자별 고유 파일명 생성 (충돌 방지)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            user_part = f"_{user_id}" if user_id else ""
+            output_filename = f"animalese{user_part}_{timestamp}.wav"
+            output_path = os.path.join(output_dir, output_filename)
+
+            # PyAnimalese CLI 스크립트 경로
+            pyanimalese_cli_path = os.path.join(PYANIMALESE_PATH, "pyanimalese_cli.py")
+
+            # PyAnimalese CLI 실행 (실제 파라미터는 PyAnimalese 문서를 참고하여 조정 필요)
+            cmd = [
+                "python3",
+                pyanimalese_cli_path,
+                "-t", text,  # 텍스트 파라미터 (-t 또는 실제 사용되는 파라미터명)
+                "-o", output_path  # 출력 파일 파라미터 (-o 또는 실제 사용되는 파라미터명)
+            ]
+
+            # 프로세스 실행
+            logging.info(f"PyAnimalese TTS 실행: {' '.join(cmd)}")
+            result = subprocess.run(cmd, cwd=PYANIMALESE_PATH, capture_output=True, text=True)
+
+            # 실행 결과 확인
+            if result.returncode != 0:
+                logging.error(f"PyAnimalese TTS 오류: {result.stderr}")
+                return None
+
+            # 파일 존재 확인
+            if not os.path.exists(output_path):
+                logging.error(f"PyAnimalese TTS 파일을 찾을 수 없음: {output_path}")
+                return None
+
+            logging.info(f"PyAnimalese TTS 파일 생성 성공: {output_path}")
+            return output_path
+
+        except Exception as e:
+            logging.error(f"PyAnimalese TTS 생성 오류: {str(e)}")
+            return None
 
 
 # 전역 Chatbot 인스턴스

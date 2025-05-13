@@ -14,3 +14,7 @@ PyJWT>=2.6.0
 python-multipart>=0.0.5
 apscheduler
 pytz
+jamo==0.4.1
+pipwin==0.5.2
+pydub==0.25.1
+ffmpeg
