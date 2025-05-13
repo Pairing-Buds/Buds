@@ -13,7 +13,11 @@ class LetterList extends StatefulWidget {
   final Function(int) onCountFetched;
   final VoidCallback onWritePressed;
 
-  const LetterList({super.key, required this.onCountFetched, required this.onWritePressed});
+  const LetterList({
+    super.key,
+    required this.onCountFetched,
+    required this.onWritePressed,
+  });
 
   @override
   State<LetterList> createState() => _LetterListState();
@@ -71,11 +75,12 @@ class _LetterListState extends State<LetterList> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => LetterDetailScreen(
-                              opponentId: letter.userId, // 상대방 사용자 ID
-                              opponentName: letter.userName, // 상대방 사용자 이름
-                              ),
-                            ),
+                            builder:
+                                (_) => LetterDetailScreen(
+                                  opponentId: letter.userId, // 상대방 사용자 ID
+                                  opponentName: letter.userName, // 상대방 사용자 이름
+                                ),
+                          ),
                         );
                       },
                       child: Row(
@@ -85,20 +90,29 @@ class _LetterListState extends State<LetterList> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(letter.userName, style: const TextStyle(fontSize: 16)),
-                                const SizedBox(height: 4),
                                 Text(
-                                  letter.lastLetterDate,
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  letter.userName,
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  letter.lastLetterStatus == "UNREAD" ? "읽지 않음" : "읽음",
+                                  letter.lastLetterDate,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  letter.lastLetterStatus == "UNREAD"
+                                      ? "읽지 않음"
+                                      : "읽음",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: letter.lastLetterStatus == "UNREAD"
-                                        ? Colors.red
-                                        : Colors.grey,
+                                    color:
+                                        letter.lastLetterStatus == "UNREAD"
+                                            ? Colors.red
+                                            : Colors.grey,
                                   ),
                                 ),
                               ],

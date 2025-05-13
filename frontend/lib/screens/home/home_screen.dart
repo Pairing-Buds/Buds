@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // 음악 on/off 아이콘
+          // // 음악 on/off 아이콘
           // Positioned(
           //   top: 50,
           //   right: 20,

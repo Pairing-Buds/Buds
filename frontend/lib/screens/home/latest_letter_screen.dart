@@ -50,7 +50,7 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final receiverName = authProvider.userData?['name'] ?? 'Unknown';
+    final receiverName = authProvider.userData?['name'] ?? '나';
     return Scaffold(
       body: Stack(
         children: [
