@@ -8,23 +8,6 @@ import 'api_service.dart';
 class SurveyService {
   final DioApiService _apiService = DioApiService();
 
-  /// 관심 태그 조회
-  Future<List<String>> fetchSurveyTags() async {
-    try {
-      final response = await _apiService.get(ApiConstants.tagUrl);
-      if (response is Response && response.statusCode == 200) {
-        final data = response.data;
-        if (data['statusCode'] == "OK") {
-          return List<String>.from(data['resMsg']);
-        }
-      }
-      return [];
-    } catch (e) {
-      print("Error fetching survey tags: $e");
-      return [];
-    }
-  }
-
   /// 설문조사 결과 보내기
   Future<bool> submitSurveyResult({
     required int seclusionScore,

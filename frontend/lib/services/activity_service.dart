@@ -9,11 +9,12 @@ import 'package:http/http.dart' as http;
 // Project imports:
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/models/activity_quote_model.dart';
-import 'package:buds/models/activity_user_model.dart';
+import 'package:buds/models/tag_rec_user_model.dart';
 import 'package:buds/services/api_service.dart';
 
 class ActivityService {
   final DioApiService _apiService = DioApiService();
+
   // 1. STT
   // 명언 API 조회
   Future<ActivityQuoteModel> fetchDailyQuote() async {
@@ -48,9 +49,7 @@ class ActivityService {
       final response = await _apiService.post(
         ApiConstants.voiceSendUrl,
         data: jsonEncode(requestData), // JSON 형식으로 전송
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
@@ -73,7 +72,9 @@ class ActivityService {
 
     _validateEnvVariables(bookUrl, ttbKey);
 
-    final url = Uri.parse('$bookUrl?ttbkey=$ttbKey&QueryType=ItemNewAll&MaxResults=1&Start=1&SearchTarget=Book&CategoryId=51378&Output=JS&Version=20131101');
+    final url = Uri.parse(
+      '$bookUrl?ttbkey=$ttbKey&QueryType=Bestseller&MaxResults=1&Start=1&SearchTarget=Book&CategoryId=51378&Output=JS&Version=20131101',
+    );
 
     final response = await http.get(url);
 
@@ -86,7 +87,10 @@ class ActivityService {
   }
 
   void _validateEnvVariables(String? bookUrl, String? ttbKey) {
-    if (bookUrl == null || bookUrl.isEmpty || ttbKey == null || ttbKey.isEmpty) {
+    if (bookUrl == null ||
+        bookUrl.isEmpty ||
+        ttbKey == null ||
+        ttbKey.isEmpty) {
       throw Exception('환경 변수 설정 오류: BOOK_URL 또는 ttbKey가 설정되지 않았습니다.');
     }
   }
@@ -108,14 +112,19 @@ class ActivityService {
   }
 
   // 3. 태그 기반 추천 유저
-  Future<List<ActivityUserModel>> fetchActivityUser() async {
+  Future<List<TagRecUserModel>> fetchRecUser() async {
     try {
       final response = await _apiService.get(ApiConstants.userRecommendUrl);
       if (response.statusCode == 200) {
         final List<dynamic> userList = response.data['resMsg'];
-        return userList
-            .map((user) => ActivityUserModel.fromJson(user))
-            .toList();
+        return userList.map((user) {
+          final tagRecUser = TagRecUserModel.fromJson(user);
+
+          if (tagRecUser.tagTypes.isEmpty) {
+            throw Exception('추천 사용자 조회 실패: 태그가 최소 1개 필요합니다.');
+          }
+          return tagRecUser;
+        }).toList();
       } else {
         throw Exception('추천 사용자 조회 실패: ${response.statusCode}');
       }

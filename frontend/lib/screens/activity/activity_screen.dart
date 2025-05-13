@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/activity/shell_screen.dart';
-import 'package:buds/screens/activity/widgets/book_recommendation.dart';
-import 'package:buds/screens/activity/widgets/user_recommendation.dart';
+import 'package:buds/screens/activity/widgets/book_rec.dart';
+import 'package:buds/screens/activity/widgets/user_rec.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class ActivityScreen extends StatelessWidget {
@@ -44,7 +44,9 @@ class ActivityScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const ShellScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const ShellScreen(),
+                      ),
                     );
                   },
                   child: const ActivityBox(
@@ -56,9 +58,9 @@ class ActivityScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 32),
-            const BookRecommendation(),
+            const BookRec(),
             const SizedBox(height: 32),
-            const UserRecommendation(),
+            const UserRec(),
           ],
         ),
       ),
