@@ -33,6 +33,18 @@ class ApiConstants {
     return fastUrl;
   }
 
+  /// Google Maps API 키
+  static String get googleMapsApiKey {
+    final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      if (kDebugMode) {
+        print('경고: GOOGLE_MAPS_API_KEY 환경 변수가 설정되지 않았습니다.');
+      }
+      return '';
+    }
+    return apiKey;
+  }
+
   // 인증 관련 엔드포인트
   static String get loginUrl => '$baseUrl/login';
   static String get registerUrl => '$baseUrl/auth/sign-up';

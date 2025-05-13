@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 // Project imports:
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/services/step_counter_manager.dart';
+import 'package:buds/widgets/custom_app_bar.dart';
 import 'widgets/step_action_buttons.dart';
 import 'widgets/step_info_widget.dart';
 
@@ -84,7 +85,7 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
     try {
       // 걸음 수 직접 가져오기
       final steps = await _stepCounterManager.getCurrentSteps();
-      
+
       if (mounted) {
         // Provider에게 갱신 요청
         final myPageProvider = Provider.of<MyPageProvider>(
@@ -102,25 +103,24 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
   Widget build(BuildContext context) {
     final myPageProvider = Provider.of<MyPageProvider>(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('만보기'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          // 새로고침 버튼 추가
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshStepCount,
-            tooltip: '걸음 수 새로고침',
-          ),
-        ],
+      appBar: CustomAppBar(
+        title: '만보기',
+        showBackButton: true,
+        centerTitle: true,
+        // actions: [
+        //   // 새로고침 버튼 추가
+        //   IconButton(
+        //     icon: const Icon(Icons.refresh, color: Colors.black),
+        //     onPressed: _refreshStepCount,
+        //     tooltip: '걸음 수 새로고침',
+        //   ),
+        // ],
       ),
       backgroundColor: Colors.white,
       body: Column(
         children: [
           const StepInfoWidget(),
-          const StepActionButtons(),
+          const Expanded(child: StepActionButtons()),
         ],
       ),
     );
