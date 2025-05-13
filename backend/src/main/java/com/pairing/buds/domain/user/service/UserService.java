@@ -111,7 +111,7 @@ public class UserService {
     }
 
     /** 재설문 조사 결과 저장 **/
-    public void saveReSurveyResult(Integer userId, SaveReSurveyResultReqDto dto) {
+    public void saveReSurveyResult(int userId, SaveReSurveyResultReqDto dto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         // 수정
         User userToUpdate = SaveReSurveyResultReqDto.toUser(user, dto);

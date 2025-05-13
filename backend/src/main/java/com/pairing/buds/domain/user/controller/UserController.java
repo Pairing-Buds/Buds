@@ -52,7 +52,7 @@ public class UserController {
     /** 재설문 결과 저장 **/
     @PostMapping("/re-survey-result")
     public ResponseDto saveReSurveyResult(
-            @AuthenticationPrincipal Integer userId,
+            @AuthenticationPrincipal int userId,
             @Valid @RequestBody SaveReSurveyResultReqDto dto) {
         userService.saveReSurveyResult(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);

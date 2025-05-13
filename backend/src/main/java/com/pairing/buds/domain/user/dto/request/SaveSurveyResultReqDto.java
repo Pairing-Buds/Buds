@@ -22,6 +22,10 @@ import java.util.stream.Collectors;
 @Valid
 public class SaveSurveyResultReqDto {
 
+    /**
+     * 설문조사 결과는 각 항목 별로 0 ~ 40점
+     * **/
+
     @PositiveOrZero
     @NotNull
     private int seclusionScore;

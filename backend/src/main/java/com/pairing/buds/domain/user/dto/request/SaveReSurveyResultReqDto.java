@@ -2,9 +2,7 @@ package com.pairing.buds.domain.user.dto.request;
 
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +14,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SaveReSurveyResultReqDto {
+    
+    /**
+     * 설문조사 결과는 각 항목 별로 0 ~ 40점
+     * **/
 
     @PositiveOrZero
     @NotNull
