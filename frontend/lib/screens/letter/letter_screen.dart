@@ -27,7 +27,7 @@ class _LetterScreenState extends State<LetterScreen> {
 
   Future<void> fetchLetterCount() async {
     try {
-      final letterResponse  = await LetterService().fetchLetters();
+      final letterResponse = await LetterService().fetchLetters();
       if (letterResponse.letters.isNotEmpty) {
         setState(() {
           letterCnt = letterResponse.letterCnt;
@@ -57,13 +57,19 @@ class _LetterScreenState extends State<LetterScreen> {
       MaterialPageRoute(builder: (_) => const LetterAnonymityScreen()),
     ).then((_) {
       fetchLetterCount(); // 돌아왔을 때 리스트 새로고침
+      // letter list 조회 api로 초기화해야함
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // 가로 모드 감지
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    // 가로 모드 시 마진 조정
+    final paddingValue = isLandscape ? 32.0 : 16.0;
+
     return Scaffold(
-      // backgroundColor: const Color(0xFFF9F9F9),
       appBar: const CustomAppBar(
         title: '편지함',
         leftIconPath: 'assets/icons/bottle_icon.png',

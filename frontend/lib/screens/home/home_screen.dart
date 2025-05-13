@@ -22,7 +22,9 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ChatDetailScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const ChatDetailScreen(),
+                  ),
                 );
               },
               child: Image.asset(
@@ -49,23 +51,23 @@ class HomeScreen extends StatelessWidget {
           ),
 
           // 음악 on/off 아이콘
-          Positioned(
-            top: 50,
-            right: 20,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SurveyScreen()),
-                );
-              },
-              child: Image.asset(
-                'assets/icons/music_active.png',
-                width: 40,
-                height: 40,
-              ),
-            ),
-          ),
+          // Positioned(
+          //   top: 50,
+          //   right: 20,
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(builder: (context) => const SurveyScreen()),
+          //       );
+          //     },
+          //     child: Image.asset(
+          //       'assets/icons/music_active.png',
+          //       width: 40,
+          //       height: 40,
+          //     ),
+          //   ),
+          // ),
 
           // 캐릭터 이미지
           Positioned(
@@ -89,9 +91,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ShellScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ShellScreen()),
                 );
               },
               child: Image.asset(
