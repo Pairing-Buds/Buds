@@ -195,13 +195,14 @@ public class LetterService {
     public void answerLetter(int userId, AnswerLetterReqDto dto) {
         int letterId = dto.getLetterId();
         String content = dto.getContent();
-
+        // 욕설 필터링
         if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
-
+        // 기존 편지 빌드
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
-
+        // 답장 편지 빌드
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
-        answeredLetter.setIsTagBased(false);gi
+        answeredLetter.setIsTagBased(false);
+        // 저장
         letterRepository.save(answeredLetter);
     }
 
