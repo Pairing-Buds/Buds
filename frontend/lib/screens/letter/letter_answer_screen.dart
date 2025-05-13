@@ -77,7 +77,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                             child: Text(
                               widget.letterId != null
                                   ? 'To: ${widget.senderName ?? "익명"}'
-                                  : 'To: ${widget.receiverName ?? "익명"}',
+                                  : 'To: ${widget.receiverName ?? "나"}',
                             ),
                           ),
                         ),
@@ -124,7 +124,9 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                     Align(
                       alignment: Alignment.bottomRight,
                       child: Text(
-                        'From: ${widget.receiverName}', // 사용자 이름 (수신자)
+                        widget.letterId != null
+                            ? 'From: ${widget.receiverName ?? "익명"}'
+                            : 'From: ${widget.senderName ?? "나"}', // 사용자 이름 (수신자)
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),

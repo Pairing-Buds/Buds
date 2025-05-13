@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/services/activity_service.dart';
 import 'package:buds/models/tag_rec_user_model.dart';
 import 'package:buds/screens/letter/letter_answer_screen.dart';
@@ -29,7 +31,7 @@ class _UserRecState extends State<UserRec> {
     try {
       final users = await ActivityService().fetchRecUser();
       setState(() {
-        recommendedUsers = users; // ⭐ 추천 사용자 관련
+        recommendedUsers = users; // 추천 사용자 관련
       });
     } catch (e) {
       ScaffoldMessenger.of(
@@ -44,7 +46,11 @@ class _UserRecState extends State<UserRec> {
 
   @override
   Widget build(BuildContext context) {
-    // ⭐ 화면 크기에 따른 반응형 설정
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final senderName =
+        authProvider.userData?['name'] ?? '나'; // ✅ 로그인 사용자 이름 (보내는 사람)
+
+    // 화면 크기에 따른 반응형 설정
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = screenWidth * 0.22; // 편지 카드 너비 (전체 화면의 22%)
     final cardHeight = cardWidth * 1.3; // 편지 카드 높이 (너비 대비 1.3배)
@@ -69,27 +75,21 @@ class _UserRecState extends State<UserRec> {
                 itemCount: recommendedUsers.length,
                 itemBuilder: (context, index) {
                   final user = recommendedUsers[index];
-                  final userName =
-                      user.userName ?? '알 수 없음'; // ⭐ 사용자 이름 null 안전 처리
-                  final splitName = userName.split(' ');
+                  final userName = user.userName ?? '익명'; // 사용자 이름 (받는 사람)
 
                   return GestureDetector(
                     onTap: () {
-                      // ⭐ 사용자 카드 클릭 시 LetterAnswerScreen으로 이동
                       if (user.userId != null) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => LetterAnswerScreen(
-                                  userId: user.userId, // ⭐ userId 전달
+                                  userId: user.userId,
+                                  senderName: senderName,
                                   receiverName: userName,
                                 ),
                           ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('사용자 정보를 불러올 수 없습니다.')),
                         );
                       }
                     },
@@ -99,7 +99,7 @@ class _UserRecState extends State<UserRec> {
                       decoration: BoxDecoration(
                         image: const DecorationImage(
                           image: AssetImage('assets/icons/rec_letter_icon.png'),
-                          fit: BoxFit.cover, // ⭐ 아이콘 전체를 배경으로
+                          fit: BoxFit.cover,
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
@@ -112,45 +112,19 @@ class _UserRecState extends State<UserRec> {
                       ),
                       child: Stack(
                         children: [
-                          // ⭐ 사용자 이름 (상단 유지)
+                          // 사용자 이름 (상단 유지, 공백 기준 2줄)
                           Positioned(
                             top: topPadding,
                             left: 0,
                             right: 0,
-                            child: Text(
-                              splitName.length > 1
-                                  ? splitName.sublist(0, 2).join('\n')
-                                  : userName,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: fontSize,
-                                color: Colors.black,
-                              ),
-                            ),
+                            child: _buildTwoLineName(userName, fontSize),
                           ),
-
-                          // ⭐ 태그 표시 (하단 둥근 직사각형)
+                          // 태그 (아래 중앙)
                           Positioned(
-                            bottom: 8,
-                            left: cardWidth * 0.05,
-                            right: cardWidth * 0.05,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8,
-                                horizontal: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3E2723), // 진갈색 배경
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: _buildTagLines(
-                                  user.tagTypes,
-                                  fontSize,
-                                ),
-                              ),
-                            ),
+                            bottom: 4,
+                            left: 0,
+                            right: 0,
+                            child: _buildTagLines(user.tagTypes, fontSize),
                           ),
                         ],
                       ),
@@ -163,22 +137,76 @@ class _UserRecState extends State<UserRec> {
     );
   }
 
-  // ⭐ 태그를 최대 3개로 나눠주는 함수
-  List<Widget> _buildTagLines(List<String> tags, double fontSize) {
-    if (tags.isEmpty) return [];
+  // 사용자 이름을 공백 기준 2줄로 분리하는 함수
+  Widget _buildTwoLineName(String userName, double fontSize) {
+    final splitName = userName.split(' ');
+    final firstLine = splitName.first; // 첫 번째 단어 (첫 줄)
+    final secondLine = splitName.sublist(1).join(' '); // 나머지 (두 번째 줄)
 
-    // ⭐ 최대 3개 태그 사용
-    final tagList = tags.take(3).toList();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          firstLine,
+          style: TextStyle(
+            fontSize: fontSize,
+            color: Colors.black,
+            height: 1.3, // 줄 간격 조정
+          ),
+          textAlign: TextAlign.center,
+        ),
+        Text(
+          secondLine,
+          style: TextStyle(
+            fontSize: fontSize,
+            color: Colors.black,
+            height: 1.1, // 줄 간격 조정
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
 
-    // ⭐ 태그를 쉼표로 연결
-    final tagLine = tagList.join(', ');
+  // ⭐ 태그를 중앙 2줄로 정렬 (첫 줄 2개, 둘째 줄 1개)
+  Widget _buildTagLines(List<String> tags, double fontSize) {
+    final List<Widget> tagWidgets =
+        tags
+            .map(
+              (tag) => Container(
+                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                margin: const EdgeInsets.symmetric(vertical: 1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3E2723),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: fontSize * 0.7,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            )
+            .toList();
 
-    return [
-      Text(
-        tagLine,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: fontSize * 0.75, color: Colors.white),
-      ),
-    ];
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (tagWidgets.length >= 2)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: tagWidgets.take(2).toList(),
+          ),
+        if (tagWidgets.length > 2)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [tagWidgets[2]],
+          ),
+      ],
+    );
   }
 }
