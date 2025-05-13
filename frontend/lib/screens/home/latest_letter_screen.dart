@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:buds/models/letter_content_model.dart';
+// Package imports:
+import 'package:provider/provider.dart';
+// Project imports:
+import 'package:buds/providers/auth_provider.dart';
+import 'package:buds/models/letter_latest_model.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/screens/letter/letter_answer_screen.dart';
 
@@ -11,7 +16,7 @@ class LastLetterScreen extends StatefulWidget {
 }
 
 class _LastLetterScreenState extends State<LastLetterScreen> {
-  LetterContentModel? letterContent;
+  LatestLetterModel? latestLetter;
   bool isLoading = true;
 
   @override
@@ -26,18 +31,10 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
     });
 
     try {
-      // 최신 편지 ID 로드
-      final latestLetter = await LetterService().fetchLetterLatest();
-      final letterId = latestLetter.letterId;
-
-      if (letterId == 0) {
-        throw Exception('유효한 편지 ID를 찾을 수 없습니다.');
-      }
-
-      // 편지 상세 조회
-      final fetchedLetter = await LetterService().fetchSingleLetter(letterId);
+      // 최신 편지 로드
+      final fetchedLetter = await LetterService().fetchLetterLatest();
       setState(() {
-        letterContent = fetchedLetter;
+        latestLetter = fetchedLetter;
       });
     } catch (e) {
       ScaffoldMessenger.of(
@@ -52,6 +49,8 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final receiverName = authProvider.userData?['name'] ?? 'Unknown';
     return Scaffold(
       body: Stack(
         children: [
@@ -73,9 +72,9 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
                   fit: BoxFit.contain,
                 ),
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.12, // 발신자 이름 위치
+                  top: MediaQuery.of(context).size.height * 0.12,
                   child: Text(
-                    letterContent?.senderName ?? "미상,로부터",
+                    latestLetter?.senderName ?? "미상,로부터",
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -83,17 +82,15 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
                   ),
                 ),
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.18, // 내용 시작 위치
+                  top: MediaQuery.of(context).size.height * 0.18,
                   left: MediaQuery.of(context).size.width * 0.12,
                   right: MediaQuery.of(context).size.width * 0.12,
-                  bottom:
-                      MediaQuery.of(context).size.height *
-                      0.05, // 이미지 하단까지 스크롤 가능
+                  bottom: MediaQuery.of(context).size.height * 0.05,
                   child: SizedBox(
                     height: MediaQuery.of(context).size.height * 0.4,
                     child: SingleChildScrollView(
                       child: Text(
-                        letterContent?.content ?? "편지 내용을 불러올 수 없습니다.",
+                        latestLetter?.content ?? "편지 내용을 불러올 수 없습니다.",
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 16),
                       ),
@@ -111,7 +108,7 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
             child: Center(
               child: ElevatedButton(
                 onPressed: () {
-                  if (letterContent == null) {
+                  if (latestLetter == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('편지 정보를 불러올 수 없습니다.')),
                     );
@@ -124,15 +121,15 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
                     MaterialPageRoute(
                       builder:
                           (context) => LetterAnswerScreen(
-                            letterId: letterContent!.letterId,
-                            receiverName: letterContent!.receiverName ?? '상대방',
-                            senderName: letterContent!.senderName ?? '나',
+                            letterId: latestLetter!.letterId,
+                            receiverName: receiverName,
+                            senderName: latestLetter!.senderName,
                           ),
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber, // 버튼 색상
+                  backgroundColor: Colors.amber,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 10,
