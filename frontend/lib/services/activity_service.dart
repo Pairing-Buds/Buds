@@ -73,7 +73,7 @@ class ActivityService {
 
     _validateEnvVariables(bookUrl, ttbKey);
 
-    final url = Uri.parse('$bookUrl?ttbkey=$ttbKey&QueryType=ItemNewSpecial&MaxResults=1&Start=1&SearchTarget=Book&CategoryId=51378&Output=JS&Version=20131101');
+    final url = Uri.parse('$bookUrl?ttbkey=$ttbKey&QueryType=ItemNewAll&MaxResults=1&Start=1&SearchTarget=Book&CategoryId=51378&Output=JS&Version=20131101');
 
     final response = await http.get(url);
 

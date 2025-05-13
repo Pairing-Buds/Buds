@@ -131,16 +131,15 @@ class LetterService {
   }
 
   /// 편지 답장 기능
-  Future<bool> sendLetterAnswer(int letterId, String content) async {
+  Future<bool> fetchLetterAnswer(int letterId, String content) async {
     try {
       final response = await _apiService.post(
-        ApiConstants.letterAnswerUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        ApiConstants.letterAnswerUrl,
         data: {
           'letterId': letterId,
           'content': content,
         },
       );
-
       if (response is Response && response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
         return data['statusCode'] == 'OK';

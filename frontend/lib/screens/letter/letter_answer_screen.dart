@@ -4,12 +4,6 @@ import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/config/theme.dart';
 
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:buds/services/letter_service.dart';
-import 'package:buds/widgets/custom_app_bar.dart';
-import 'package:buds/config/theme.dart';
-
 class LetterAnswerScreen extends StatefulWidget {
   final int letterId; // 편지 ID를 전달받도록 추가
   final String senderName; // 받는 사람 닉네임
@@ -28,11 +22,11 @@ class LetterAnswerScreen extends StatefulWidget {
 
 class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
   final TextEditingController _controller = TextEditingController();
-  bool _isLoading = false; // ⭐ 로딩 상태 추가
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _controller.dispose(); // ⭐ 메모리 누수 방지
+    _controller.dispose();
     super.dispose();
   }
 
@@ -130,6 +124,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                     Center(
                       child: GestureDetector(
                         onTap: _isLoading ? null : _sendLetterAnswer,
+
                         child: Container(
                           width: 140,
                           height: 44,
@@ -158,8 +153,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       ),
     );
   }
-
-  /// ⭐ 답장 전송 함수 ⭐
+  /// 답장 전송 함수
   Future<void> _sendLetterAnswer() async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
@@ -168,13 +162,12 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       );
       return;
     }
-
     setState(() {
       _isLoading = true; // 로딩 상태 시작
     });
 
     try {
-      final success = await LetterService().sendLetterAnswer(widget.letterId, content);
+      final success = await LetterService().fetchLetterAnswer(widget.letterId, content);
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(

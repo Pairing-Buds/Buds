@@ -55,7 +55,7 @@ class _LetterReplyScreenState extends State<LetterReplyScreen> {
     }
   }
 
-  /// ✅ 스크랩 토글
+  /// 스크랩 토글
   Future<void> _toggleScrap() async {
     if (_isLoading || _letterDetail == null) return;
 
