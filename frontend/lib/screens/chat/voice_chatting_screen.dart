@@ -168,7 +168,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         final dB = reading.meanDecibel;
         print("📈 현재 소음 dB: $dB");
 
-        if (_ttsPlaying && dB > 88) {
+        if (_ttsPlaying && dB > 94) {
           print("🎤 사용자 말 감지됨! → TTS 중단 → STT 시작");
 
           _tts.stop();
@@ -297,17 +297,9 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => ChatDetailScreen(
-                            initialHistory: _chatHistory.map((e) {
-                              return {
-                                'message': e['text'],
-                                'is_user': e['isUser'] ?? false,
-                                'created_at': DateTime.now().toIso8601String(),
-                              };
-                            }).toList(),
-                          ),
+                          builder: (_) => const ChatDetailScreen(),
                         ),
-                            (route) => route.isFirst, // ✅ HomeScreen만 남기고 나머지 모두 제거
+                            (route) => route.isFirst,
                       );
                     },
                     child: const Icon(Icons.close, size: 40, color: Colors.black),

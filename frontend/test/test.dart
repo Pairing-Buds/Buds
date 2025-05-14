@@ -2,11 +2,10 @@
 import 'package:buds/screens/login/widgets/login_main_widgets.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
-
+import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/screens/login/login_main.dart';
 import 'package:flutter/material.dart';
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/chat/start_chatting_screen.dart';
 class testscreen extends StatelessWidget {
   const testscreen({super.key});
 
@@ -35,7 +34,7 @@ class testscreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const StartChattingScreen(),
+                    builder: (context) => const ChatDetailScreen(),
                   ),
                 );
               },

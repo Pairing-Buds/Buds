@@ -9,16 +9,13 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 // Project imports:
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/chat/start_chatting_screen.dart';
 import 'package:buds/screens/chat/voice_chatting_screen.dart';
 import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:buds/services/chat_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class ChatDetailScreen extends StatefulWidget {
-  final String? initialText;
-  final List<Map<String, dynamic>>? initialHistory;
-  const ChatDetailScreen({super.key, this.initialHistory, this.initialText});
+  const ChatDetailScreen({super.key});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -31,42 +28,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   List<Map<String, dynamic>> _chatHistory = [];
   bool _isWaitingForBot = false;
   bool _hasStarted = false;
-  bool _isListening = false;
-  String _recognizedText = '';
   late stt.SpeechToText _speech;
+
+  static const String loadingMessage = 'LOADING';
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _loadChatHistoryAndRedirectIfEmpty();
-  }
-
-  Future<void> _loadChatHistoryAndRedirectIfEmpty() async {
-    final history = await _chatService.getChatHistory();
-
-    if (history.isEmpty) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const StartChattingScreen()),
-        );
-      }
-      return;
-    }
-
-    history.sort((a, b) {
-      final timeA = DateTime.parse(a['created_at']);
-      final timeB = DateTime.parse(b['created_at']);
-      return timeA.compareTo(timeB);
-    });
-
-    setState(() {
-      _chatHistory = history;
-      _hasStarted = true;
-    });
-
-    _scrollToBottom();
+    _loadChatHistory();
   }
 
   Future<void> _loadChatHistory() async {
@@ -87,88 +57,43 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   void _handleSend() async {
-    if (_controller.text.isNotEmpty) {
-      final userMessage = _controller.text;
-      setState(() {
-        _hasStarted = true;
-        _chatHistory.add({
-          'message': userMessage,
-          'is_user': true,
-          'created_at': DateTime.now().toIso8601String(),
-        });
-        _isWaitingForBot = true;
-        _chatHistory.add({
-          'message': 'LOADING',
-          'is_user': false,
-          'created_at': DateTime.now().toIso8601String(),
-        });
-        _controller.clear();
+    if (_controller.text.trim().isEmpty) return;
+
+    final userMessage = _controller.text.trim();
+    setState(() {
+      _hasStarted = true;
+      _chatHistory.add({
+        'message': userMessage,
+        'is_user': true,
+        'created_at': DateTime.now().toIso8601String(),
       });
-
-      _scrollToBottom();
-
-      final botMessage = await _chatService.sendMessage(
-        message: userMessage,
-        isVoice: false,
-      );
-
-      setState(() {
-        _chatHistory.removeLast();
-        _chatHistory.add({
-          'message': botMessage,
-          'is_user': false,
-          'created_at': DateTime.now().toIso8601String(),
-        });
-        _isWaitingForBot = false;
+      _isWaitingForBot = true;
+      _chatHistory.add({
+        'message': loadingMessage,
+        'is_user': false,
+        'created_at': DateTime.now().toIso8601String(),
       });
+      _controller.clear();
+    });
 
-      _scrollToBottom();
-    }
-  }
+    _scrollToBottom();
 
-  Future<void> _startListening() async {
-    bool available = await _speech.initialize();
-    if (!available) return;
-
-    setState(() => _isListening = true);
-
-    _speech.listen(
-      onResult: (result) async {
-        setState(() => _recognizedText = result.recognizedWords);
-        if (result.finalResult && _recognizedText.isNotEmpty) {
-          final message = _recognizedText;
-
-          setState(() {
-            _chatHistory.add({
-              'message': message,
-              'is_user': true,
-              'created_at': DateTime.now().toIso8601String(),
-            });
-          });
-          _scrollToBottom();
-
-          final botReply = await _chatService.sendMessage(
-            message: message,
-            isVoice: true,
-          );
-
-          setState(() {
-            _chatHistory.add({
-              'message': botReply,
-              'is_user': false,
-              'created_at': DateTime.now().toIso8601String(),
-            });
-          });
-          _scrollToBottom();
-
-          // 자동 재시작 (연속 인식)
-          Future.delayed(const Duration(milliseconds: 500), () => _startListening());
-        }
-      },
-      listenMode: stt.ListenMode.dictation,
-      pauseFor: const Duration(seconds: 2),
-      partialResults: true,
+    final botMessage = await _chatService.sendMessage(
+      message: userMessage,
+      isVoice: false,
     );
+
+    setState(() {
+      _chatHistory.removeLast();
+      _chatHistory.add({
+        'message': botMessage,
+        'is_user': false,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+      _isWaitingForBot = false;
+    });
+
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -179,16 +104,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
       resizeToAvoidBottomInset: true,
-      appBar: const CustomAppBar(
-        title: null,
-        showBackButton: true,
-      ),
+      appBar: const CustomAppBar(title: null, showBackButton: true),
       body: SafeArea(
         child: _hasStarted ? _buildChatView() : _buildStartView(),
       ),
@@ -202,10 +123,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         const Spacer(),
         Opacity(
           opacity: 0.5,
-          child: Image.asset(
-            'assets/images/marmet_head.png',
-            width: 240,
-          ),
+          child: Image.asset('assets/images/marmet_head.png', width: 240),
         ),
         const Spacer(),
         Padding(
@@ -331,7 +249,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   Widget _buildChatBubble(String text, {required bool isBot}) {
-    if (text == 'LOADING') {
+    if (text == loadingMessage) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
