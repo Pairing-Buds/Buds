@@ -38,7 +38,10 @@ class CommonDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             if (description != null) ...[
               const SizedBox(height: 12),
               Text(

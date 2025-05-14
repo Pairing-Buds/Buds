@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:buds/services/activity_service.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'package:buds/config/theme.dart';
 
 class LetterAnswerScreen extends StatefulWidget {
@@ -10,6 +11,7 @@ class LetterAnswerScreen extends StatefulWidget {
   final int? userId;
   final String? senderName;
   final String? receiverName;
+  final String redirectRoute; // 리다이렉트할 페이지 지정
 
   const LetterAnswerScreen({
     Key? key,
@@ -17,6 +19,7 @@ class LetterAnswerScreen extends StatefulWidget {
     this.userId,
     this.senderName,
     this.receiverName,
+    required this.redirectRoute, // 필수
   }) : super(key: key);
 
   @override
@@ -33,22 +36,38 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
     super.dispose();
   }
 
+  // 받침 여부에 따른 '에게' / '게' 처리 함수
+  String getPostpositionTo(String name) {
+    if (name.isEmpty) return "에게";
+    final lastChar = name.characters.last;
+    final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
+    return hasFinalConsonant ? "에게" : "게";
+  }
+
+  // 받침 여부에 따른 '이' / '가' 처리 함수
+  String getPostpositionFrom(String name) {
+    if (name.isEmpty) return "가";
+    final lastChar = name.characters.last;
+    final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
+    return hasFinalConsonant ? "이" : "가";
+  }
+
   @override
   Widget build(BuildContext context) {
     String today = DateFormat('yyyy.MM.dd').format(DateTime.now());
 
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: true, // ⭐ 키보드로 인한 오버플로우 방지
+      resizeToAvoidBottomInset: true, // 키보드로 인한 오버플로우 방지
       appBar: const CustomAppBar(
         title: '편지함',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
         showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom, // ⭐ 키보드 높이 반영
+          bottom: MediaQuery.of(context).viewInsets.bottom, // 키보드 높이 반영
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -77,8 +96,8 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                       child: Center(
                         child: Text(
                           widget.letterId != null
-                              ? 'To: ${widget.senderName ?? "익명"}'
-                              : 'To: ${widget.receiverName ?? "나"}',
+                              ? '${widget.senderName ?? "익명"}${getPostpositionTo(widget.senderName ?? "익명")}'
+                              : '${widget.receiverName ?? "나"}${getPostpositionTo(widget.receiverName ?? "나")}',
                         ),
                       ),
                     ),
@@ -98,8 +117,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                 // 편지 입력 필드
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  height:
-                      MediaQuery.of(context).size.height * 0.4, // ⭐ 최대 높이 제한
+                  height: MediaQuery.of(context).size.height * 0.4, //  최대 높이 제한
                   child: TextField(
                     controller: _controller,
                     expands: true,
@@ -121,8 +139,8 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
                   alignment: Alignment.bottomRight,
                   child: Text(
                     widget.letterId != null
-                        ? 'From: ${widget.receiverName ?? "익명"}'
-                        : 'From: ${widget.senderName ?? "나"}',
+                        ? '${widget.receiverName ?? "익명"}${getPostpositionFrom(widget.receiverName ?? "익명")}'
+                        : '${widget.senderName ?? "나"}${getPostpositionFrom(widget.senderName ?? "나")}',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
@@ -196,17 +214,13 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       }
 
       if (success) {
-        _controller.clear();
-        Navigator.pop(context);
+        Toast(context, '편지가 전송되었습니다');
+        Navigator.pushReplacementNamed(context, widget.redirectRoute);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('편지 전송에 실패했습니다.')));
+        Toast(context, '편지가 전송되었습니다');
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('편지 전송 오류: $e')));
+      Toast(context, '편지 전송 오류: $e');
     } finally {
       setState(() {
         _isLoading = false;

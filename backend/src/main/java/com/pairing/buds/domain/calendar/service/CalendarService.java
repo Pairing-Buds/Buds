@@ -37,7 +37,7 @@ public class CalendarService {
     private final CalendarBadgeRepository calendarBadgeRepository;
 
     /** 달별 뱃지 조회 **/
-    public List<CalendarBadgeResDto> getBadgeByCalendar(Integer userId, String date){
+    public List<CalendarBadgeResDto> getBadgeByCalendar(int userId, String date){
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         // date는 "yyyy-MM" 의 형태
@@ -56,7 +56,7 @@ public class CalendarService {
     }
 
     /** 일별 뱃지, 일기 조회 **/
-    public List<BadgeAndDiaryResDto> getBadgesAndDiary(Integer userId, String date) {
+    public List<BadgeAndDiaryResDto> getBadgesAndDiary(int userId, String date) {
         User user = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         // 1. 달 범위 계산 (date = "yyyy-MM")

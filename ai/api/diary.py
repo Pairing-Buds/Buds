@@ -52,7 +52,7 @@ class DiaryScheduler:
                 return
 
             # 오늘 날짜
-            today = datetime.now().date().isoformat()
+            today = datetime.now().date().strftime('%Y-%m-%d')
 
             # 각 사용자에 대해 일기 생성
             for user in active_users:

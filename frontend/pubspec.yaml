@@ -61,6 +61,7 @@ dependencies:
   cookie_jar: ^4.0.8
   path_provider: ^2.1.5
   lottie: ^3.3.1
+  rive: ^0.13.20
 
 dev_dependencies:
   flutter_test:
@@ -97,6 +98,7 @@ flutter:
     - assets/icons/letter/
     - assets/icons/characters/
     - assets/lotties/
+    - assets/animations/
 
   fonts:
     - family: GmarketSans

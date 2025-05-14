@@ -306,5 +306,19 @@ class Chatbot:
             logging.error(f"PyAnimalese TTS 생성 오류: {str(e)}")
             return None
 
+    def generate_response(self, prompt):
+        """
+        주어진 프롬프트에 대한 응답을 생성합니다.
+        """
+        try:
+            response = self.chat.invoke([
+                SystemMessage(content="당신은 공감 능력이 뛰어난 일기 작성 전문가입니다."),
+                HumanMessage(content=prompt)
+            ])
+            return response.content
+        except Exception as e:
+            logging.error(f"응답 생성 중 오류: {str(e)}")
+            return "일기 생성 중 오류가 발생했습니다."
+
 # 전역 Chatbot 인스턴스
 chatbot = Chatbot()

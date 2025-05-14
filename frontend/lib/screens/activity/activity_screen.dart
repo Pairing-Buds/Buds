@@ -17,7 +17,7 @@ class ActivityScreen extends StatelessWidget {
         showBackButton: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(20, 0, 16, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,12 +33,12 @@ class ActivityScreen extends StatelessWidget {
                 const ActivityBox(
                   imagePath: 'assets/icons/book_icon.png',
                   label: '도서관가기',
-                  color: Color(0xFFE6F7FF),
+                  color: AppColors.blue,
                 ),
                 const ActivityBox(
                   imagePath: 'assets/icons/tree_icon.png',
                   label: '공원가기',
-                  color: Color(0xFFE6FFE6),
+                  color: AppColors.green,
                 ),
                 GestureDetector(
                   onTap: () {
@@ -52,7 +52,7 @@ class ActivityScreen extends StatelessWidget {
                   child: const ActivityBox(
                     imagePath: 'assets/icons/shell_icon.png',
                     label: '필사하기',
-                    color: Color(0xFFFFF8E6),
+                    color: Color(0xFFFFF6D3),
                   ),
                 ),
               ],

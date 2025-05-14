@@ -7,6 +7,7 @@ import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/screens/home/widgets/speech_bubble.dart';
 import 'package:buds/screens/home/latest_letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
+import 'package:buds/screens/home/test.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);

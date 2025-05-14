@@ -71,7 +71,7 @@ class _LetterScreenState extends State<LetterScreen> {
     return Scaffold(
       appBar: const CustomAppBar(
         title: '편지함',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
         showBackButton: true,
       ),

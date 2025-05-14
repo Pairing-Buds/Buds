@@ -2,7 +2,7 @@ import logging
 import os
 import mysql.connector
 from mysql.connector import Error
-
+from datetime import datetime
 
 class MySQLDB:
     def __init__(self):
@@ -87,10 +87,34 @@ class MySQLDB:
             conn = self.get_connection()
             cursor = conn.cursor(dictionary=True)
 
-            # 이미 해당 날짜의 일기가 있는지 확인
+            # 날짜 부분만 추출 (시간 정보 제거)
+            if isinstance(date, str):
+                try:
+                    # 날짜 문자열에서 날짜 부분만 추출
+                    date_only = datetime.strptime(date, '%Y-%m-%d').date()
+                except ValueError:
+                    try:
+                        # ISO 형식이나 다른 형식의 날짜 처리
+                        date_only = datetime.fromisoformat(date).date()
+                    except:
+                        # 마지막 방어책: 현재 날짜 사용
+                        date_only = datetime.now().date()
+            else:
+                # datetime 객체인 경우 날짜 부분만 추출
+                date_only = date.date() if hasattr(date, 'date') else datetime.now().date()
+
+            # 날짜만 있는 문자열 생성 (YYYY-MM-DD)
+            date_str = date_only.strftime('%Y-%m-%d')
+
+            # 날짜만 있는 datetime 생성 (시간은 00:00:00으로 설정)
+            date_time_str = f"{date_str} 00:00:00"
+
+            logging.info(f"일기 저장: 사용자={user_id}, 날짜={date_str}")
+
+            # 이미 해당 날짜의 일기가 있는지 확인 (날짜 부분만 비교)
             cursor.execute(
-                "SELECT diary_id FROM diaries WHERE user_id = %s AND date = %s",
-                (user_id, date)
+                "SELECT diary_id FROM diaries WHERE user_id = %s AND DATE(date) = %s",
+                (user_id, date_str)
             )
             existing_diary = cursor.fetchone()
 
@@ -100,19 +124,22 @@ class MySQLDB:
                     "UPDATE diaries SET emotion_diary = %s, active_diary = %s WHERE diary_id = %s",
                     (emotion_diary, active_diary, existing_diary['diary_id'])
                 )
+                logging.info(f"기존 일기 업데이트: diary_id={existing_diary['diary_id']}")
             else:
-                # 새 일기 삽입
+                # 새 일기 삽입 - 날짜만 있는 datetime 값 사용 (시간은 00:00:00)
                 cursor.execute(
                     "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at) VALUES (%s, %s, %s, %s, NOW())",
-                    (user_id, date, emotion_diary, active_diary)
+                    (user_id, date_time_str, emotion_diary, active_diary)
                 )
+                new_id = cursor.lastrowid
+                logging.info(f"새 일기 생성: diary_id={new_id}, 날짜={date_time_str}")
 
             conn.commit()
             return True
         except Exception as e:
             if conn:
                 conn.rollback()
-            logging.error(f"일기 저장 중 오류: {str(e)}")
+            logging.error(f"일기 저장 오류: {str(e)}")
             return False
         finally:
             if cursor:
