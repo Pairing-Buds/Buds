@@ -22,6 +22,7 @@ import 'providers/agree_provider.dart';
 import 'providers/character_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/login/login_main.dart';
+import 'screens/splash_screen.dart';
 
 // import 'screens/login/login_screen.dart';
 // import 'package:buds/providers/letter_provider.dart';
@@ -240,27 +241,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
   }
 
-  Future<void> _initializeApp() async {
-    try {
-      // AuthProvider 초기화
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
-
-      if (kDebugMode) {
-        print('앱 초기화 완료: 로그인 상태 = ${authProvider.isLoggedIn}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('앱 초기화 오류: $e');
-      }
-    } finally {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
+  void _onInitializationComplete() {
+    setState(() {
+      _isInitialized = true;
+    });
   }
 
   @override
@@ -270,16 +256,23 @@ class _MyAppState extends State<MyApp> {
       'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
     );
 
-    // 초기화 중이면 로딩 화면 표시
+    // 초기화 중이면 스플래시 화면 표시
     if (!_isInitialized) {
       return MaterialApp(
         title: 'buds',
         theme: appTheme,
-        home: Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ko', 'KR'), // 한국어
+          Locale('en', 'US'), // 영어
+        ],
+        home: SplashScreen(
+          onInitializationComplete: _onInitializationComplete,
         ),
       );
     }
