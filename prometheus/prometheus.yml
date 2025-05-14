@@ -1,12 +1,12 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 30s
+  evaluation_interval: 30s
 
+# 알림 설정 유지
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-            - alertmanager:9093
+        - targets: ['alertmanager:9093']
 
 rule_files:
   - "alerts.yml"
@@ -19,10 +19,20 @@ scrape_configs:
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
+    metric_relabel_configs:
+      # 필요한 메트릭만 수집하도록 설정
+      - source_labels: [__name__]
+        regex: 'node_(cpu|memory|disk|filesystem|network|load|boot_time).*'
+        action: keep
 
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      # 컨테이너 메트릭 필터링
+      - source_labels: [__name__]
+        regex: 'container_(cpu|memory|network|fs).*'
+        action: keep
 
   - job_name: 'spring'
     metrics_path: '/actuator/prometheus'
