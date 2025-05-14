@@ -63,7 +63,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         }
       });
     } catch (e) {
-      Toast(context, '편지 로드 실패: $e');
+      Toast(context, '편지가 오고 있어요: $e');
     } finally {
       setState(() => isLoading = false);
     }
@@ -78,22 +78,22 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
         currentLetter = letterContent;
       });
     } catch (e) {
-      Toast(context, '내용 로드 실패: $e');
+      Toast(context, '오류가 발생했습니다: $e');
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  /// 페이지네이션 화살표로 전체 페이지 이동
+  /// 페이지네이션 화살표로 전체 페이지 이동 왼)과거,  오)미래
   void nextPage() {
-    if (letterPage != null && currentPage < letterPage!.totalPages - 1) {
-      loadLetters(page: currentPage + 1);
+    if (letterPage != null && currentPage > 0) {
+      loadLetters(page: currentPage - 1); // 미래 → 과거
     }
   }
 
   void previousPage() {
-    if (letterPage != null && currentPage > 0) {
-      loadLetters(page: currentPage - 1);
+    if (letterPage != null && currentPage < letterPage!.totalPages - 1) {
+      loadLetters(page: currentPage + 1); // 과거 → 미래
     }
   }
 
@@ -110,9 +110,9 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
           loadLetterContent(letterPage!.letters[index].letterId);
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: 12,
-          height: 12,
+          margin: const EdgeInsets.symmetric(horizontal: 5),
+          width: 20,
+          height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color:
@@ -127,6 +127,9 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final loggedInUser = authProvider.userData?['name'] ?? 'Unknown';
+    final totalLetters = letterPage?.letters.length ?? 0;
+    final isReceived = currentLetter?.receiverName == loggedInUser;
+    final letterNumber = totalLetters - currentLetterIndex; // 최신이 1, 과거로 증가
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -141,6 +144,23 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
               ? const Center(child: CircularProgressIndicator())
               : Column(
                 children: [
+                  // 상단 탭
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 0, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          (isReceived ? '보낼 편지' : '받은 편지'),
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        ),
+                        Spacer(),
+                        Text(
+                          '$letterNumber  번째 편지',
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 20),
                   Expanded(
                     child:
@@ -148,31 +168,42 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                             ? buildLetterContent(currentLetter!, loggedInUser)
                             : const Center(child: Text('편지를 불러올 수 없습니다.')),
                   ),
-                  const SizedBox(height: 16),
-                  // 페이지네이션 UI
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: previousPage,
-                        icon: const Icon(Icons.arrow_back_ios),
-                      ),
-                      Text(
-                        '페이지: ${currentPage + 1} / ${letterPage?.totalPages ?? 1}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      IconButton(
-                        onPressed: nextPage,
-                        icon: const Icon(Icons.arrow_forward_ios),
-                      ),
-                    ],
+                  // ⭐ 페이지네이션 UI (노란 박스 바로 아래로 위치)
+                  Container(
+                    padding: const EdgeInsets.only(
+                      bottom: 20,
+                    ), // ⭐ 하단 여백 조정 (20)
+                    margin: const EdgeInsets.only(
+                      bottom: 20,
+                    ), // ⭐ 추가 여백으로 네브바와 간격 확보
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: previousPage,
+                              icon: const Icon(Icons.arrow_back_ios),
+                            ),
+                            Text(
+                              '페이지: ${currentPage + 1} / ${letterPage?.totalPages ?? 1}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            IconButton(
+                              onPressed: nextPage,
+                              icon: const Icon(Icons.arrow_forward_ios),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: buildPageDots(),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: buildPageDots(), //  편지 점 표시
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
     );
