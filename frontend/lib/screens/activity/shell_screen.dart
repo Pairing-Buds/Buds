@@ -12,6 +12,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/models/activity_quote_model.dart';
 import 'package:buds/services/activity_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});

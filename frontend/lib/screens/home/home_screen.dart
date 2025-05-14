@@ -59,7 +59,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MyApp()),
+                  MaterialPageRoute(builder: (context) => const SurveyScreen()),
                 );
               },
               child: Image.asset(

@@ -98,7 +98,7 @@ flutter:
     - assets/icons/letter/
     - assets/icons/characters/
     - assets/lotties/
-    - assets/animations/sea.riv
+    - assets/animations/
 
   fonts:
     - family: GmarketSans

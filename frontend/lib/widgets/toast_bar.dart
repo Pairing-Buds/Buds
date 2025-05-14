@@ -13,7 +13,6 @@ void Toast(BuildContext context, String message, {Widget? icon}) {
             child: Text(message, style: const TextStyle(color: Colors.white)),
           ),
         ],
-        S,
       ),
       backgroundColor: const Color(0xFFA9A9A9),
       elevation: 0,

@@ -102,7 +102,7 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
     return Scaffold(
       appBar: const CustomAppBar(
         title: '익명의 편지',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
         showBackButton: true,
       ),
@@ -187,13 +187,13 @@ class _LastLetterScreenState extends State<LastLetterScreen> {
                             ),
                             style: const TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              // fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         // 편지 내용
                         Positioned(
-                          top: MediaQuery.of(context).size.height * 0.18,
+                          top: MediaQuery.of(context).size.height * 0.20,
                           left: MediaQuery.of(context).size.width * 0.12,
                           right: MediaQuery.of(context).size.width * 0.12,
                           bottom: MediaQuery.of(context).size.height * 0.05,

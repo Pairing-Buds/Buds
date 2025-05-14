@@ -12,6 +12,7 @@ import 'package:buds/services/api_service.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/providers/auth_provider.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class LetterAnonymityScreen extends StatefulWidget {
   const LetterAnonymityScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class LetterAnonymityScreen extends StatefulWidget {
 
 class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
   bool isInterest = true;
+  bool isLoading = false;
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -36,7 +38,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
       resizeToAvoidBottomInset: true, // 오버플로우 방지
       appBar: const CustomAppBar(
         title: '편지함',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
         showBackButton: true,
       ),
@@ -63,19 +65,19 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 12,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            isInterest
-                                ? const Color(0xFFE0F7F5)
-                                : const Color(0xFFE0E0E0),
+                        color: isInterest ? AppColors.blue : AppColors.green,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
                         isInterest ? '관심' : '랜덤',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isInterest ? Colors.black : Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -119,8 +121,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      // 오버플로우 방지: Flexible 사용
-                      Flexible(
+                      Expanded(
                         child: TextField(
                           controller: _controller,
                           expands: true,
@@ -142,7 +143,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Text(
-                          'From: $userName', // 로그인한 사용자 닉네임 표시
+                          'From: $userName',
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -154,19 +155,27 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
             const SizedBox(height: 12),
             Center(
               child: GestureDetector(
-                onTap: _sendLetter,
+                onTap: isLoading ? null : _sendLetter,
                 child: Container(
                   width: 140,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: isLoading ? Colors.grey : AppColors.primary,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: const Center(
-                    child: Text(
-                      '편지보내기',
-                      style: TextStyle(color: Colors.black, fontSize: 16),
-                    ),
+                  child: Center(
+                    child:
+                        isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.black,
+                            )
+                            : const Text(
+                              '편지보내기',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                              ),
+                            ),
                   ),
                 ),
               ),
@@ -178,15 +187,15 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
     );
   }
 
-  /// 전송 함수 (유지)
+  /// 전송 함수 (개선)
   Future<void> _sendLetter() async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('편지 내용을 입력해주세요')));
+      _showSnackbar('편지 내용을 입력해주세요');
       return;
     }
+
+    setState(() => isLoading = true);
 
     final requestBody = {'content': content, 'isTagBased': isInterest};
 
@@ -197,19 +206,26 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('편지를 성공적으로 보냈습니다')));
+        _showSnackbar('편지를 성공적으로 보냈습니다');
         _controller.clear();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LetterScreen()),
         );
+      } else {
+        _showSnackbar('편지 전송에 실패했습니다');
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('편지 전송에 실패했습니다')));
+      _showSnackbar('네트워크 오류: 편지 전송에 실패했습니다');
+    } finally {
+      setState(() => isLoading = false);
     }
+  }
+
+  /// Snackbar 표시 함수
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

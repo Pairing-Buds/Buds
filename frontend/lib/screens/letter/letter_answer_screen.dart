@@ -61,7 +61,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       resizeToAvoidBottomInset: true, // 키보드로 인한 오버플로우 방지
       appBar: const CustomAppBar(
         title: '편지함',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
         showBackButton: true,
       ),
