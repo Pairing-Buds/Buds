@@ -16,7 +16,7 @@ class BadgeModel {
       case 'EMOTION':
         return BadgeModel(imagePath: 'assets/icons/badges/wake.png');
         default:
-        return BadgeModel(imagePath: 'assets/icons/badges/VOICE_TEXT.png');
+        return BadgeModel(imagePath: 'assets/icons/badges/TEXT.png');
     }
   }
 }
