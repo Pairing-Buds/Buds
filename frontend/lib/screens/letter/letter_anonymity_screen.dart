@@ -113,7 +113,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                       Align(
                         alignment: Alignment.bottomLeft,
                         child: Text(
-                          today,
+                          '작성일: $today',
                           style: const TextStyle(
                             fontSize: 13,
                             color: Colors.grey,

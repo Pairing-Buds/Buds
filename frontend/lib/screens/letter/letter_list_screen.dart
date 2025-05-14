@@ -99,7 +99,7 @@ class _LetterListState extends State<LetterList> {
                                     color:
                                         isUnread ? Colors.black : Colors.grey,
                                   ),
-                                  overflow: TextOverflow.ellipsis, // 오버플로우 방지
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -110,22 +110,26 @@ class _LetterListState extends State<LetterList> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
+                                // Text(
+                                //   isUnread ? "읽지 않음" : "",
+                                //   style: TextStyle(
+                                //     fontSize: 12,
+                                //     color: isUnread ? Colors.red : Colors.grey,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),
-                          Flexible(
-                            child: Image.asset(
-                              isUnread
-                                  ? (letter.received
-                                      ? 'assets/icons/letter/receive_letter_icon.png'
-                                      : 'assets/icons/letter/send_letter_icon.png')
-                                  : (letter.received
-                                      ? 'assets/icons/letter/receive_inactive_icon.png'
-                                      : 'assets/icons/letter/send_inactive_icon.png'),
-                              width: 50, // ⭐ 너비 고정 (오버플로우 방지)
-                              height: 50,
-                              fit: BoxFit.contain, // ⭐ 이미지가 영역을 초과하지 않도록
-                            ),
+                          Image.asset(
+                            isUnread
+                                ? (letter.received
+                                    ? 'assets/icons/letter/receive_letter_icon.png'
+                                    : 'assets/icons/letter/send_letter_icon.png')
+                                : (letter.received
+                                    ? 'assets/icons/letter/receive_inactive_icon.png'
+                                    : 'assets/icons/letter/send_inactive_icon.png'),
+                            width: 50,
+                            height: 50,
                           ),
                         ],
                       ),
