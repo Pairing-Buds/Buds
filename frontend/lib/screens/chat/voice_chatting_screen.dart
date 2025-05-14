@@ -294,12 +294,9 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
                       _tts.stop();
                       _speech.stop();
                       _noiseSubscription?.cancel();
-                      Navigator.pushAndRemoveUntil(
+                      Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const ChatDetailScreen(),
-                        ),
-                            (route) => route.isFirst,
+                        MaterialPageRoute(builder: (_) => const ChatDetailScreen()),
                       );
                     },
                     child: const Icon(Icons.close, size: 40, color: Colors.black),
