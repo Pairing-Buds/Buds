@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 // Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/models/letter_detail_model.dart';
+import 'package:buds/models/letter_page_model.dart';
 import 'package:buds/services/letter_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/providers/auth_provider.dart';
@@ -24,27 +25,29 @@ class LetterDetailScreen extends StatefulWidget {
 }
 
 class _LetterDetailScreenState extends State<LetterDetailScreen> {
-  List<LetterDetailModel> letters = [];
+  LetterPageModel? letterPage; // ⭐ 페이지네이션 정보와 편지 리스트 관리
   bool isLoading = false;
-  int currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    loadLetters();
+    loadLetters(); // ⭐ 초기 로드시 편지 목록 로드
   }
 
-  Future<void> loadLetters() async {
+  /// ⭐ 페이지네이션 적용된 편지 목록 로드
+  Future<void> loadLetters({int page = 0}) async {
     setState(() => isLoading = true);
 
     try {
       final response = await LetterService().fetchLetterDetails(
         opponentId: widget.opponentId,
-        page: 0,
+        page: page,
         size: 5,
       );
 
-      setState(() => letters = response);
+      setState(() {
+        letterPage = response;
+      });
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -54,15 +57,18 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     }
   }
 
+  /// 다음 페이지로 이동
   void nextPage() {
-    if (currentPage < letters.length - 1) {
-      setState(() => currentPage++);
+    if (letterPage != null &&
+        letterPage!.currentPage < letterPage!.totalPages - 1) {
+      loadLetters(page: letterPage!.currentPage + 1);
     }
   }
 
+  /// 이전 페이지로 이동
   void previousPage() {
-    if (currentPage > 0) {
-      setState(() => currentPage--);
+    if (letterPage != null && letterPage!.currentPage > 0) {
+      loadLetters(page: letterPage!.currentPage - 1);
     }
   }
 
@@ -87,23 +93,24 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child:
-                        letters.isNotEmpty
+                        letterPage != null && letterPage!.letters.isNotEmpty
                             ? buildLetterContent(
-                              letters[currentPage],
+                              letterPage!.letters.first,
                               loggedInUser,
                             )
                             : const Center(child: Text('편지를 불러올 수 없습니다.')),
                   ),
                   const SizedBox(height: 16),
+                  // 페이지네이션 UI
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
                         onPressed: previousPage,
                         icon: const Icon(Icons.arrow_back_ios),
                       ),
                       Text(
-                        '${currentPage + 1} / ${letters.length}',
+                        '${(letterPage?.currentPage ?? 0) + 1} / ${letterPage?.totalPages ?? 1}',
                         style: const TextStyle(fontSize: 16),
                       ),
                       IconButton(
@@ -112,103 +119,106 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
                 ],
               ),
     );
   }
 
+  /// 편지 내용 UI 빌드 (노란색 박스 + 분기 처리)
   Widget buildLetterContent(LetterDetailModel letter, String loggedInUser) {
     final isReceived = letter.received;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Stack(
-        children: [
-          Container(
-            // ⭐ 노란색 박스의 높이를 전체 화면의 60%로 설정
-            height: MediaQuery.of(context).size.height * 0.6,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 6,
-                  offset: const Offset(2, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          isReceived
-                              ? 'To: $loggedInUser'
-                              : 'To: ${widget.opponentName}',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    Image.asset(
-                      isReceived
-                          ? 'assets/icons/letter/reply.png'
-                          : 'assets/icons/letter/send.png',
-                      width: 40,
-                      height: 40,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Date: ${letter.createdAt}',
-                  style: const TextStyle(fontSize: 13, color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Text(
-                      letter.status,
-                      style: const TextStyle(fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
+    return Stack(
+      children: [
+        // 노란색 박스 (높이: 전체 화면의 60%)
+        Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          padding: const EdgeInsets.all(20),
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 6,
+                offset: const Offset(2, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 상단 (To: / 아이콘)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
                     isReceived
-                        ? 'From: ${letter.senderName}'
-                        : 'From: $loggedInUser',
+                        ? 'To: $loggedInUser'
+                        : 'To: ${widget.opponentName}',
                     style: const TextStyle(fontSize: 16),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // ⭐ 스크랩 아이콘 (받은 편지일 때만 표시)
-          if (isReceived)
-            Positioned(
-              top: 0,
-              left: 10,
-              child: GestureDetector(
-                onTap: () {
-                  print('스크랩 클릭');
-                },
-                child: Image.asset(
-                  'assets/icons/letter/scrap_skyblue.png',
-                  width: 30,
-                  height: 30,
+                  const SizedBox(width: 10),
+                  Image.asset(
+                    isReceived
+                        ? 'assets/icons/letter/reply.png'
+                        : 'assets/icons/letter/send.png',
+                    width: 40,
+                    height: 40,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // 날짜
+              Text(
+                'Date: ${letter.createdAt}',
+                style: const TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+              const SizedBox(height: 20),
+              // 편지 내용 (스크롤 가능)
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    letter.status,
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
+              const SizedBox(height: 16),
+              // 하단 (From:)
+              Align(
+                alignment: Alignment.bottomRight,
+                child: Text(
+                  isReceived
+                      ? 'From: ${letter.senderName}'
+                      : 'From: $loggedInUser',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        //  스크랩 아이콘 (received: true 일때만)
+        if (isReceived)
+          Positioned(
+            top: 0,
+            left: 10,
+            child: GestureDetector(
+              onTap: () {
+                print('스크랩 클릭');
+              },
+              child: Image.asset(
+                'assets/icons/letter/scrap_inactive.png',
+                width: 30,
+                height: 30,
+              ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

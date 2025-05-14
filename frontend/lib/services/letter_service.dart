@@ -1,13 +1,12 @@
-// Flutter imports:
 import 'package:flutter/foundation.dart';
-
 // Package imports:
 import 'package:dio/dio.dart';
-
 // Project imports:
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/models/letter_detail_model.dart';
+// Flutter imports:
+import 'package:buds/models/letter_page_model.dart';
 import 'package:buds/models/letter_latest_model.dart';
 import 'package:buds/models/letter_response_model.dart';
 import 'api_service.dart';
@@ -42,7 +41,7 @@ class LetterService {
   }
 
   /// 특정 사용자와 주고 받은 편지 조회
-  Future<List<LetterDetailModel>> fetchLetterDetails({
+  Future<LetterPageModel> fetchLetterDetails({
     required int opponentId,
     required int page,
     required int size,
@@ -57,19 +56,17 @@ class LetterService {
         final data = response.data as Map<String, dynamic>;
 
         if (data['statusCode'] == 'OK' && data['resMsg'] != null) {
-          final letters = data['resMsg']['letters'] as List<dynamic>;
-          return letters
-              .map((json) => LetterDetailModel.fromJson(json))
-              .toList();
+          return LetterPageModel.fromJson(data);
+          // return LetterPageModel.fromJson(data['resMsg']);
         } else {
           throw Exception('응답 형식 오류');
         }
       } else {
-        throw Exception('편지 상세 요청 실패: ${response.statusCode}');
+        throw Exception('특정 유저와 주고 받은 편지 요청 실패: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('fetchLetterDetails 오류: $e');
+        print('특정 사용자와 주고 받은 편지 조회 오류: $e');
       }
       rethrow;
     }
