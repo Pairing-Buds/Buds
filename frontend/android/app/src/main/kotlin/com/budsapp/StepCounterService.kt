@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -69,8 +70,14 @@ class StepCounterService : Service(), SensorEventListener {
         // 알림 채널 생성 (Android 8.0 이상)
         createNotificationChannel()
         
-        // 포그라운드 서비스 시작
-        startForeground(NOTIFICATION_ID, createNotification(0))
+        // 포그라운드 서비스 시작 (Android 14 이상에서는 FOREGROUND_SERVICE_TYPE_LOCATION 명시 필요)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, createNotification(0), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            Log.d(TAG, "Started foreground service with FOREGROUND_SERVICE_TYPE_LOCATION")
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification(0))
+            Log.d(TAG, "Started foreground service without type specification")
+        }
         
         // 센서 리스너 등록
         sensorManager.registerListener(
