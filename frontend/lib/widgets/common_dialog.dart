@@ -28,6 +28,8 @@ class CommonDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isSingleButton = confirmText.isEmpty;
+
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -46,42 +48,65 @@ class CommonDialog extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: onCancel,
-                    child: Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: cancelColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(cancelText, style: const TextStyle(color: Colors.black)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: onConfirm,
-                    child: Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: confirmColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        confirmText,
-                        style: const TextStyle(color: Colors.black),
+            if (isSingleButton)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: FractionallySizedBox(
+                      widthFactor: 0.5,
+                      child: GestureDetector(
+                        onTap: onCancel,
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: confirmColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(cancelText, style: const TextStyle(color: Colors.black)),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            )
+                ],
+              )
+
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: onCancel,
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: cancelColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(cancelText, style: const TextStyle(color: Colors.black)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: onConfirm,
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: confirmColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(confirmText, style: const TextStyle(color: Colors.black)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

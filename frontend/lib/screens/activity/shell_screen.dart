@@ -12,6 +12,9 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/models/activity_quote_model.dart';
 import 'package:buds/services/activity_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/widgets/common_dialog.dart';
+import 'package:buds/widgets/toast_bar.dart';
+
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});
@@ -76,6 +79,9 @@ class _ShellScreenState extends State<ShellScreen> {
             _recognizedText = result.recognizedWords;
             if (result.finalResult) {
               _similarity = _calcSimilarity();
+              if (_similarity < 0.7) {
+                _showLowSimilarityWarning();
+              }
             }
           });
         },
@@ -108,29 +114,24 @@ class _ShellScreenState extends State<ShellScreen> {
 
   // 유사도 낮음 알림
   void _showLowSimilarityWarning() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('유사도가 낮아요. 다시 읽어주세요.'),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
+    Toast(context, '유사도가 낮아요. 다시 읽어주세요.');
   }
+
 
   // 에러 모달 (이미 편지지 받은 경우)
   void _showErrorModal() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("오늘의 편지지"),
-            content: const Text("오늘은 이미 편지지를 받았어요."),
-            actions: [
-              TextButton(onPressed: _redirectToHome, child: const Text("확인")),
-            ],
-          ),
+      builder: (context) => CommonDialog(
+        title: "오늘의 편지지",
+        description: "오늘은 이미 편지지를 받았어요.",
+        cancelText: "확인",
+        confirmText: "", // 버튼 하나만
+        onCancel: _redirectToHome,
+        onConfirm: () {}, // 사용되지 않음
+      ),
     );
-
     Future.delayed(const Duration(seconds: 2), _redirectToHome);
   }
 
@@ -139,17 +140,18 @@ class _ShellScreenState extends State<ShellScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("인증 성공"),
-            content: const Text("선물로 편지지 5장을 드립니다."),
-            actions: [
-              TextButton(onPressed: _redirectToHome, child: const Text("확인")),
-            ],
-          ),
+      builder: (context) => CommonDialog(
+        title: "인증 성공",
+        description: "선물로 편지지 5장을 드립니다.",
+        cancelText: "확인",
+        confirmText: "", // 버튼 하나
+        onCancel: () {
+          Navigator.of(context).pop(); // dialog 닫기
+          _redirectToHome(); // 닫은 후 이동
+        },
+        onConfirm: () {},
+      ),
     );
-
-    Future.delayed(const Duration(seconds: 2), _redirectToHome);
   }
 
   // 홈 화면으로 리다이렉트 함수
