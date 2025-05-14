@@ -48,7 +48,7 @@ class _UserRecState extends State<UserRec> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final senderName =
-        authProvider.userData?['name'] ?? '나'; // ✅ 로그인 사용자 이름 (보내는 사람)
+        authProvider.userData?['name'] ?? '나'; // 로그인 사용자 이름 (보내는 사람)
 
     // 화면 크기에 따른 반응형 설정
     final screenWidth = MediaQuery.of(context).size.width;
@@ -88,6 +88,7 @@ class _UserRecState extends State<UserRec> {
                                   userId: user.userId,
                                   senderName: senderName,
                                   receiverName: userName,
+                                  redirectRoute: '/activity',
                                 ),
                           ),
                         );
@@ -169,7 +170,7 @@ class _UserRecState extends State<UserRec> {
     );
   }
 
-  // ⭐ 태그를 중앙 2줄로 정렬 (첫 줄 2개, 둘째 줄 1개)
+  // 태그를 중앙 2줄로 정렬 (첫 줄 2개, 둘째 줄 1개)
   Widget _buildTagLines(List<String> tags, double fontSize) {
     final List<Widget> tagWidgets =
         tags

@@ -70,6 +70,8 @@ class _LetterListState extends State<LetterList> {
                   separatorBuilder: (_, __) => const SizedBox(height: 20),
                   itemBuilder: (context, index) {
                     final letter = letters[index];
+                    final isUnread = letter.lastLetterStatus == "UNREAD";
+
                     return InkWell(
                       onTap: () {
                         Navigator.push(
@@ -92,7 +94,12 @@ class _LetterListState extends State<LetterList> {
                               children: [
                                 Text(
                                   letter.userName,
-                                  style: const TextStyle(fontSize: 16),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        isUnread ? Colors.black : Colors.grey,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -103,27 +110,26 @@ class _LetterListState extends State<LetterList> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  letter.lastLetterStatus == "UNREAD"
-                                      ? "읽지 않음"
-                                      : "읽음",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color:
-                                        letter.lastLetterStatus == "UNREAD"
-                                            ? Colors.red
-                                            : Colors.grey,
-                                  ),
-                                ),
+                                // Text(
+                                //   isUnread ? "읽지 않음" : "",
+                                //   style: TextStyle(
+                                //     fontSize: 12,
+                                //     color: isUnread ? Colors.red : Colors.grey,
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),
                           Image.asset(
-                            letter.received
-                                ? 'assets/icons/letter/reply.png'
-                                : 'assets/icons/letter/send.png',
-                            width: 36,
-                            height: 36,
+                            isUnread
+                                ? (letter.received
+                                    ? 'assets/icons/letter/receive_letter_icon.png'
+                                    : 'assets/icons/letter/send_letter_icon.png')
+                                : (letter.received
+                                    ? 'assets/icons/letter/receive_inactive_icon.png'
+                                    : 'assets/icons/letter/send_inactive_icon.png'),
+                            width: 50,
+                            height: 50,
                           ),
                         ],
                       ),

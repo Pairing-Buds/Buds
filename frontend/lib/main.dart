@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
+import 'package:buds/screens/activity/activity_screen.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/services/api_service.dart';
@@ -278,9 +279,7 @@ class _MyAppState extends State<MyApp> {
           Locale('ko', 'KR'), // 한국어
           Locale('en', 'US'), // 영어
         ],
-        home: SplashScreen(
-          onInitializationComplete: _onInitializationComplete,
-        ),
+        home: SplashScreen(onInitializationComplete: _onInitializationComplete),
       );
     }
 
@@ -312,6 +311,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (context) => const LoginMainScreen(),
         '/main': (context) => const MainScreen(),
+        '/activity': (context) => const ActivityScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',

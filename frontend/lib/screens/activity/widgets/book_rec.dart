@@ -75,7 +75,7 @@ class _BookRecState extends State<BookRec> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.lightGrey,
+            color: Color(0xFFFDF2F0),
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -90,7 +90,7 @@ class _BookRecState extends State<BookRec> {
               cover != null
                   ? Image.network(
                     cover!,
-                    width: 100,
+                    width: 90,
                     height: 120,
                     fit: BoxFit.cover,
                   )
@@ -98,18 +98,18 @@ class _BookRecState extends State<BookRec> {
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       title ?? '제목 없음',
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 14),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 20),
                     Text(
                       '저자: ${author ?? '저자 없음'}',
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                      style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                   ],
                 ),
