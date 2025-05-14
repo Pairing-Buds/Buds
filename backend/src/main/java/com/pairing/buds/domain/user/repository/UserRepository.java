@@ -1,6 +1,5 @@
 package com.pairing.buds.domain.user.repository;
 
-import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.constraints.Email;
@@ -28,10 +27,22 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsByUserName(String username);
 
     /** 취향 맞는 친구 추천 **/
-    Set<User> findDistinctTop10ByIdNotAndIsActiveTrueAndTagsIn(
-            int userId,
-            Set<Tag> tags
-    );
+    @Query(
+            value = """
+        SELECT DISTINCT u.*
+        FROM users u
+        JOIN user_tags ut ON ut.user_id = u.id
+        JOIN letters l
+          ON (l.sender_id   = u.id AND l.receiver_id = :opponentId)
+          OR (l.receiver_id = u.id AND l.sender_id   = :opponentId)
+        WHERE u.id <> :userId
+          AND u.is_active = true
+          AND ut.tag       IN (:userTags)
+        LIMIT 10
+      """,
+            nativeQuery = true
+    )
+    Set<User> findTOP10RecommendedUser(int userId, int opponentId, Set<TagType> userTags);
 
     /**
      * 편지 랜덤 발송 (필터링 적용)
@@ -70,7 +81,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         JOIN u.tags t
         WHERE u.id <> :senderId
           AND u.isActive = true
-          AND t.tagName IN :senderTagTypes
+          AND t.tagType IN :senderTagTypes
           AND NOT EXISTS (
             SELECT l FROM Letter l
             WHERE ((l.sender.id = :senderId AND l.receiver.id = u.id)
@@ -102,7 +113,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("DELETE FROM Tag t WHERE t.user.id = :userId")
     void deleteTagsByUserId(@Param("userId") Integer userId);
 
-    Set<User> findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(int userId, Set<TagType> userTags);
+//    Set<User> findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(int userId, Set<TagType> userTags);
+//    Optional<User> findByUserName(String username);
 
-    Optional<User> findByUserName(String username);
 }

@@ -1,26 +1,23 @@
 package com.pairing.buds.domain.user.entity;
 
-public enum TagType {
-//    KPOP("KPOP"),
-    SPORTS("운동"),
-    MOVIE("영화"),
-    READING("독서"),
-    JOB("취업"),
-    CERTIFICATION("자격증"),
-    FASHION("패션"),
-    MUSIC("음악"),
-    COOKING("요리"),
-    GAME("게임"),
-    COMIC("만화");
+import jakarta.persistence.*;
+import lombok.*;
 
+@Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "tag_types")
+public class TagType {
 
-    private final String displayName;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "tag_type_id")
+    private Integer id;
 
-    TagType(String displayName) {
-        this.displayName = displayName;
-    }
+    @Column(name = "display_name", nullable = false)
+    private String tagName;  // 예: "운동"
 
-    public String getDisplayName() {
-        return displayName;
-    }
 }

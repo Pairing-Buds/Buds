@@ -10,13 +10,13 @@ import lombok.*;
 @Builder
 public class TagResDto {
 
+    private Integer userTagId;
     private String tagType;
-    private String displayName;
 
     public static TagResDto toTagRes(Tag tag) {
         return new TagResDto(
-                tag.getTagName().name(),
-                tag.getTagName().getDisplayName()
+                tag.getId(),
+                tag.getTagType().getTagName()
         );
     }
 

@@ -1,5 +1,7 @@
 package com.pairing.buds.common.auth.controller;
 
+import com.pairing.buds.common.exception.ApiException;
+import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.WebUtils;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,36 +23,31 @@ public class RefreshController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
 
-    /** 쿠키에서 토큰 꺼내기 **/
-    private String extractCookie(HttpServletRequest request, String cookieName) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookieName.equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+    @PostMapping
+    public ResponseDto refreshAccessToken(HttpServletRequest request,
+                                          HttpServletResponse response) {
 
-    @PostMapping("")
-    public ResponseDto refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = extractCookie(request, "refresh_token");
+        // 쿠키에서 리프레시 토큰 꺼내기
+        Cookie refreshCookie = WebUtils.getCookie(request, "refresh_token");
+        if (refreshCookie == null)
+            throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰이 없습니다
+        String refreshToken = refreshCookie.getValue();
 
-        if (refreshToken == null || jwtTokenProvider.isExpired(refreshToken)) {
-            return new ResponseDto(StatusCode.UNAUTHORIZED, "Refresh Token이 유효하지 않습니다.");
-        }
+        // 유효성 검사 & Redis 에 저장된 것과 비교
+        if (!jwtTokenProvider.validateToken(refreshToken))
+            throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 유효하지 않은 리프레시 토큰입니다.
 
         Integer userId = jwtTokenProvider.getUserId(refreshToken);
 
-        // Redis에 저장된 토큰과 비교
-        String savedRefreshToken = redisService.getRefreshToken(userId);
-        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
-            return new ResponseDto(StatusCode.UNAUTHORIZED, "Refresh Token이 서버에 없습니다. 재로그인 필요");
-        }
+        // Redis에 저장된 리프레시 토큰과 비교
+        String savedRefresh = redisService.getRefreshToken(userId);
+        if (!refreshToken.equals(savedRefresh))
+            throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰 불일치
 
+        // 새로운 Access 토큰 생성
         String newAccessToken = jwtTokenProvider.createAccessToken(userId);
-        // 쿠키에 새로운 토큰 세팅하기
+
+        // 쿠키에 새로운 토큰 세팅 (기존 쿠키 덮어쓰기)
         jwtTokenProvider.addTokensToResponse(response, newAccessToken, refreshToken);
 
         return new ResponseDto(StatusCode.OK, "Access Token 재발급 완료");

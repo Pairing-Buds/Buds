@@ -99,13 +99,24 @@ public class SecurityConfig {
                 .authenticationProvider(daoAuthenticationProvider()
                 );
 
+//                .authorizeHttpRequests(authz -> authz
+//                // 로그인, 리프레시, 회원가입만 공개
+//                .requestMatchers("/login", "/refresh", "/auth/sign-up").permitAll()
+//                // 그 외에는 모두 인증된 사용자만
+//                .anyRequest().authenticated())
+//
+//                // AuthenticationProvider 등록
+//                .authenticationProvider(daoAuthenticationProvider()
+//                );
+
 
         // CustomLoginFilter를 직접 생성해서 삽입
         CustomLoginFilter customLoginFilter =
                 new CustomLoginFilter(
                         authenticationManager(),
                         jwtTokenProvider,
-                        redisTemplate
+                        redisTemplate,
+                        redisService
                 );
 
         http
