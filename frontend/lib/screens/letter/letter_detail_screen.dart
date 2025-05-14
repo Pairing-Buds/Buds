@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 // Project imports:
 import 'package:buds/config/theme.dart';
+import 'package:buds/models/letter_content_model.dart';
 import 'package:buds/models/letter_detail_model.dart';
 import 'package:buds/models/letter_page_model.dart';
 import 'package:buds/services/letter_service.dart';
@@ -26,7 +27,10 @@ class LetterDetailScreen extends StatefulWidget {
 
 class _LetterDetailScreenState extends State<LetterDetailScreen> {
   LetterPageModel? letterPage; // ⭐ 페이지네이션 정보와 편지 리스트 관리
+  LetterContentModel? currentLetter; // ⭐ 현재 선택된 편지 내용
   bool isLoading = false;
+  int currentPage = 0; // ⭐ 현재 페이지 (0부터 시작)
+  int currentLetterIndex = 0; // ⭐ 현재 페이지 내에서 편지 인덱스
 
   @override
   void initState() {
@@ -36,7 +40,10 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
   /// ⭐ 페이지네이션 적용된 편지 목록 로드
   Future<void> loadLetters({int page = 0}) async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+      currentLetter = null;
+    });
 
     try {
       final response = await LetterService().fetchLetterDetails(
@@ -47,6 +54,12 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
       setState(() {
         letterPage = response;
+        currentPage = page;
+        currentLetterIndex = 0;
+
+        if (letterPage!.letters.isNotEmpty) {
+          loadLetterContent(letterPage!.letters[0].letterId); // 첫 편지 내용 로드
+        }
       });
     } catch (e) {
       ScaffoldMessenger.of(
@@ -57,19 +70,60 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     }
   }
 
-  /// 다음 페이지로 이동
-  void nextPage() {
-    if (letterPage != null &&
-        letterPage!.currentPage < letterPage!.totalPages - 1) {
-      loadLetters(page: letterPage!.currentPage + 1);
+  /// ⭐ 개별 편지 내용 로드 (letterId 기준)
+  Future<void> loadLetterContent(int letterId) async {
+    setState(() => isLoading = true);
+    try {
+      final letterContent = await LetterService().fetchSingleLetter(letterId);
+      setState(() {
+        currentLetter = letterContent;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('편지 내용 로드 실패: $e')));
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  /// 이전 페이지로 이동
-  void previousPage() {
-    if (letterPage != null && letterPage!.currentPage > 0) {
-      loadLetters(page: letterPage!.currentPage - 1);
+  /// ⭐ 페이지네이션 화살표로 전체 페이지 이동
+  void nextPage() {
+    if (letterPage != null && currentPage < letterPage!.totalPages - 1) {
+      loadLetters(page: currentPage + 1);
     }
+  }
+
+  void previousPage() {
+    if (letterPage != null && currentPage > 0) {
+      loadLetters(page: currentPage - 1);
+    }
+  }
+
+  /// ⭐ 편지 점으로 세부 편지 선택
+  List<Widget> buildPageDots() {
+    if (letterPage == null) return [];
+
+    return List.generate(letterPage!.letters.length, (index) {
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            currentLetterIndex = index;
+          });
+          loadLetterContent(letterPage!.letters[index].letterId);
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color:
+                currentLetterIndex == index ? AppColors.primary : Colors.grey,
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -93,11 +147,8 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child:
-                        letterPage != null && letterPage!.letters.isNotEmpty
-                            ? buildLetterContent(
-                              letterPage!.letters.first,
-                              loggedInUser,
-                            )
+                        currentLetter != null
+                            ? buildLetterContent(currentLetter!, loggedInUser)
                             : const Center(child: Text('편지를 불러올 수 없습니다.')),
                   ),
                   const SizedBox(height: 16),
@@ -110,7 +161,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                         icon: const Icon(Icons.arrow_back_ios),
                       ),
                       Text(
-                        '${(letterPage?.currentPage ?? 0) + 1} / ${letterPage?.totalPages ?? 1}',
+                        '페이지: ${currentPage + 1} / ${letterPage?.totalPages ?? 1}',
                         style: const TextStyle(fontSize: 16),
                       ),
                       IconButton(
@@ -119,19 +170,23 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: buildPageDots(), // ⭐ 편지 점 표시
+                  ),
                   const SizedBox(height: 16),
                 ],
               ),
     );
   }
 
-  /// 편지 내용 UI 빌드 (노란색 박스 + 분기 처리)
-  Widget buildLetterContent(LetterDetailModel letter, String loggedInUser) {
-    final isReceived = letter.received;
+  /// ⭐ 편지 내용 UI 빌드 (노란색 박스 + 분기 처리)
+  Widget buildLetterContent(LetterContentModel letter, String loggedInUser) {
+    final isReceived = letter.receiverName == loggedInUser;
 
     return Stack(
       children: [
-        // 노란색 박스 (높이: 전체 화면의 60%)
         Container(
           height: MediaQuery.of(context).size.height * 0.6,
           padding: const EdgeInsets.all(20),
@@ -156,8 +211,8 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                 children: [
                   Text(
                     isReceived
-                        ? 'To: $loggedInUser'
-                        : 'To: ${widget.opponentName}',
+                        ? 'To. $loggedInUser'
+                        : 'To. ${widget.opponentName}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(width: 10),
@@ -171,54 +226,33 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              // 날짜
               Text(
-                'Date: ${letter.createdAt}',
-                style: const TextStyle(fontSize: 13, color: Colors.grey),
+                '작성일: ${letter.createdAt}',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 20),
-              // 편지 내용 (스크롤 가능)
               Expanded(
                 child: SingleChildScrollView(
                   child: Text(
-                    letter.status,
+                    letter.content,
                     style: const TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              // 하단 (From:)
               Align(
                 alignment: Alignment.bottomRight,
                 child: Text(
-                  isReceived
-                      ? 'From: ${letter.senderName}'
-                      : 'From: $loggedInUser',
+                  'From. ${letter.senderName}',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
             ],
           ),
         ),
-
-        //  스크랩 아이콘 (received: true 일때만)
-        if (isReceived)
-          Positioned(
-            top: 0,
-            left: 10,
-            child: GestureDetector(
-              onTap: () {
-                print('스크랩 클릭');
-              },
-              child: Image.asset(
-                'assets/icons/letter/scrap_inactive.png',
-                width: 30,
-                height: 30,
-              ),
-            ),
-          ),
       ],
     );
   }
 }
++
