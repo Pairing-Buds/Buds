@@ -307,7 +307,18 @@ class MainActivity : FlutterActivity() {
     // 걸음 수 측정 권한 확인
     private fun checkPermission(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+            val activityRecognitionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED
+            
+            // Android 14(API 34) 이상에서는 FOREGROUND_SERVICE_LOCATION 권한도 확인
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                val locationPermissionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                val fgsLocationPermissionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                
+                return activityRecognitionGranted && locationPermissionGranted && fgsLocationPermissionGranted
+            }
+            
+            return activityRecognitionGranted
         }
         return true
     }
@@ -324,9 +335,21 @@ class MainActivity : FlutterActivity() {
     // 걸음 수 측정 권한 요청
     private fun requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Android 14(API 34) 이상에서는 위치 권한과 FOREGROUND_SERVICE_LOCATION 권한도 함께 요청
+                arrayOf(
+                    Manifest.permission.ACTIVITY_RECOGNITION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.FOREGROUND_SERVICE_LOCATION
+                )
+            } else {
+                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+            
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                permissions,
                 STEP_COUNTER_PERMISSION_REQUEST_CODE
             )
         }
