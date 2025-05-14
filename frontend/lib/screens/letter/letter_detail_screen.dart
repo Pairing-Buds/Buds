@@ -56,7 +56,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
       setState(() {
         letterPage = response;
         currentPage = page;
-        currentLetterIndex = 0;
+        currentLetterIndex = letterPage!.letters.length - 1; // 최신 편지부터
 
         if (letterPage!.letters.isNotEmpty) {
           loadLetterContent(letterPage!.letters[0].letterId); // 첫 편지 내용 로드
@@ -97,7 +97,6 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     }
   }
 
-  /// 편지 점으로 세부 편지 선택
   List<Widget> buildPageDots() {
     if (letterPage == null) return [];
 
@@ -105,9 +104,13 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
       return GestureDetector(
         onTap: () {
           setState(() {
-            currentLetterIndex = index;
+            currentLetterIndex = letterPage!.letters.length - 1 - index;
           });
-          loadLetterContent(letterPage!.letters[index].letterId);
+          loadLetterContent(
+            letterPage!
+                .letters[letterPage!.letters.length - 1 - index]
+                .letterId,
+          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 5),
@@ -116,11 +119,24 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color:
-                currentLetterIndex == index ? AppColors.primary : Colors.grey,
+                currentLetterIndex == letterPage!.letters.length - 1 - index
+                    ? AppColors.primary
+                    : Colors.grey,
           ),
         ),
       );
-    });
+    }).reversed.toList();
+  }
+
+  /// 최신부터 몇 번째 편지인지 정확히 계산
+  int calculateLetterNumber() {
+    if (letterPage == null) return 0;
+
+    // 총 편지 수 = (전체 페이지 수 - 현재 페이지) * 5 - (현재 페이지의 편지 인덱스)
+    int totalLetters =
+        (letterPage!.totalPages - currentPage - 1) * 5 +
+        (5 - currentLetterIndex);
+    return totalLetters;
   }
 
   @override
@@ -146,7 +162,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                 children: [
                   // 상단 탭
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 0, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
                     child: Row(
                       children: [
                         Text(
@@ -155,13 +171,27 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                         ),
                         Spacer(),
                         Text(
-                          '$letterNumber  번째 편지',
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                          currentLetter != null
+                              ? '편지 ID: ${currentLetter!.letterId}'
+                              : '',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          currentLetter != null
+                              ? '편지 번호: ${calculateLetterNumber()}'
+                              : '',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 5),
                   Expanded(
                     child:
                         currentLetter != null
