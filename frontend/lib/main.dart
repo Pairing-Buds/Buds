@@ -1,6 +1,7 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -88,6 +89,12 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 void main() async {
   // Flutter 엔진 초기화 보장
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 세로 방향 고정
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // .env 파일 로드 시도 (오류 발생해도 앱이 종료되지 않도록 try-catch로 감싸기)
   try {
