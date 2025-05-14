@@ -88,6 +88,7 @@ class _UserRecState extends State<UserRec> {
                                   userId: user.userId,
                                   senderName: senderName,
                                   receiverName: userName,
+                                  redirectRoute: '/main',
                                 ),
                           ),
                         );

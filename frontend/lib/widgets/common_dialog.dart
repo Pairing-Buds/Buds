@@ -36,7 +36,10 @@ class CommonDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             if (description != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -58,7 +61,10 @@ class CommonDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       alignment: Alignment.center,
-                      child: Text(cancelText, style: const TextStyle(color: Colors.black)),
+                      child: Text(
+                        cancelText,
+                        style: const TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ),
@@ -81,7 +87,7 @@ class CommonDialog extends StatelessWidget {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),

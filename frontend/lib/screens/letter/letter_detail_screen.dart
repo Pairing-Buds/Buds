@@ -87,7 +87,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     }
   }
 
-  /// ⭐ 페이지네이션 화살표로 전체 페이지 이동
+  /// 페이지네이션 화살표로 전체 페이지 이동
   void nextPage() {
     if (letterPage != null && currentPage < letterPage!.totalPages - 1) {
       loadLetters(page: currentPage + 1);
@@ -100,7 +100,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     }
   }
 
-  /// ⭐ 편지 점으로 세부 편지 선택
+  /// 편지 점으로 세부 편지 선택
   List<Widget> buildPageDots() {
     if (letterPage == null) return [];
 
@@ -173,7 +173,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: buildPageDots(), // ⭐ 편지 점 표시
+                    children: buildPageDots(), //  편지 점 표시
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -181,7 +181,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     );
   }
 
-  /// ⭐ 편지 내용 UI 빌드 (노란색 박스 + 분기 처리)
+  /// 편지 내용 UI 빌드 (노란색 박스 + 분기 처리)
   Widget buildLetterContent(LetterContentModel letter, String loggedInUser) {
     final isReceived = letter.receiverName == loggedInUser;
 
