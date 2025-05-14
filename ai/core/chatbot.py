@@ -238,65 +238,6 @@ class Chatbot:
             logging.error(f"대화 요약 생성 오류: {str(e)}")
             return None
 
-    def generate_response(self, message, user_id=None, is_voice=False):
-        """
-        사용자 메시지에 대한 동기식 응답 생성 (chat_routes에서 사용)
-
-        OpenAI API를 사용하여 응답을 생성합니다.
-        is_voice가 True인 경우 음성 응답도 함께 생성합니다.
-        """
-        try:
-            # 메시지 정제
-            sanitized_message = self._sanitize_input(message)
-            if not sanitized_message:
-                return "메시지가 비어있거나 유효하지 않습니다."
-
-            # 사용자 ID가 있는 경우 일일 제한 확인
-            if user_id and not self._check_daily_limit(user_id):
-                return "죄송합니다. 오늘의 대화 제한(100회)에 도달했습니다. 내일 다시 대화해주세요."
-
-            # OpenAI API 직접 호출로 응답 생성
-            try:
-                # 최신 OpenAI API 형식 시도
-                response = openai.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "당신은 사용자와 대화하는 친절하고 공감적인 챗봇입니다."},
-                        {"role": "user", "content": sanitized_message}
-                    ],
-                    temperature=0.1
-                )
-
-                # 응답 추출
-                text_response = response.choices[0].message.content.strip()
-            except AttributeError:
-                # 이전 OpenAI API 형식 시도
-                response = openai.ChatCompletion.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "당신은 사용자와 대화하는 친절하고 공감적인 챗봇입니다."},
-                        {"role": "user", "content": sanitized_message}
-                    ],
-                    temperature=0.1
-                )
-
-                # 응답 추출
-                text_response = response.choices[0].message.content.strip()
-
-            # 음성 응답이 필요한 경우 TTS 생성
-            if is_voice:
-                audio_path = self.generate_animalese_tts(text_response, user_id)
-                return {
-                    "text": text_response,
-                    "audio_path": audio_path
-                }
-
-            return text_response
-
-        except Exception as e:
-            # 오류 발생 시 기본 응답
-            logging.error(f"응답 생성 오류: {str(e)}")
-            return "죄송합니다. 응답을 생성하는 동안 오류가 발생했습니다."
 
     def generate_emotion_diary(self, chat_history):
         """
