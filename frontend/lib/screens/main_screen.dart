@@ -15,6 +15,7 @@ import 'package:buds/screens/home/home_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/mypage/my_page_screen.dart';
 import 'package:buds/widgets/bottom_nav_bar.dart';
+import 'package:buds/widgets/common_dialog.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -44,29 +45,22 @@ class _MainScreenState extends State<MainScreen> {
 
   // 앱 종료 확인 다이얼로그
   Future<bool> _onWillPop() async {
-    return await showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('앱 종료'),
-                content: const Text('앱을 종료하시겠습니까?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('아니오'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // 앱 종료
-                      SystemNavigator.pop();
-                    },
-                    child: const Text('예'),
-                  ),
-                ],
-              ),
-        ) ??
-        false;
+    bool? shouldExit = await showDialog(
+      context: context,
+      builder: (context) => CommonDialog(
+        title: '앱 종료',
+        description: '앱을 종료하시겠습니까?',
+        cancelText: '아니오',
+        confirmText: '예',
+        onCancel: () => Navigator.of(context).pop(false),
+        onConfirm: () {
+          SystemNavigator.pop();
+        },
+      ),
+    );
+    return shouldExit ?? false;
   }
+
 
   // 익명 사용자 체크 및 리디렉션
   void _checkAndRedirectAnonymousUser() {
