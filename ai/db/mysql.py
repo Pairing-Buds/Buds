@@ -175,23 +175,7 @@ class MySQLDB:
             conn = self.get_connection()
             cursor = conn.cursor()
 
-            # 1. calendar_id 확인 또는 생성
-            cursor.execute("""
-                SELECT calendar_id FROM calendars
-                WHERE user_id = %s AND date = %s
-            """, (user_id, date))
-            row = cursor.fetchone()
-
-            if row:
-                calendar_id = row[0]
-            else:
-                cursor.execute("""
-                    INSERT INTO calendars (user_id, date, created_at)
-                    VALUES (%s, %s, NOW())
-                """, (user_id, date))
-                calendar_id = cursor.lastrowid
-
-            # 2. badge_id 가져오기
+            # 1. 감정 그룹 매핑
             EMOTION_GROUP_MAPPING = {
                 '기쁨': 'JOY',
                 '슬픔': 'SADNESS',
@@ -203,25 +187,79 @@ class MySQLDB:
             }
             emotion_group = EMOTION_GROUP_MAPPING.get(emotion_group, emotion_group.upper())
 
-            cursor.execute("""
-                           INSERT INTO badges (badge_type, name)
-                           VALUES (0, %s)
-                           """, (emotion_group,))
-            badge_id = cursor.lastrowid  # 새로 생성된 badge_id 가져오기
+            logging.info(f"[감정분석 결과] emotion_group 원본: {emotion_group}")
+            logging.info(f"[매핑 이후] emotion_group: {emotion_group}")
 
-            # 3. 중복 삽입 방지 후 저장
+            # 2. calendar_id 확인 또는 생성
             cursor.execute("""
-                SELECT 1 FROM calendar_badges WHERE calendar_id = %s
-                AND badge_id = %s
-            """, (calendar_id, badge_id))
+                           SELECT calendar_id
+                           FROM calendars
+                           WHERE user_id = %s
+                             AND date = %s
+                           """, (user_id, date))
+            row = cursor.fetchone()
+
+            if row:
+                calendar_id = row[0]
+
+                # badge 컬럼이 비어 있다면 업데이트
+                cursor.execute("""
+                               SELECT badge
+                               FROM calendars
+                               WHERE calendar_id = %s
+                               """, (calendar_id,))
+                badge_row = cursor.fetchone()
+
+                if badge_row and (badge_row[0] is None or badge_row[0] == ''):
+                    cursor.execute("""
+                                   UPDATE calendars
+                                   SET badge = %s
+                                   WHERE calendar_id = %s
+                                   """, (emotion_group, calendar_id))
+                    logging.info(f"🟡 감정 뱃지 업데이트: calendar_id={calendar_id}, badge={emotion_group}")
+
+            else:
+                cursor.execute("""
+                               INSERT INTO calendars (user_id, date, badge, created_at)
+                               VALUES (%s, %s, %s, NOW())
+                               """, (user_id, date, emotion_group))
+                calendar_id = cursor.lastrowid
+                logging.info(f"🆕 새 캘린더 생성: calendar_id={calendar_id}, badge={emotion_group}")
+
+
+            # 3. badge_id 확인 또는 생성
+            cursor.execute("""
+                           SELECT badge_id
+                           FROM badges
+                           WHERE badge_type = 'EMOTION'
+                             AND name = %s
+                           """, (emotion_group,))
+            row = cursor.fetchone()
+
+            if row:
+                badge_id = row[0]
+            else:
+                cursor.execute("""
+                               INSERT INTO badges (badge_type, name)
+                               VALUES ('EMOTION', %s)
+                               """, (emotion_group,))
+                badge_id = cursor.lastrowid
+
+            # 4. calendar_badges에 중복 여부 확인 후 삽입
+            cursor.execute("""
+                           SELECT 1
+                           FROM calendar_badges
+                           WHERE calendar_id = %s
+                             AND badge_id = %s
+                           """, (calendar_id, badge_id))
             if cursor.fetchone() is None:
                 cursor.execute("""
-                    INSERT INTO calendar_badges (calendar_id, badge_id)
-                    VALUES (%s, %s)
-            """, (calendar_id, badge_id))
+                               INSERT INTO calendar_badges (calendar_id, badge_id)
+                               VALUES (%s, %s)
+                               """, (calendar_id, badge_id))
 
             conn.commit()
-            logging.info(f"🎉 감정 뱃지 [{emotion_group}] 저장 완료")
+            logging.info(f"🎉 감정 뱃지 [{emotion_group}] 저장 완료 (calendar_id={calendar_id})")
 
         except Exception as e:
             if conn:
