@@ -11,6 +11,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/models/user_model.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/services/auth_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'login_screen.dart';
 import 'widgets/signup_form_widgets.dart';
 
@@ -176,12 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         if (!mounted) return;
 
         // 성공 메시지 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
+        Toast(context, '회원가입이 완료되었습니다. 로그인해주세요.');
 
         // 회원 가입 처리 (나중에 로그인 시 캐릭터 선택으로 넘어감)
         await _authService.register(
@@ -200,11 +196,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         debugPrint('회원가입 실패 오류: $e');
         // 오류 메시지 표시
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원가입 실패: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        Toast(
+          context, 
+          '회원가입 실패: ${e.toString()}',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       } finally {
         if (mounted) {

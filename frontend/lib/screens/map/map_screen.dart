@@ -15,6 +15,7 @@ import 'dart:convert';
 // Project imports:
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/services/location_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'widgets/place_list_item.dart';
 
 // Google API 키는 환경 변수로 관리됩니다
@@ -467,12 +468,7 @@ class _MapScreenState extends State<MapScreen> {
         debugPrint('길찾기 API 오류: $e');
         polylineCoordinates = _getDirectLine(place);
         // 사용자에게 알림
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
       }
 
       // 폴리라인 생성
@@ -518,12 +514,7 @@ class _MapScreenState extends State<MapScreen> {
       _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
       
       // 사용자에게 알림
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
     }
   }
 

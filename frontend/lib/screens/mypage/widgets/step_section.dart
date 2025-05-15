@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Project imports:
 import 'package:buds/config/theme.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import '../../../providers/my_page_provider.dart';
 import '../../../services/step_counter_manager.dart';
 import '../../../services/step_reward_service.dart';
@@ -204,11 +205,12 @@ class _StepSectionState extends State<StepSection> {
     
     // 알림 표시
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: isNewReward ? Colors.green : Colors.blue,
-          duration: const Duration(seconds: 3),
+      Toast(
+        context,
+        message,
+        icon: Icon(
+          isNewReward ? Icons.star : Icons.info,
+          color: isNewReward ? Colors.yellow : Colors.white,
         ),
       );
     }
@@ -221,21 +223,17 @@ class _StepSectionState extends State<StepSection> {
       await prefs.remove('last_step_reward_date');
       
       // StepCounterManager의 상태도 업데이트하기 위해 앱 재시작 필요
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('리워드 상태가 초기화되었습니다. 앱을 재시작하면 적용됩니다.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
+      Toast(
+        context,
+        '리워드 상태가 초기화되었습니다. 앱을 재시작하면 적용됩니다.',
+        icon: const Icon(Icons.refresh, color: Colors.red),
       );
     } catch (e) {
       debugPrint('리워드 상태 초기화 오류: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('리워드 상태 초기화 실패: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
+      Toast(
+        context,
+        '리워드 상태 초기화 실패: $e',
+        icon: const Icon(Icons.error, color: Colors.red),
       );
     }
   }
@@ -271,12 +269,10 @@ class _StepSectionState extends State<StepSection> {
       // 활동 인식 권한이 없으면 서비스를 시작할 수 없음 (필수 권한)
       if (!activityGranted) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('걸음 수 측정을 위해 활동 인식 권한이 필요합니다. 설정에서 권한을 허용해주세요.'),
-              duration: Duration(seconds: 3),
-              backgroundColor: Colors.red,
-            ),
+          Toast(
+            context,
+            '걸음 수 측정을 위해 활동 인식 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
+            icon: const Icon(Icons.error, color: Colors.red),
           );
         }
         return;
@@ -284,12 +280,10 @@ class _StepSectionState extends State<StepSection> {
       
       // 알림 권한이 없으면 경고만 표시 (선택적 권한이므로 서비스는 시작 가능)
       if (!notificationGranted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('걸음 수 알림을 받기 위해 알림 권한을 허용하는 것이 좋습니다.'),
-            duration: Duration(seconds: 3),
-            backgroundColor: Colors.orange,
-          ),
+        Toast(
+          context,
+          '걸음 수 알림을 받기 위해 알림 권한을 허용하는 것이 좋습니다.',
+          icon: const Icon(Icons.warning, color: Colors.orange),
         );
       }
       
@@ -303,35 +297,25 @@ class _StepSectionState extends State<StepSection> {
         
         // 성공 메시지 표시
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('걸음 수 측정이 시작되었습니다.'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.green,
-            ),
-          );
+          Toast(context, '걸음 수 측정이 시작되었습니다.');
         }
       } else {
         debugPrint('StepSection: 서비스 시작 실패');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('걸음 수 측정 서비스를 시작할 수 없습니다. 권한을 확인해주세요.'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Colors.red,
-            ),
+          Toast(
+            context,
+            '걸음 수 측정 서비스를 시작할 수 없습니다. 권한을 확인해주세요.',
+            icon: const Icon(Icons.error, color: Colors.red),
           );
         }
       }
     } catch (e) {
       debugPrint('StepSection: 서비스 시작 오류 - $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('걸음 수 측정 서비스 시작 중 오류가 발생했습니다.'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
+        Toast(
+          context,
+          '걸음 수 측정 서비스 시작 중 오류가 발생했습니다.',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
@@ -350,22 +334,16 @@ class _StepSectionState extends State<StepSection> {
       } else {
         debugPrint('StepSection: 서비스 중지 실패');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('걸음 수 측정 서비스를 중지할 수 없습니다.'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          Toast(context, '걸음 수 측정 서비스를 중지할 수 없습니다.');
         }
       }
     } catch (e) {
       debugPrint('StepSection: 서비스 중지 오류 - $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('걸음 수 측정 서비스 중지 중 오류가 발생했습니다.'),
-            duration: Duration(seconds: 2),
-          ),
+        Toast(
+          context,
+          '걸음 수 측정 서비스 중지 중 오류가 발생했습니다.',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
@@ -505,12 +483,7 @@ class _StepSectionState extends State<StepSection> {
                           });
                           myPageProvider.updateSteps(targetSteps);
                           await _checkGoalAchievement();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('걸음수를 목표치($targetSteps)로 설정했습니다'),
-                              duration: const Duration(seconds: 1),
-                            ),
-                          );
+                          Toast(context, '걸음수를 목표치($targetSteps)로 설정했습니다');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

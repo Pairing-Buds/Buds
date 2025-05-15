@@ -208,9 +208,7 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
       );
 
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('문의 수정에 실패했습니다.')),
-        );
+        Toast(context, '문의 수정에 실패했습니다.', icon: const Icon(Icons.error, color: Colors.red));
       } else {
         // 성공 메시지 표시
         if (mounted) {
