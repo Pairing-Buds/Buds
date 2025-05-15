@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime, timedelta
 import chromadb
 from chromadb.config import Settings
@@ -7,98 +8,117 @@ from chromadb.config import Settings
 class ChromaDB:
     def __init__(self):
         try:
-            # 최신 버전의 ChromaDB 클라이언트 초기화
-            self.client = chromadb.PersistentClient(path="./chroma_db")
-            logging.info("ChromaDB 연결 성공")
+            # 데이터 저장 경로 설정 (환경 변수 또는 기본값 사용)
+            db_path = os.getenv("CHROMA_DB_PATH", "./chroma_db")
+
+            # 디렉토리 존재 확인 및 생성 (필요 시)
+            os.makedirs(db_path, exist_ok=True)
+            logging.info(f"ChromaDB 데이터 저장 경로: {os.path.abspath(db_path)}")
+
+            # 설정 구성
+            settings = Settings(
+                anonymized_telemetry=False,  # 텔레메트리 비활성화 (선택 사항)
+                persist_directory=db_path,  # 데이터 저장 디렉토리
+                chroma_db_impl="duckdb+parquet"  # 기본 스토리지 백엔드
+            )
+
+            # 로컬 파일 시스템 기반 클라이언트 초기화
+            self.client = chromadb.PersistentClient(
+                path=db_path,
+                settings=settings
+            )
+
+            logging.info(f"ChromaDB 로컬 클라이언트 초기화 성공")
+
+            # 연결 테스트
+            collections = self.client.list_collections()
+            logging.info(f"ChromaDB 컬렉션 확인: {len(collections)}개 컬렉션 존재")
+
         except Exception as e:
-            logging.error(f"ChromaDB 연결 실패: {str(e)}")
-            # 메모리 기반 클라이언트로 폴백
+            logging.error(f"ChromaDB 초기화 실패: {str(e)}")
+
+            # 메모리 기반 클라이언트로 폴백 (데이터는 애플리케이션 종료 시 손실됨)
             try:
+                logging.warning("메모리 기반 ChromaDB 클라이언트로 전환합니다.")
                 self.client = chromadb.EphemeralClient()
-                logging.warning("메모리 기반 ChromaDB 클라이언트를 사용합니다.")
+                logging.warning("메모리 기반 ChromaDB 클라이언트 초기화 성공")
             except Exception as e2:
                 logging.error(f"메모리 기반 ChromaDB 초기화 실패: {str(e2)}")
                 self.client = None
+                logging.error("ChromaDB 클라이언트 초기화 완전 실패")
 
     def get_or_create_collection(self, user_id):
         """사용자별 컬렉션을 가져오거나 생성"""
-        try:
-            if self.client is None:
-                logging.error("ChromaDB 클라이언트가 초기화되지 않았습니다.")
-                return None
+        collection_name = f"user_{user_id}_conversations"
 
-            collection_name = f"user_{user_id}_conversations"
-            collection = self.client.get_or_create_collection(name=collection_name)
+        # 컬렉션 존재 여부 확인 및 생성
+        try:
+            # 기존 컬렉션 로드 시도
+            try:
+                collection = self.client.get_collection(name=collection_name)
+                logging.debug(f"기존 컬렉션 로드 성공: {collection_name}")
+                return collection
+            except Exception:
+                logging.debug(f"컬렉션 로드 실패, 생성 시도: {collection_name}")
+
+            # 컬렉션 생성 시도
+            collection = self.client.create_collection(name=collection_name)
+            logging.info(f"새 컬렉션 생성 성공: {collection_name}")
             return collection
+
         except Exception as e:
             logging.error(f"컬렉션 생성 오류: {str(e)}")
-            return None
+            raise ValueError(f"컬렉션 생성 실패: {str(e)}")
 
     def save_conversation(self, user_id, user_message, ai_response, is_voice=False):
-        """
-        사용자와 AI의 대화 내용을 저장합니다.
-        일관된 타임스탬프 형식을 사용하여 정렬 문제를 방지합니다.
-        """
-        try:
-            # 입력값 검증
-            if not user_message or not isinstance(user_message, str):
-                user_message = ""
-            if not ai_response or not isinstance(ai_response, str):
-                ai_response = ""
+        """사용자와 AI의 대화 내용을 저장합니다."""
+        # 입력값 검증
+        if not user_message or not isinstance(user_message, str):
+            user_message = ""
+        if not ai_response or not isinstance(ai_response, str):
+            ai_response = ""
 
-            # 컬렉션 가져오기
-            collection = self.get_or_create_collection(user_id)
-            if collection is None:
-                logging.error(f"사용자 ID {user_id}의 컬렉션을 가져올 수 없습니다.")
-                return False
+        # 컬렉션 가져오기
+        collection = self.get_or_create_collection(user_id)
 
-            # 타임스탬프 생성 (ISO 8601 형식으로 통일)
-            # 밀리초 단위까지 포함하여 정확한 순서 보장
-            timestamp = datetime.now().isoformat(timespec='milliseconds')
-            date_str = timestamp.split('T')[0]  # YYYY-MM-DD
+        # 타임스탬프 생성 (ISO 8601 형식으로 통일)
+        timestamp = datetime.now().isoformat(timespec='milliseconds')
+        date_str = timestamp.split('T')[0]  # YYYY-MM-DD
 
-            # 고유 ID 생성 (타임스탬프 기반, 사용자와 AI 메시지 구분)
-            # 메시지 쌍이 순차적으로 저장되도록 ms 단위로 차이를 둠
-            current_time_ms = int(datetime.now().timestamp() * 1000)
-            user_id_str = f"user_{timestamp}_{current_time_ms}"
-            ai_id_str = f"ai_{timestamp}_{current_time_ms + 1}"  # 1ms 차이
+        # 고유 ID 생성
+        current_time_ms = int(datetime.now().timestamp() * 1000)
+        user_id_str = f"user_{timestamp}_{current_time_ms}"
+        ai_id_str = f"ai_{timestamp}_{current_time_ms + 1}"  # 1ms 차이
 
-            # 사용자 메시지 저장
-            user_metadata = {
-                "type": "user",
-                "timestamp": timestamp,
-                "is_voice": is_voice,
-                "date": date_str
-            }
+        # 사용자 메시지 저장
+        user_metadata = {
+            "type": "user",
+            "timestamp": timestamp,
+            "is_voice": is_voice,
+            "date": date_str
+        }
 
-            collection.add(
-                documents=[user_message],
-                metadatas=[user_metadata],
-                ids=[user_id_str]
-            )
+        collection.add(
+            documents=[user_message],
+            metadatas=[user_metadata],
+            ids=[user_id_str]
+        )
 
-            logging.debug(f"사용자 메시지 저장: ID={user_id_str}, 타임스탬프={timestamp}")
+        # AI 응답 저장
+        ai_metadata = {
+            "type": "ai",
+            "timestamp": timestamp,
+            "is_voice": False,
+            "date": date_str
+        }
 
-            # AI 응답 저장
-            ai_metadata = {
-                "type": "ai",
-                "timestamp": timestamp,  # 동일한 시간대 사용 (ms 단위 차이는 ID에만 반영)
-                "is_voice": False,  # AI 응답은 항상 텍스트 (음성은 별도 처리)
-                "date": date_str
-            }
+        collection.add(
+            documents=[ai_response],
+            metadatas=[ai_metadata],
+            ids=[ai_id_str]
+        )
 
-            collection.add(
-                documents=[ai_response],
-                metadatas=[ai_metadata],
-                ids=[ai_id_str]
-            )
-
-            logging.debug(f"AI 메시지 저장: ID={ai_id_str}, 타임스탬프={timestamp}")
-
-            return True
-        except Exception as e:
-            logging.error(f"대화 저장 중 오류: {str(e)}")
-            return False
+        return True
 
     def get_similar_conversations(self, user_id, query, limit=5):
         """사용자의 이전 대화 중 현재 쿼리와 유사한 대화를 검색"""
