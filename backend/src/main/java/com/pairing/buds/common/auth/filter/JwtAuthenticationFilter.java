@@ -13,8 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,9 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
     private final RedisService redisService;
 
-    private final String[] publicPath = {"/login","/auth/sign-up"};
+    private final String[] publicPath = {
+            "/login", // 로그인
+            "/auth/sign-up", // 회원가입
 
-    // 메소드
+            "/auth/email/request", // 회원가입 이메일 인증-토큰 요청
+            "/auth/verify-email", // 회원가입 이메일 인증-토큰 검증
+            "/auth/email/request/password-reset", // 비밀번호 재설정 이메일 인증-토큰 요청
+            "/auth/reset-password", // 비밀번호 재설정-토큰 검증
+    };
+
     public boolean isPublicPath(HttpServletRequest request){
         String uri = request.getRequestURI();
 
