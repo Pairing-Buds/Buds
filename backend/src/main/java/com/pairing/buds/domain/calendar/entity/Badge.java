@@ -20,10 +20,9 @@ public class Badge {
     private Integer id;
 
     @Column(name = "badge_type")
-    private RecordType badgeType;
+    private String badgeType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "name")
-    private BadgeType name;
+    private String name;
 
 }
