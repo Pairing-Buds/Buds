@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 채팅 메시지 준비
     _chatMessages.addAll([
       _ChatMessage(
-        '안녕! 나는 마멧이야✨',
+        '안녕! 나는 마멋멋이야✨',
         Colors.brown,
         true,
         'assets/icons/characters/newmarmet.png',
