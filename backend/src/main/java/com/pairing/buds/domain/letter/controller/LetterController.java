@@ -3,10 +3,9 @@ package com.pairing.buds.domain.letter.controller;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.ResponseDto;
 import com.pairing.buds.common.response.StatusCode;
-import com.pairing.buds.domain.letter.dto.req.*;
+import com.pairing.buds.domain.letter.dto.request.*;
 import com.pairing.buds.domain.letter.service.LetterService;
 import jakarta.validation.Valid;
-import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +44,11 @@ public class LetterController {
     @GetMapping("/latest-received")
     public ResponseDto getLatestReceivedLetter(@AuthenticationPrincipal Integer userId) {
         return new ResponseDto(StatusCode.OK, letterService.getLatestReceivedLetter(userId));
+    }
+    /** 스크랩 된 편지 조회 **/
+    @GetMapping("/scrapped-letters")
+    public ResponseDto getScrappedLettersOfUser(@AuthenticationPrincipal Integer userId) {
+        return new ResponseDto(StatusCode.OK, letterService.getScrappedLettersOfUser(userId));
     }
 
 

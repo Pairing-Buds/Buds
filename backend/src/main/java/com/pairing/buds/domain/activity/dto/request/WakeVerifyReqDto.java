@@ -19,20 +19,21 @@ import java.time.LocalDateTime;
 @Valid
 public class WakeVerifyReqDto {
 
-    @Positive
-    @NotBlank
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime userWakeTimeSet;
+//    @Positive
+//    @NotBlank
+//    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+//    private LocalDateTime userWakeTimeSet;
+//
+//    @Positive
+//    @NotBlank
+//    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+//    private LocalDateTime userRealWakeTime;
 
-    @Positive
-    @NotBlank
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime userRealWakeTime;
 
     public static Activity toActivity(User user){
         return Activity.builder()
                 .name(ActivityType.WAKE)
-                .description("만보기 활동 인증")
+                .description("기상 활동 인증")
                 .bonusLetter(3)
                 .build();
     }

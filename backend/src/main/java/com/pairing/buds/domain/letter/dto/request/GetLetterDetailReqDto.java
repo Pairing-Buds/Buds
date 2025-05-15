@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.letter.dto.req;
+package com.pairing.buds.domain.letter.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -9,8 +9,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter @NoArgsConstructor @AllArgsConstructor @Valid
-public class ScrapLetterReqDto {
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Valid
+public class GetLetterDetailReqDto {
+
     @NotNull
     @Positive
     private int letterId;

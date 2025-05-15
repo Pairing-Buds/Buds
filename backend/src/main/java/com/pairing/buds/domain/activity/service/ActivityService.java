@@ -88,6 +88,7 @@ public class ActivityService {
                 .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         user.setLetterCnt(user.getLetterCnt() + 3);
+
         // 활동, 유저 활동 생성
         Activity activity = WakeVerifyReqDto.toActivity(user);
         UserActivity userActivity = new UserActivity();
@@ -99,22 +100,20 @@ public class ActivityService {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end   = today.plusDays(1).atStartOfDay();
+
         // 검증
         if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, ActivityType.WAKE, start, end)){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
         }
 
-        // 뱃지 생성
-        Badge badge = new Badge();
-        badge.setBadgeType(RecordType.ACTIVE);
-        badge.setName(BadgeType.WAKE);
-        Badge createdBadge = badgeRepository.save(badge);
+        // 뱃지 조회
+        Badge badge = badgeRepository.findByName("WAKE");
 
         // 캘린더와 연동
         // 오늘자 캘린더 불러오기
         // id값으로 연동하기
         LocalDate date = LocalDate.now();
-        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, badge.getName(), date));
         CalendarBadge calendarBadge = new CalendarBadge();
         calendarBadge.setId(new CalendarBadgeId());
         calendarBadge.setBadge(badge);
@@ -362,14 +361,14 @@ public class ActivityService {
     }
         
     /** 취향이 맞는 친구 찾기 **/
-    public Set<UserDto> findFriendByTag(int userId) {
+    public Set<UserDto> findFriendByTag(int userId, int opponentId) {
         // 변수
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Set<Tag> userTags = user.getTags();
         Set<TagType> userTagsType = userTags.stream().map(Tag::getTagName).collect(Collectors.toSet());
         // 취향 맞는 추천 친구 조회
-        Set<User> recommendedUsers = userRepository.findDistinctTop10ByIdNotAndIsActiveTrueAndTags_TagNameIn(userId, userTagsType);
+        Set<User> recommendedUsers = userRepository.findTOP10RecommendedUser(userId, opponentId, userTagsType);
         // 사용자 태그 수집
         // 유저가 아닌 다른 사람만
         // IN으로 사용자 태그 리스트 안에 있는 것 수집
