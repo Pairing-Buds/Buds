@@ -53,11 +53,11 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-
-    // 1초 후에 arguments 처리 (화면이 그려진 후)
-    Future.delayed(const Duration(milliseconds: 500), () {
+    
+    // 화면이 그려진 직후 arguments 처리를 먼저 하고 위치 가져오기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _processArguments();
+      _getCurrentLocation();
     });
   }
 
@@ -130,6 +130,11 @@ class _MapScreenState extends State<MapScreen> {
 
       // 테스트 - 맵 스타일 설정
       _setMapStyle();
+      
+      // 위치를 가져온 후 인자를 다시 확인하고, 필요하면 장소 검색 시작
+      if (_isPlacesVisible) {
+        _searchNearbyPlaces();
+      }
     } catch (e) {
       debugPrint('위치 가져오기 오류: $e');
       _showErrorDialog('위치 정보를 가져오는 중 오류가 발생했습니다.');

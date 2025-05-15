@@ -30,15 +30,39 @@ class ActivityScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const ActivityBox(
-                  imagePath: 'assets/icons/book_icon.png',
-                  label: '도서관가기',
-                  color: AppColors.blue,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/map',
+                      arguments: {
+                        'placeType': 'library',
+                        'showList': true,
+                      },
+                    );
+                  },
+                  child: const ActivityBox(
+                    imagePath: 'assets/icons/book_icon.png',
+                    label: '도서관가기',
+                    color: AppColors.blue,
+                  ),
                 ),
-                const ActivityBox(
-                  imagePath: 'assets/icons/tree_icon.png',
-                  label: '공원가기',
-                  color: AppColors.green,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/map',
+                      arguments: {
+                        'placeType': 'park',
+                        'showList': true,
+                      },
+                    );
+                  },
+                  child: const ActivityBox(
+                    imagePath: 'assets/icons/tree_icon.png',
+                    label: '공원가기',
+                    color: AppColors.green,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () {
