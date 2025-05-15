@@ -23,6 +23,13 @@ import 'package:flutter/foundation.dart'; // kDebugMode 사용을 위한 import 
 class WakeUpSection extends StatefulWidget {
   const WakeUpSection({super.key});
 
+  // static 메서드 추가 - 외부에서 알람 설정 접근을 위함
+  static Future<void> setWakeUpAlarm(
+    BuildContext context,
+    TimeOfDay wakeUpTime,
+  ) async {
+    return _WakeUpSectionState.setWakeUpAlarm(context, wakeUpTime);
+  }
 
   @override
   State<WakeUpSection> createState() => _WakeUpSectionState();
@@ -188,7 +195,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
 
         // 테스트 알림 버튼과 알람 상태 관리 버튼
         const SizedBox(height: 16),
-        
+
         // 디버그 모드에서만 테스트 버튼들 표시
         if (kDebugMode)
           Column(
@@ -283,7 +290,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       debugPrint('알람 취소 오류: $e');
       if (context.mounted) {
         Toast(
-          context, 
+          context,
           '알람 취소 오류: $e',
           icon: const Icon(Icons.error, color: Colors.red),
         );
@@ -374,8 +381,8 @@ class _WakeUpSectionState extends State<WakeUpSection> {
     );
   }
 
-  // 기상 알림 설정 함수
-  Future<void> _setWakeUpAlarm(
+  // 기상 알림 설정 함수 - static으로 변경하여 외부에서 접근 가능하게 함
+  static Future<void> setWakeUpAlarm(
     BuildContext context,
     TimeOfDay wakeUpTime,
   ) async {
@@ -437,14 +444,8 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       // 알람 예약
       await NotificationService().scheduleWakeUpAlarm(wakeUpTime);
 
-      // 알람 상태 즉시 갱신 (UI 반응성)
-      setState(() {
-        _isAlarmActive = true;
-        _alarmStatusText = '알람 설정됨';
-      });
-
-      // 실제 데이터 확인 (데이터 정합성)
-      await _checkAlarmStatus();
+      // 알람 상태 갱신 시도 - static 메서드에서는 setState 불가
+      // 알람이 설정되었으므로 성공 메시지만 표시
 
       // 성공 메시지 표시
       if (context.mounted) {
@@ -456,12 +457,28 @@ class _WakeUpSectionState extends State<WakeUpSection> {
     } catch (e) {
       if (context.mounted) {
         Toast(
-          context, 
+          context,
           '알람 설정 중 오류가 발생했습니다: $e',
           icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
+  }
+
+  // 기상 알림 설정 함수 - 내부용, static 메서드를 호출
+  Future<void> _setWakeUpAlarm(
+    BuildContext context,
+    TimeOfDay wakeUpTime,
+  ) async {
+    await setWakeUpAlarm(context, wakeUpTime);
+    // 상태 갱신 (인스턴스 메서드에서만 가능)
+    setState(() {
+      _isAlarmActive = true;
+      _alarmStatusText = '알람 설정됨';
+    });
+
+    // 실제 데이터 확인
+    await _checkAlarmStatus();
   }
 
   // 테스트 알림 전송
@@ -471,16 +488,13 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       await NotificationService().sendTestNotification();
 
       if (context.mounted) {
-        Toast(
-          context, 
-          '테스트 알림이 발송되었습니다\n알림을 탭하여 알람 화면으로 이동하세요',
-        );
+        Toast(context, '테스트 알림이 발송되었습니다\n알림을 탭하여 알람 화면으로 이동하세요');
       }
     } catch (e) {
       debugPrint('테스트 알림 오류: $e');
       if (context.mounted) {
         Toast(
-          context, 
+          context,
           '알림 오류: $e',
           icon: const Icon(Icons.error, color: Colors.red),
         );
@@ -501,7 +515,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       debugPrint('인텐트 테스트 오류: $e');
       if (context.mounted) {
         Toast(
-          context, 
+          context,
           '인텐트 테스트 오류: $e',
           icon: const Icon(Icons.error, color: Colors.red),
         );
@@ -509,8 +523,8 @@ class _WakeUpSectionState extends State<WakeUpSection> {
     }
   }
 
-  // 시간을 오전/오후 형식으로 변환하는 헬퍼 메서드
-  String _formatTime(TimeOfDay time) {
+  // 시간을 오전/오후 형식으로 변환하는 헬퍼 메서드 - static으로 변경
+  static String _formatTime(TimeOfDay time) {
     final hour = time.hour;
     final minute = time.minute;
 
@@ -521,8 +535,8 @@ class _WakeUpSectionState extends State<WakeUpSection> {
     return '$period $displayHour시 $displayMinute분';
   }
 
-  /// 알람 정보 안내 다이얼로그
-  void _showAlarmInfoDialog(BuildContext context, TimeOfDay wakeUpTime) {
+  /// 알람 정보 안내 다이얼로그 - static으로 변경
+  static void _showAlarmInfoDialog(BuildContext context, TimeOfDay wakeUpTime) {
     // 현재 시간 기준으로 알람 예정 시간 계산
     final now = DateTime.now();
     var alarmDate = DateTime(
