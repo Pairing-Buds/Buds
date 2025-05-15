@@ -97,7 +97,7 @@ flutter:
     - assets/icons/badges/
     - assets/icons/letter/
     - assets/icons/characters/
-    - assets/lotties/
+   
     - assets/animations/
     - assets/onboarding/
 

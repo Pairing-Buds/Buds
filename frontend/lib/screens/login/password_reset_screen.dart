@@ -30,7 +30,6 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   String? _errorMessage;
-  bool _success = false;
 
   @override
   void dispose() {
@@ -57,22 +56,14 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         if (!mounted) return;
 
         if (success) {
-          setState(() {
-            _success = true;
-          });
-
           Toast(
             context,
             '비밀번호가 성공적으로 변경되었습니다.',
             icon: const Icon(Icons.check_circle, color: Colors.green),
           );
 
-          // 3초 후 로그인 화면으로 돌아가기
-          Future.delayed(const Duration(seconds: 3), () {
-            if (mounted) {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            }
-          });
+          // 성공 화면 없이 바로 로그인 화면으로 이동
+          Navigator.popUntil(context, (route) => route.isFirst);
         } else {
           setState(() {
             _errorMessage = '비밀번호 재설정에 실패했습니다. 토큰을 확인해주세요.';
@@ -110,43 +101,34 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child:
-            _success
-                ? PasswordResetSuccess(
-                  onGoToLogin:
-                      () =>
-                          Navigator.popUntil(context, (route) => route.isFirst),
-                )
-                : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
-                    ),
-                    child: PasswordResetForm(
-                      formKey: _formKey,
-                      tokenController: _tokenController,
-                      passwordController: _passwordController,
-                      confirmPasswordController: _confirmPasswordController,
-                      isPasswordVisible: _isPasswordVisible,
-                      isConfirmPasswordVisible: _isConfirmPasswordVisible,
-                      onTogglePassword:
-                          () => setState(
-                            () => _isPasswordVisible = !_isPasswordVisible,
-                          ),
-                      onToggleConfirmPassword:
-                          () => setState(
-                            () =>
-                                _isConfirmPasswordVisible =
-                                    !_isConfirmPasswordVisible,
-                          ),
-                      errorMessage: _errorMessage,
-                      isLoading: _isLoading,
-                      onSubmit: _resetPassword,
-                      email: widget.email,
-                    ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
+            child: PasswordResetForm(
+              formKey: _formKey,
+              tokenController: _tokenController,
+              passwordController: _passwordController,
+              confirmPasswordController: _confirmPasswordController,
+              isPasswordVisible: _isPasswordVisible,
+              isConfirmPasswordVisible: _isConfirmPasswordVisible,
+              onTogglePassword:
+                  () =>
+                      setState(() => _isPasswordVisible = !_isPasswordVisible),
+              onToggleConfirmPassword:
+                  () => setState(
+                    () =>
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible,
                   ),
-                ),
+              errorMessage: _errorMessage,
+              isLoading: _isLoading,
+              onSubmit: _resetPassword,
+              email: widget.email,
+            ),
+          ),
+        ),
       ),
     );
   }
