@@ -1,4 +1,4 @@
-package com.pairing.buds.domain.letter.dto.req;
+package com.pairing.buds.domain.letter.dto.request;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

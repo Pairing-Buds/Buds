@@ -86,6 +86,7 @@ public class ActivityService {
                 .orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         user.setLetterCnt(user.getLetterCnt() + 3);
+
         // 활동, 유저 활동 생성
         Activity activity = WakeVerifyReqDto.toActivity(user);
         UserActivity userActivity = new UserActivity();
@@ -97,22 +98,20 @@ public class ActivityService {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end   = today.plusDays(1).atStartOfDay();
+
         // 검증
         if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, ActivityType.WAKE, start, end)){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
         }
 
-        // 뱃지 생성
-        Badge badge = new Badge();
-        badge.setBadgeType(RecordType.ACTIVE);
-        badge.setName(BadgeType.WAKE);
-        Badge createdBadge = badgeRepository.save(badge);
+        // 뱃지 조회
+        Badge badge = badgeRepository.findByName("WAKE");
 
         // 캘린더와 연동
         // 오늘자 캘린더 불러오기
         // id값으로 연동하기
         LocalDate date = LocalDate.now();
-        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, badge.getName(), date));
         CalendarBadge calendarBadge = new CalendarBadge();
         calendarBadge.setId(new CalendarBadgeId());
         calendarBadge.setBadge(badge);

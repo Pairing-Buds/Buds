@@ -33,6 +33,7 @@ public enum Message {
     OUT_OF_LETTER_TOKEN("편지 토큰이 모두 사용되어 요청을 처리할 수 없습니다."),
     TAGS_NOT_FOUND("유효하지 않은 태그가 포함되어 있습니다."),
     RANDOM_NAME_ALREADY_EXIST("이미 존재하는 닉네임입니다."),
+    ANSWER_LETTER_ERROR("스스로에게 답장 할 수 없습니다."),
     TAG_CNT_OUT_OF_BOUND("태그는 최대 3개까지 선택 가능합니다."),
 
     OK("성공"),

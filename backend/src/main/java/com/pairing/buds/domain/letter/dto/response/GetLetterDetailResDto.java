@@ -1,16 +1,13 @@
-package com.pairing.buds.domain.letter.dto.res;
+package com.pairing.buds.domain.letter.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.letter.entity.LetterStatus;
-import com.pairing.buds.domain.user.dto.response.UserDto;
-import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 

@@ -4,12 +4,12 @@ import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.common.utils.BadWordFilter;
-import com.pairing.buds.domain.letter.dto.req.AnswerLetterReqDto;
-import com.pairing.buds.domain.letter.dto.req.CreateLetterByUserIdReqDto;
-import com.pairing.buds.domain.letter.dto.req.ScrapLetterCancelReqDto;
-import com.pairing.buds.domain.letter.dto.req.ScrapLetterReqDto;
+import com.pairing.buds.domain.letter.dto.request.AnswerLetterReqDto;
+import com.pairing.buds.domain.letter.dto.request.CreateLetterByUserIdReqDto;
+import com.pairing.buds.domain.letter.dto.request.ScrapLetterCancelReqDto;
+import com.pairing.buds.domain.letter.dto.request.ScrapLetterReqDto;
 import com.pairing.buds.domain.letter.dto.request.SendLetterReqDto;
-import com.pairing.buds.domain.letter.dto.res.GetLetterDetailResDto;
+import com.pairing.buds.domain.letter.dto.response.GetLetterDetailResDto;
 import com.pairing.buds.domain.letter.dto.response.*;
 import com.pairing.buds.domain.letter.entity.Letter;
 import com.pairing.buds.domain.letter.entity.LetterFavorite;
@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -151,6 +152,14 @@ public class LetterService {
         );
     }
 
+    /** 스크랩 된 편지 조회 **/
+    public List<GetLetterDetailResDto> getScrappedLettersOfUser(Integer userId) {
+        List<LetterFavorite> letterFavorites = letterFavoriteRepository.findAllByUser_IdOrderByCreatedAtDesc(userId);
+        return letterFavorites.stream().map(letterFavorite ->
+                GetLetterDetailResDto.toDto(letterFavorite.getLetter()))
+                .collect(Collectors.toList());
+    }
+
     /** 편지 스크랩 추가 **/
     @Transactional
     public void scrapLetter(int userId, ScrapLetterReqDto dto) {
@@ -173,7 +182,7 @@ public class LetterService {
         int receiverId = dto.getReceiverId();
         String content = dto.getContent();
         // 욕설 포함 시 에러
-        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+//        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
         // 발신, 수신자 조회
        User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
        User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
@@ -194,9 +203,13 @@ public class LetterService {
         int letterId = dto.getLetterId();
         String content = dto.getContent();
         // 욕설 필터링
-        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
-        // 기존 편지 빌드
+//        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+        // 기존 편지 조회
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+        if(letter.getReceiver().getId().equals(userId)){
+            throw new ApiException(StatusCode.CONFLICT, Message.ANSWER_LETTER_ERROR);
+        }
+
         // 답장 편지 빌드
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
         answeredLetter.setIsTagBased(false);
