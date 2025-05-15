@@ -17,7 +17,7 @@ public class LetterController {
 
     private final LetterService letterService;
 
-    /** 편지 조회 **/
+    /** 편지 단건 조회 **/
     @GetMapping("/detail/{letterId}")
     public ResponseDto getLetterDetail(
             @AuthenticationPrincipal int userId,
