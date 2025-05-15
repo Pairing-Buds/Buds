@@ -13,6 +13,7 @@ import 'dart:async'; // Timer 클래스를 위한 import
 import 'package:buds/services/lock_screen_manager.dart'; // 잠금화면 관리자 추가
 import 'package:buds/services/wake_up_service.dart'; // 추가
 import 'package:buds/services/auth_service.dart'; // 추가
+import 'package:buds/widgets/toast_bar.dart';
 
 /// 알람이 울릴 때 표시되는 전체 화면
 class AlarmScreen extends StatefulWidget {
@@ -271,10 +272,13 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
 
       if (mounted) {
         // 결과 메시지 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: result['success'] ? Colors.green : Colors.red,
+        Toast(
+          context,
+          result['message'],
+          icon: Icon(
+            Icons.check_circle,
+            color: result['success'] ? Colors.green : Colors.red,
+            size: 20,
           ),
         );
 
@@ -296,12 +300,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        Toast(context, '오류가 발생했습니다: $e', icon: const Icon(Icons.error, color: Colors.red, size: 20));
       }
     }
   }
@@ -343,12 +342,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        Toast(context, '오류가 발생했습니다: $e', icon: const Icon(Icons.error, color: Colors.red, size: 20));
       }
     }
   }

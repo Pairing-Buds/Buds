@@ -2,6 +2,7 @@
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // Package imports:
 import 'package:intl/intl.dart';
@@ -13,6 +14,8 @@ import 'package:buds/screens/chat/voice_chatting_screen.dart';
 import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:buds/services/chat_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/providers/auth_provider.dart';
+
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({super.key});
@@ -106,15 +109,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userCharacter = authProvider.userData?['userCharacter'] ?? '마멋';
+
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
       resizeToAvoidBottomInset: true,
-      appBar: const CustomAppBar(title: null, showBackButton: true),
+      appBar: CustomAppBar(
+        title: userCharacter,
+        showBackButton: true,
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: _hasStarted ? _buildChatView() : _buildStartView(),
       ),
     );
   }
+
 
   Widget _buildStartView() {
     return Column(
@@ -202,6 +213,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 return _buildChatBubble(
                   chat['message'],
                   isBot: !(chat['is_user'] ?? false),
+                  createdAt: chat['created_at'],
                 );
               },
             ),
@@ -248,7 +260,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildChatBubble(String text, {required bool isBot}) {
+  Widget _buildChatBubble(String text, {required bool isBot,
+    required String createdAt,}) {
     if (text == loadingMessage) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),

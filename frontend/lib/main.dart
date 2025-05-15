@@ -17,6 +17,7 @@ import 'package:buds/screens/activity/activity_screen.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:buds/screens/login/onboarding_screen.dart';
 import 'package:buds/screens/main_screen.dart';
+import 'package:buds/screens/map/map_screen.dart';
 import 'package:buds/services/api_service.dart';
 import 'package:buds/services/notification_service.dart';
 import 'package:buds/services/step_counter_manager.dart';
@@ -336,6 +337,7 @@ class _MyAppState extends State<MyApp> {
         '/main': (context) => const MainScreen(),
         '/activity': (context) => const ActivityScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
+        '/map': (context) => const MapScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',

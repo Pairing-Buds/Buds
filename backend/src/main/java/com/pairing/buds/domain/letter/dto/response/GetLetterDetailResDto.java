@@ -31,6 +31,8 @@ public class GetLetterDetailResDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDateTime createdAt;
 
+    private boolean isScrapped;
+
     public static GetLetterDetailResDto toDto(Letter letter){
         GetLetterDetailResDto response = new GetLetterDetailResDto();
         response.setLetterId(letter.getId());
@@ -39,6 +41,7 @@ public class GetLetterDetailResDto {
         response.setContent(letter.getContent());
         response.setStatus(letter.getStatus());
         response.setCreatedAt(letter.getCreatedAt());
+        response.setScrapped(letter.isScrapped());
         return response;
     }
 

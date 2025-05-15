@@ -10,5 +10,5 @@ import lombok.*;
 @Builder
 public class CalendarBadgeResDto {
     private String date;
-    private BadgeType badge;
+    private String badge; // 수정 전 BadgeType 수정 후 String
 }
