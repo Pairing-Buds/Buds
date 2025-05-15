@@ -15,6 +15,7 @@ import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/screens/activity/activity_screen.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
+import 'package:buds/screens/login/onboarding_screen.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/screens/map/map_screen.dart';
 import 'package:buds/services/api_service.dart';
@@ -38,6 +39,9 @@ bool startedFromNotification = false;
 
 // 초기 라우트 (알림으로 시작된 경우 '/'가 아닌 다른 경로로 시작)
 String initialRoute = '/';
+
+// 온보딩 완료 여부 확인용 전역 변수
+bool isFirstLaunch = true; // 기본값은 true (첫 실행)
 
 // 걸음 수 관리자 전역 인스턴스
 final StepCounterManager stepCounterManager = StepCounterManager();
@@ -143,6 +147,21 @@ void main() async {
   startedFromNotification = false;
   initialRoute = '/';
 
+  // 앱 첫 실행 여부 확인 (SharedPreferences 사용)
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    // 'completed_onboarding' 키가 없으면 true (첫 실행)
+    isFirstLaunch = !(prefs.getBool('completed_onboarding') ?? false);
+    debugPrint('앱 첫 실행 여부: $isFirstLaunch');
+
+    // 알림으로 시작된 경우가 아니고, 첫 실행이라면 온보딩 화면으로 설정
+    if (isFirstLaunch && !startedFromNotification) {
+      initialRoute = '/onboarding';
+    }
+  } catch (e) {
+    debugPrint('앱 첫 실행 상태 확인 중 오류 발생: $e');
+  }
+
   // 네이티브 인텐트 확인 (안드로이드 전용)
   try {
     final intentData = await notificationService.checkInitialIntent();
@@ -212,6 +231,7 @@ void main() async {
   debugPrint('======================================');
   debugPrint('앱 시작됨: ${DateTime.now().toString()}');
   debugPrint('알림을 통한 시작 여부: $startedFromNotification');
+  debugPrint('앱 첫 실행 여부: $isFirstLaunch');
   debugPrint('초기 라우트: $initialRoute');
   debugPrint('======================================');
 
@@ -291,6 +311,9 @@ class _MyAppState extends State<MyApp> {
     // 알림으로 시작된 경우가 아니고, 로그인된 상태라면 메인 화면으로 이동
     if (!startedFromNotification && authProvider.isLoggedIn) {
       appInitialRoute = '/main';
+    } // 알림으로 시작된 경우가 아니고, 첫 실행이라면 온보딩 화면으로 이동
+    else if (isFirstLaunch && !startedFromNotification) {
+      appInitialRoute = '/onboarding';
     }
 
     return MaterialApp(
@@ -313,6 +336,7 @@ class _MyAppState extends State<MyApp> {
         '/': (context) => const LoginMainScreen(),
         '/main': (context) => const MainScreen(),
         '/activity': (context) => const ActivityScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
         '/map': (context) => const MapScreen(),
         '/alarm':
             (context) => const AlarmScreen(

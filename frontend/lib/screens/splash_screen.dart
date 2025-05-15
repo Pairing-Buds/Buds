@@ -3,20 +3,20 @@ import 'package:lottie/lottie.dart';
 import 'package:buds/config/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:buds/providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onInitializationComplete;
 
-  const SplashScreen({
-    Key? key,
-    required this.onInitializationComplete,
-  }) : super(key: key);
+  const SplashScreen({Key? key, required this.onInitializationComplete})
+    : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         widget.onInitializationComplete();
       }
     });
-    
+
     _initializeApp();
   }
 
@@ -41,9 +41,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       // AuthProvider 초기화
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.initialize();
-      
+
       if (!mounted) return;
-      
+
       // 애니메이션이 아직 완료되지 않았다면 애니메이션을 실행
       if (!_controller.isCompleted) {
         _controller.forward();
@@ -105,4 +105,4 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
   }
-} 
+}

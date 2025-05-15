@@ -13,6 +13,7 @@ import '../../providers/character_provider.dart';
 import '../../services/auth_service.dart';
 import 'widgets/character_selection_manager.dart';
 import 'widgets/nickname_dialog.dart';
+import 'package:buds/screens/survey/survey_screen.dart';
 import 'package:buds/widgets/toast_bar.dart';
 
 /// 캐릭터 선택 화면
@@ -204,7 +205,7 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
   void _navigateToMainScreen() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
+      MaterialPageRoute(builder: (context) => const SurveyScreen()),
     );
   }
 }
