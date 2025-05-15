@@ -221,4 +221,29 @@ class AuthProvider extends ChangeNotifier {
     _verificationCode = code;
     notifyListeners();
   }
+
+  // 사용자 캐릭터 업데이트
+  Future<bool> updateUserCharacter(String userCharacter) async {
+    try {
+      setLoading(true);
+
+      // 캐릭터 업데이트 API 호출
+      final result = await _authService.updateUserCharacter(userCharacter);
+
+      if (result) {
+        // 성공적으로 업데이트되면 사용자 정보 새로고침
+        await refreshUserData();
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('사용자 캐릭터 업데이트 오류: $e');
+      }
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
 }

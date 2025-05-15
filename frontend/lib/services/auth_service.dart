@@ -196,6 +196,40 @@ class DioAuthService {
     }
   }
 
+  // 사용자 캐릭터 업데이트 API
+  Future<bool> updateUserCharacter(String userCharacter) async {
+    try {
+      final data = {'userCharacter': userCharacter};
+
+      if (kDebugMode) {
+        print('캐릭터 업데이트 요청 데이터: $data');
+      }
+
+      final response = await _apiService.patch(
+        ApiConstants.userProfileUrl.replaceFirst(ApiConstants.baseUrl, ''),
+        data: data,
+      );
+
+      if (kDebugMode) {
+        print('캐릭터 업데이트 응답: ${response.data}');
+      }
+
+      if (response is Response) {
+        final responseData = response.data as Map<String, dynamic>? ?? {};
+        final statusCode = responseData['statusCode'] as String? ?? '';
+
+        return statusCode == 'OK';
+      }
+
+      return false;
+    } catch (e) {
+      if (kDebugMode) {
+        print('캐릭터 업데이트 요청 오류: $e');
+      }
+      throw Exception('캐릭터 업데이트 요청 실패: $e');
+    }
+  }
+
   // 로그아웃
   Future<void> logout() async {
     try {
