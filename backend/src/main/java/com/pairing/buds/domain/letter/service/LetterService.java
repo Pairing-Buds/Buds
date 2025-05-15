@@ -167,12 +167,14 @@ public class LetterService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+        letter.setScrapped(true);
 
         LetterFavorite letterFavorite = new LetterFavorite();
         letterFavorite.setId(new LetterFavoriteId(userId, letterId));
         letterFavorite.setUser(user);
         letterFavorite.setLetter(letter);
 
+        letterRepository.save(letter);
         letterFavoriteRepository.save(letterFavorite);
     }
 
@@ -295,9 +297,13 @@ public class LetterService {
         int letterId = dto.getLetterId();
 
         // 편지 조회
+
+        Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+        letter.setScrapped(false);
         LetterFavorite letterFavorite = letterFavoriteRepository.findByUserIdAndLetterId(userId, letterId).orElseThrow(
                 () -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_FAVORITE_NOT_FOUND)
         );
+        letterRepository.save(letter);
         letterFavoriteRepository.delete(letterFavorite);
     }
 

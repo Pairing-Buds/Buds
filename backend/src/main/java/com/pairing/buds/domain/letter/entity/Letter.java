@@ -36,4 +36,7 @@ public class Letter extends CreateBaseTime {
     @Column(name = "is_tag_based", nullable = false)
     private Boolean isTagBased;
 
+    @Column(name = "is_scrapped")
+    private boolean isScrapped = false;
+
 }

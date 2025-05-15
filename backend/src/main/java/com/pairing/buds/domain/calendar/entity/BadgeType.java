@@ -10,7 +10,6 @@ public enum BadgeType {
     WALK5000,
     WALK10000,
     VOICE_TEXT, // STT 변환된 명언 텍스트
-    TEXT, // 필사
     VISIT_PLACE, // 추천 장소 방문
 
     /** 감정 뱃지 **/
