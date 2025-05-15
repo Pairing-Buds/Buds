@@ -99,6 +99,7 @@ flutter:
     - assets/icons/characters/
    
     - assets/animations/
+    - assets/onboarding/
 
   fonts:
     - family: GmarketSans

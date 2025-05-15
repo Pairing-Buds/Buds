@@ -61,7 +61,7 @@ public class EmailService {
     public void sendPasswordResetEmail(String email) {
         // 존재하는 이메일인지 검증
         if (!userRepository.existsByUserEmail(email)) {
-            throw new ApiException(StatusCode.CONFLICT, Message.DUPLICATE_EMAIL_EXCEPTION);
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.EMAIL_NOT_FOUND);
         }
 
         // 토큰 생성 후 Redis 저장

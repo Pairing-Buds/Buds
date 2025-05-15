@@ -11,6 +11,8 @@ import 'package:buds/screens/home/test.dart';
 import 'package:buds/screens/mypage/widgets/wake_up_section.dart';
 import 'package:provider/provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
+import 'package:buds/screens/login/onboarding_screen.dart';
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
