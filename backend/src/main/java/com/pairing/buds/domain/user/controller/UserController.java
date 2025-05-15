@@ -37,7 +37,7 @@ public class UserController {
     public ResponseDto updateUserTags(
             @AuthenticationPrincipal Integer userId,
             @Valid @RequestBody UpdateUserTagsReqDto dto) {
-        userService.updateUserTags(userId, dto.getTags());
+        userService.updateUserTags(userId, dto.getTagTypeIds());
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
 

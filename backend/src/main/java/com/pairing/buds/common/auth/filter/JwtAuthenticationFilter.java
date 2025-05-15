@@ -38,7 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final RedisService redisService;
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final String[] publicPath = {"/login","/auth/sign-up"};
 
@@ -68,14 +67,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 토큰 추출
         String accessToken = extractCookie(request, "access_token");
         String refreshToken = extractCookie(request, "refresh_token");
+        Authentication auth;
         try {
-            Authentication auth = resolveAuthentication(accessToken, refreshToken, response);
-            if (auth != null) {
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+            auth = resolveAuthentication(accessToken, refreshToken, response);
         } catch (JwtException ex) {
             log.warn("JWT 처리 중 오류 발생: {}", ex.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+            return;
         }
+
+        // 토큰이 없거나 재로그인이 필요한 상태 -> 401 반환
+        if (auth == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 정보가 없습니다");
+            return;
+        }
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         chain.doFilter(request, response);
     }
@@ -83,32 +89,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     /**
      * Access/Refresh 토큰을 받아서,
      *  1) accessToken이 유효하면 해당 Authentication 반환
-     *  2) accessToken 만료 & refreshToken 유효하면 새 accessToken 발급 후 Authentication 반환
+     *  2) accessToken 만료 & refreshToken 유효 & Redis와 일치하면 새 access 발급 Authentication 반환
      *  3) 그 외엔 null 반환
      */
     private Authentication resolveAuthentication(String accessToken,
                                                  String refreshToken,
                                                  HttpServletResponse response) {
-        // A) Access 토큰이 정상 유효할 때
+        // A) accessToken이 유효하면 바로 인증 (리프레시 일치 여부 확인 추가?)
         if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
             return getAuthenticationFromAccessToken(accessToken);
         }
 
-        // B) Access 만료 & Refresh 토큰이 정상 유효할 때
-        if (accessToken != null
-                && jwtTokenProvider.isExpired(accessToken)
-                && StringUtils.hasText(refreshToken)
+        // B) accessToken 만료 & refreshToken 유효 & Redis와 일치하면 새 access 발급
+        if (StringUtils.hasText(refreshToken)
                 && jwtTokenProvider.validateToken(refreshToken)) {
-
-            Integer userId     = jwtTokenProvider.getUserId(refreshToken);
+            Integer userId = jwtTokenProvider.getUserId(refreshToken);
             String savedRefresh = redisService.getRefreshToken(userId);
 
-            // Redis에 저장된 리프레시 토큰과 비교
             if (refreshToken.equals(savedRefresh)) {
-                // 새 Access 토큰 발급
                 String newAccess = jwtTokenProvider.createAccessToken(userId);
+                // 쿠키에 새 Access만, Refresh는 그대로 재설정
                 jwtTokenProvider.addTokensToResponse(response, newAccess, refreshToken);
-
                 return getAuthenticationFromAccessToken(newAccess);
             }
         }

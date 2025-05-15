@@ -9,20 +9,20 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tags")
-public class Tag {
+@Table(name = "user_tags")
+public class Tag { // usertag로 변경?
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tag_id")
+    @Column(name = "user_tag_id", nullable = false)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tag_name", nullable = false)
-    private TagType tagName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tag_type_id", nullable = false)
+    private TagType tagType;
 
 }
