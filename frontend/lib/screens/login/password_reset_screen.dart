@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'widgets/password_reset_widgets.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 /// 비밀번호 재설정 화면 (토큰 + 새 비밀번호 입력)
 class PasswordResetScreen extends StatefulWidget {
@@ -60,9 +61,11 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
             _success = true;
           });
 
-          ScaffoldMessenger.of(
+          Toast(
             context,
-          ).showSnackBar(const SnackBar(content: Text('비밀번호가 성공적으로 변경되었습니다.')));
+            '비밀번호가 성공적으로 변경되었습니다.',
+            icon: const Icon(Icons.check_circle, color: Colors.green),
+          );
 
           // 3초 후 로그인 화면으로 돌아가기
           Future.delayed(const Duration(seconds: 3), () {

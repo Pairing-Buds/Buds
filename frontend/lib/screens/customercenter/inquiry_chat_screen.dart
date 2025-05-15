@@ -2,8 +2,9 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import '../../models/inquiry.dart';
-import '../../services/inquiry_service.dart';
+import 'package:buds/models/inquiry.dart';
+import 'package:buds/services/inquiry_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class InquiryChatScreen extends StatefulWidget {
   const InquiryChatScreen({super.key});
@@ -30,9 +31,7 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
     if (response == null) {
       // 에러 처리
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('문의 내역을 불러오는데 실패했습니다.')),
-        );
+        Toast(context, '문의 내역을 불러오는데 실패했습니다.');
       }
       return;
     }
@@ -141,9 +140,7 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
     final success = await inquiryService.createInquiry('문의', text);
 
     if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('문의 전송에 실패했습니다.')),
-      );
+      Toast(context, '문의 전송에 실패했습니다.', icon: Icon(Icons.error, color: Colors.red));
     } else {
       // 문의 전송 성공 후 목록 새로고침
       _loadInquiries();
@@ -153,16 +150,12 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
   // 문의 수정 함수
   void _editMessage(_ChatMessage message) async {
     if (message.questionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('아직 저장되지 않은 메시지는 수정할 수 없습니다.')),
-      );
+      Toast(context, '아직 저장되지 않은 메시지는 수정할 수 없습니다.');
       return;
     }
 
     if (message.status == 'ANSWERED') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('답변이 완료된 문의는 수정할 수 없습니다.')),
-      );
+      Toast(context, '답변이 완료된 문의는 수정할 수 없습니다.');
       return;
     }
 
@@ -221,9 +214,7 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
       } else {
         // 성공 메시지 표시
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('문의가 수정되었습니다.')),
-          );
+          Toast(context, '문의가 수정되었습니다.');
         }
         // 문의 목록 새로고침
         _loadInquiries();
@@ -234,16 +225,12 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
   // 문의 삭제 함수
   void _deleteMessage(_ChatMessage message) async {
     if (message.questionId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('아직 저장되지 않은 메시지는 삭제할 수 없습니다.')),
-      );
+      Toast(context, '아직 저장되지 않은 메시지는 삭제할 수 없습니다.');
       return;
     }
 
     if (message.status == 'ANSWERED') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('답변이 완료된 문의는 삭제할 수 없습니다.')),
-      );
+      Toast(context, '답변이 완료된 문의는 삭제할 수 없습니다.');
       return;
     }
 
@@ -271,15 +258,11 @@ class _InquiryChatScreenState extends State<InquiryChatScreen> {
       final success = await inquiryService.deleteInquiry(message.questionId!);
 
       if (!success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('문의 삭제에 실패했습니다.')),
-        );
+        Toast(context, '문의 삭제에 실패했습니다.', icon: Icon(Icons.error, color: Colors.red));
       } else {
         // 성공 메시지 표시
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('문의가 삭제되었습니다.')),
-          );
+          Toast(context, '문의가 삭제되었습니다.');
         }
         // 문의 목록 새로고침
         _loadInquiries();
