@@ -25,12 +25,12 @@ public class Calendar extends CreateBaseTime {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "badge")
-    private BadgeType badge; // 캘린더에 표시할 대표 뱃지, 뱃지를 저장할 때 기분 뱃지가 있다면 기분 뱃지, 없다면 가장 최근 활동 뱃지가 대표 이미지
+    private String badge; // 캘린더에 표시할 대표 뱃지, 뱃지를 저장할 때 기분 뱃지가 있다면 기분 뱃지, 없다면 가장 최근 활동 뱃지가 대표 이미지
 
     @Column(name = "date", nullable = false)
     private LocalDate date;
 
-    public Calendar(User user, BadgeType badge, LocalDate date) {
+    public Calendar(User user, String badge, LocalDate date) {
         this.user = user;
         this.badge = badge;
         this.date = date;

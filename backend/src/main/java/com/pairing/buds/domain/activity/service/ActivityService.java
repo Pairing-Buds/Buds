@@ -160,14 +160,11 @@ public class ActivityService {
         userActivity.setProof(userSentence);
 
         // 뱃지 생성
-        Badge badge = new Badge();
-        badge.setBadgeType(RecordType.ACTIVE);
-        badge.setName(BadgeType.VOICE_TEXT);
-        Badge createdBadge = badgeRepository.save(badge);
+        Badge badge = badgeRepository.findByName("VOICE_TEXT");
 
         // 캘린더와 연동
         LocalDate date = LocalDate.now();
-        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, badge.getName(), date));
         CalendarBadge calendarBadge = new CalendarBadge();
         calendarBadge.setId(new CalendarBadgeId());
         calendarBadge.setBadge(badge);
@@ -181,39 +178,7 @@ public class ActivityService {
 
 
     }
-//    /** 사용자 필사 활동 인증 **/
-//    @Transactional
-//    public void activitySentenceText(int userId, ActivitySentenceVoiceReqDto dto) {
-//        String originalSentenceText = dto.getOriginalSentenceText() != null? dto.getOriginalSentenceText().trim() : "";
-//        String userSentence = dto.getUserSentenceText() != null? dto.getUserSentenceText().trim() : "";
-//        log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
-//
-//        if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
-//            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
-//        }
-//        Activity activity = new Activity();
-//        activity.setName(ActivityType.TEXT);
-//        activity.setDescription("사용자 필사 활동 인증");
-//        activity.setBonusLetter(3);
-//        log.info("활동 생성 완료");
-//
-//        Activity createdActivity = activityRepository.save(activity);
-//
-//        // 유저 정보가 필요하므로 조회
-//        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-//        user.setLetterCnt(user.getLetterCnt() + 3);
-//
-//        UserActivity userActivity = new UserActivity();
-//        userActivity.setUser(user);
-//        userActivity.setActivity(createdActivity);
-//        userActivity.setStatus(UserActivityStatus.DONE);
-//        userActivity.setProof(userSentence);
-//
-//        userRepository.save(user);
-//        log.info("유저 리워드 편지 3개 추가 저장 완료");
-//        userActivityRepository.save(userActivity);
-//        log.info("사용자 활동 생성 완료");
-//    }
+
     /** 만보기 리워드 신청 **/
     @Transactional
     public void walkRewardReq(int userId, WalkRewardReqDto dto) {
@@ -225,8 +190,6 @@ public class ActivityService {
         if(userStepSet > userRealStep){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
         }
-
-
 
         // 유저 조회
         User user = userRepository.findById(userId)
@@ -248,26 +211,12 @@ public class ActivityService {
         if(userActivityRepository.existsByUserIdAndActivity_NameAndCreatedAtBetween(userId, activity.getName(), start, end)){
             throw new ApiException(StatusCode.BAD_REQUEST, Message.ALREADY_VERIFIED);
         }
-        
-        // 뱃지 생성
-        Badge badge = new Badge();
-        badge.setBadgeType(RecordType.ACTIVE);
-        // 뱃지 종류 저장, 만보기 1000, 3000, 5000, 10000
-        if(userStepSet == 1000){
-            badge.setName(BadgeType.WALK1000);
-        }else if(userStepSet == 3000){
-            badge.setName(BadgeType.WALK3000);
-        }else if(userStepSet == 5000){
-            badge.setName(BadgeType.WALK5000);
-        }else if(userStepSet == 10000){
-            badge.setName(BadgeType.WALK10000);
-        }else{
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
-        }
-        Badge createdBadge = badgeRepository.save(badge);
+
+        Badge badge = badgeRepository.findByName("WALK"+userStepSet);
+
         // 캘린더와 연동
         LocalDate date = LocalDate.now();
-        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, createdBadge.getName(), date));
+        Calendar calendar = calendarRepository.findByUser_idAndDate(userId, date).orElse(new Calendar(user, badge.getName(), date));
         CalendarBadge calendarBadge = new CalendarBadge();
         calendarBadge.setId(new CalendarBadgeId());
         calendarBadge.setBadge(badge);
@@ -360,7 +309,6 @@ public class ActivityService {
 
     /** 취향이 맞는 친구 찾기 **/
     public Set<UserDto> findFriendByTag(int userId, int opponentId) {
-        // 변수
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Set<Tag> userTags = user.getTags();
@@ -400,7 +348,7 @@ public class ActivityService {
     public void createQuote() {
         // 이미 데이터가 있으면 중복 저장 방지
         if (quoteRepository.count() > 0) {
-            quoteRepository.deleteAll();
+            return;
         }
 
         List<Quote> quotes = List.of(
@@ -454,4 +402,39 @@ public class ActivityService {
 
         quoteRepository.saveAll(quotes);
     }
+
+
+    //    /** 사용자 필사 활동 인증 **/
+//    @Transactional
+//    public void activitySentenceText(int userId, ActivitySentenceVoiceReqDto dto) {
+//        String originalSentenceText = dto.getOriginalSentenceText() != null? dto.getOriginalSentenceText().trim() : "";
+//        String userSentence = dto.getUserSentenceText() != null? dto.getUserSentenceText().trim() : "";
+//        log.info("originalSentenceText : {}, userSentence : {}", originalSentenceText, userSentence);
+//
+//        if(originalSentenceText.isEmpty() || userSentence.isEmpty() || !originalSentenceText.equalsIgnoreCase(userSentence)   ){
+//            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+//        }
+//        Activity activity = new Activity();
+//        activity.setName(ActivityType.TEXT);
+//        activity.setDescription("사용자 필사 활동 인증");
+//        activity.setBonusLetter(3);
+//        log.info("활동 생성 완료");
+//
+//        Activity createdActivity = activityRepository.save(activity);
+//
+//        // 유저 정보가 필요하므로 조회
+//        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+//        user.setLetterCnt(user.getLetterCnt() + 3);
+//
+//        UserActivity userActivity = new UserActivity();
+//        userActivity.setUser(user);
+//        userActivity.setActivity(createdActivity);
+//        userActivity.setStatus(UserActivityStatus.DONE);
+//        userActivity.setProof(userSentence);
+//
+//        userRepository.save(user);
+//        log.info("유저 리워드 편지 3개 추가 저장 완료");
+//        userActivityRepository.save(userActivity);
+//        log.info("사용자 활동 생성 완료");
+//    }
 }

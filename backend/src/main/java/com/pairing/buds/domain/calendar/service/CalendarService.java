@@ -50,7 +50,7 @@ public class CalendarService {
         return calendars.stream()
                 .map(calendar -> CalendarBadgeResDto.builder()
                         .date(calendar.getDate().toString())
-                        .badge(calendar.getBadge())
+                        .badge(calendar.getBadge()) /** 2025.05.15 15:58 CalendarBadgeResDto의 badge 필드를 BadgeType에서 String으로 변경 **/
                         .build())
                 .collect(Collectors.toList());
     }
@@ -91,7 +91,7 @@ public class CalendarService {
             List<BadgeResDto> badgeList = badgeMap.getOrDefault(day, Collections.emptyList())
                     .stream()
                     .map(cb -> BadgeResDto.builder()
-                            .badgeType(cb.getBadge().getBadgeType().name())
+                            .badgeType(cb.getBadge().getBadgeType())  /** 2025.05.15 15:57 .getName이 불필요하게 되어 삭제 **/
                             .badge(cb.getBadge().getName())
                             .build())
                     .collect(Collectors.toList());
