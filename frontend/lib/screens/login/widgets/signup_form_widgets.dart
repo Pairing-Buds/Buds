@@ -147,13 +147,14 @@ class SignupForm extends StatelessWidget {
   final Function(BuildContext) onSelectDate;
   final VoidCallback onTogglePassword;
   final VoidCallback onToggleConfirmPassword;
-  final VoidCallback onSubmit;
+  final VoidCallback? onSubmit;
   final Widget? emailSuffixIcon;
   final bool showEmailTokenField;
   final TextEditingController? emailTokenController;
   final VoidCallback? onVerifyToken;
   final String? emailAuthMsg;
   final bool isEmailVerified;
+  final bool isSubmitEnabled;
 
   const SignupForm({
     super.key,
@@ -175,6 +176,7 @@ class SignupForm extends StatelessWidget {
     this.onVerifyToken,
     this.emailAuthMsg,
     this.isEmailVerified = false,
+    this.isSubmitEnabled = true,
   });
 
   @override
@@ -253,7 +255,12 @@ class SignupForm extends StatelessWidget {
           const SizedBox(height: 40),
 
           // 회원가입 버튼
-          SubmitButton(text: '회원가입', onPressed: onSubmit, isLoading: isLoading),
+          SubmitButton(
+            text: '회원가입', 
+            onPressed: isSubmitEnabled ? onSubmit : null, 
+            isLoading: isLoading,
+            backgroundColor: isSubmitEnabled ? AppColors.primary : Colors.grey.shade300,
+          ),
         ],
       ),
     );

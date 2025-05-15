@@ -48,6 +48,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isEmailVerified = false;
   String? _emailAuthMsg;
 
+  // 회원가입 버튼 활성화 여부 계산
+  bool get _isSignUpButtonEnabled {
+    // 이메일 인증이 완료되었는지 확인
+    if (!_isEmailVerified) return false;
+    
+    // 모든 필드가 채워졌는지 확인
+    if (_emailController.text.isEmpty || 
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty ||
+        _birthDateController.text.isEmpty) {
+      return false;
+    }
+    
+    // 비밀번호와 비밀번호 확인이 일치하는지 확인
+    if (_passwordController.text != _confirmPasswordController.text) {
+      return false;
+    }
+    
+    // 비밀번호가 유효한지 확인 (6자 이상)
+    if (_passwordController.text.length < 6) {
+      return false;
+    }
+    
+    return true;
+  }
+
   // 이메일 입력값이 유효한지 체크
   bool get _isEmailValid => RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
@@ -64,11 +90,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // 한국어 로케일 초기화
     initializeDateFormatting('ko_KR', null);
     _emailController.addListener(_onEmailChanged);
+    
+    // 모든 컨트롤러에 리스너 추가하여 상태 변경 시 UI 업데이트
+    _passwordController.addListener(() => setState(() {}));
+    _confirmPasswordController.addListener(() => setState(() {}));
+    _birthDateController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _emailController.removeListener(_onEmailChanged);
+    _passwordController.removeListener(() => {});
+    _confirmPasswordController.removeListener(() => {});
+    _birthDateController.removeListener(() => {});
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -263,7 +297,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         () =>
                             _obscureConfirmPassword = !_obscureConfirmPassword,
                       ),
-                  onSubmit: _submitForm,
+                  onSubmit: _isSignUpButtonEnabled ? _submitForm : null,
+                  isSubmitEnabled: _isSignUpButtonEnabled,
                   emailSuffixIcon:
                       (_isEmailVerified || !_isEmailValid)
                           ? null
