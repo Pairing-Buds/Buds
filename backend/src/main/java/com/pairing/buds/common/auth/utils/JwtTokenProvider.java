@@ -13,6 +13,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * JWT 토큰의 생성 및 검증을 담당하는 클래스.
@@ -39,7 +41,7 @@ public class JwtTokenProvider {
 
     @Value("${jwt.access-expiration-time}")
     private long accessExpiration;
-
+    @Getter
     @Value("${jwt.refresh-expiration-time}")
     private long refreshExpiration;
 
@@ -63,9 +65,10 @@ public class JwtTokenProvider {
         UserRole userRole = user.getRole();
         Date now = new Date();
 
-        //Access Token
-
+        // Access Token
+        String jti = UUID.randomUUID().toString();
         return Jwts.builder()
+                .id(jti)
                 .claim("userId", userId)
                 .claim("role", userRole.name())
                 .issuedAt(now)
@@ -81,9 +84,10 @@ public class JwtTokenProvider {
         UserRole userRole = user.getRole();
         Date now = new Date();
 
-        //Refresh Token
-
+        // Refresh Token
+        String jti = UUID.randomUUID().toString();
         return Jwts.builder()
+                .id(jti)
                 .claim("userId", userId)
                 .claim("role", userRole.name())
                 .issuedAt(now)

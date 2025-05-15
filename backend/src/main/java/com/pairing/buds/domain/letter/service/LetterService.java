@@ -235,24 +235,29 @@ public class LetterService {
             throw new ApiException(StatusCode.BAD_REQUEST, Message.OUT_OF_LETTER_TOKEN);
         }
 
+        // 욕설 필터링
+        if(badWordFilter.isBadWord(dto.getContent())){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);
+        }
+
         List<User> candidates;
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1); // 최근 1개월 이내
         Pageable page = PageRequest.of(0, 5); // 5명 선택
 
         if(dto.getIsTagBased()) {
             // 태그 기반 랜덤 발송(1개 이상 일치하는 경우 후보)
-            List<TagType> senderTags = sender.getTags().stream()
-                    .map(Tag::getTagName)
+            List<TagType> senderTagTypes = sender.getTags().stream()
+                    .map(Tag::getTagType)
                     .toList();
 
             // sender가 태그를 선택하지 않은 경우
-            if (senderTags.isEmpty()) {
+            if (senderTagTypes.isEmpty()) {
                 throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_SELECTED);
             }
 
             candidates = userRepository.findRandomReceiverByTags(
                     sender.getId(),
-                    senderTags,
+                    senderTagTypes,
                     oneMonthAgo,
                     page
             );
@@ -295,6 +300,5 @@ public class LetterService {
         );
         letterFavoriteRepository.delete(letterFavorite);
     }
-
 
 }

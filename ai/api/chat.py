@@ -23,12 +23,13 @@ class MessageRequest(BaseModel):
 class MessageResponse(BaseModel):
     message: str
     created_at: datetime
-    remaining_messages: int  # 남은 메시지 수 추가
-    audio_path: Optional[str] = None  # TTS 오디오 파일 경로 추가
+    remaining_messages: int
+    audio_path: Optional[str] = None
 
 
 class ChatHistoryRequest(BaseModel):
-    limit: Optional[int] = 50
+    limit: Optional[int] = 20
+    offset: Optional[int] = 0  # 건너뛸 메시지 수
 
 
 @router.post("/chat/message", response_model=MessageResponse)
@@ -119,6 +120,46 @@ async def send_message(
         raise HTTPException(status_code=500, detail="서버 내부 오류")
 
 
+@router.post("/chat/history", response_model=Dict[str, Any])
+async def get_chat_history(
+        request: ChatHistoryRequest,
+        user_id: int = Depends(get_user_id_from_token)
+):
+    """
+    사용자의 채팅 기록을 가져오는 API (오프셋 기반 무한 스크롤)
+    """
+    try:
+        # 사용자 인증 확인
+        try:
+            mysql_db.get_user_profile(user_id)
+        except ValueError as e:
+            raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
+
+        # 메시지와 전체 개수 가져오기
+        messages, total_count = chroma_db.get_conversation_history_with_offset(
+            user_id=user_id,
+            limit=request.limit,
+            offset=request.offset
+        )
+
+        # 다음 오프셋 계산
+        next_offset = request.offset + len(messages)
+        has_more = next_offset < total_count
+
+        return {
+            "messages": messages,
+            "has_more": has_more,
+            "next_offset": next_offset if has_more else None,
+            "total_count": total_count
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"채팅 기록 조회 오류: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
+
+
 @router.get("/api/audio/{filename}")
 async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
     try:
@@ -135,6 +176,7 @@ async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
         logging.error(f"오디오 파일 제공 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"오디오 파일 처리 중 오류: {str(e)}")
 
+
 # 파일 삭제 함수 정의
 def remove_file(file_path: str):
     """음성 파일 응답 후 파일 삭제"""
@@ -146,74 +188,3 @@ def remove_file(file_path: str):
             logging.warning(f"삭제할 파일이 존재하지 않습니다: {file_path}")
     except Exception as e:
         logging.error(f"파일 삭제 중 오류 발생: {file_path}, 오류: {str(e)}")
-
-@router.post("/chat/history", response_model=List[dict])
-async def get_chat_history(
-        request: ChatHistoryRequest,
-        user_id: int = Depends(get_user_id_from_token)
-):
-    """사용자의 채팅 기록을 가져오는 API"""
-    try:
-        # 사용자 인증 확인
-        try:
-            mysql_db.get_user_profile(user_id)
-        except ValueError as e:
-            raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
-
-        # 사용자의 컬렉션 가져오기
-        collection = chroma_db.get_or_create_collection(user_id)
-
-        # 모든 메시지 가져오기
-        results = collection.get(limit=request.limit * 2)  # 사용자와 AI 메시지를 모두 가져오기 위해 2배로 설정
-
-        if not results or not results["documents"]:
-            return []
-
-        # 결과를 메시지 목록으로 변환
-        messages = []
-        for i, doc in enumerate(results["documents"]):
-            metadata = results["metadatas"][i]
-            message_id = results["ids"][i]
-
-            # 타임스탬프 정보 가져오기 (ISO 형식: '2025-05-08T12:59:31.195')
-            created_at = metadata.get("timestamp", datetime.now().isoformat())
-
-            # 음성 메시지 여부 확인
-            is_voice = metadata.get("is_voice", False)
-
-            message_data = {
-                "message_id": message_id,
-                "message": doc,
-                "is_user": metadata["type"] == "user",
-                "is_voice": is_voice,  # 메시지가 원래 음성이었는지 여부
-                "created_at": created_at
-            }
-
-            messages.append(message_data)
-
-        # 메시지 순서를 타임스탬프 기준으로 정렬
-        # ISO 형식의 타임스탬프를 datetime 객체로 변환하여 정렬
-        try:
-            messages.sort(key=lambda x: datetime.fromisoformat(x["created_at"]))
-        except (ValueError, TypeError):
-            # ISO 형식 파싱에 실패할 경우 message_id 기반 정렬 시도
-            # message_id가 숫자 형식인 경우를 처리
-            try:
-                messages.sort(key=lambda x: int(x["message_id"]) if x["message_id"].isdigit() else x["message_id"])
-            except (ValueError, TypeError):
-                # 그래도 실패하면 문자열로 처리
-                messages.sort(key=lambda x: str(x["message_id"]))
-
-        # 대화 순서 로깅 (디버깅용)
-        logging.info(f"정렬된 채팅 기록: {len(messages)}개 메시지")
-        for i, msg in enumerate(messages[:5]):  # 처음 5개 메시지만 로깅
-            logging.info(
-                f"메시지 {i + 1}: ID={msg['message_id']}, 생성시간={msg['created_at']}, 사용자={msg['is_user']}, 음성원본={msg['is_voice']}")
-
-        return messages
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logging.error(f"채팅 기록 조회 오류: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")

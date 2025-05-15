@@ -7,6 +7,7 @@ import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/screens/home/widgets/speech_bubble.dart';
 import 'package:buds/screens/home/latest_letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
+import 'package:buds/screens/home/test.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,7 +23,9 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ChatDetailScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const ChatDetailScreen(),
+                  ),
                 );
               },
               child: Image.asset(
@@ -60,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: Image.asset(
-                'assets/icons/music_active.png',
+                'assets/icons/survey_icon.png',
                 width: 40,
                 height: 40,
               ),
@@ -89,9 +92,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ShellScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ShellScreen()),
                 );
               },
               child: Image.asset(

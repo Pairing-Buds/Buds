@@ -18,7 +18,7 @@ public class CalendarController {
     /** 달별 뱃지 조회 **/
     @GetMapping("/{date}")
     public ResponseDto getBadgeByCalendar(
-            @AuthenticationPrincipal Integer userId,
+            @AuthenticationPrincipal int userId,
             @PathVariable String date
     ) {
         return new ResponseDto(StatusCode.OK, calendarService.getBadgeByCalendar(userId, date));
@@ -27,7 +27,7 @@ public class CalendarController {
     /** 일별 뱃지, 일기 조회 **/
     @GetMapping("/day/{date}")
     public ResponseDto getBadgesAndDiary(
-            @AuthenticationPrincipal Integer userId,
+            @AuthenticationPrincipal int userId,
             @PathVariable String date
     ) {
         return new ResponseDto(StatusCode.OK, calendarService.getBadgesAndDiary(userId, date));

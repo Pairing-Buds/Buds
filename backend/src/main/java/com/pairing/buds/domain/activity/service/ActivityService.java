@@ -20,8 +20,6 @@ import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -359,14 +357,14 @@ public class ActivityService {
         // 유저 리워드 편지 3개 추가
         user.setLetterCnt(user.getLetterCnt() + 3);
     }
-        
+
     /** 취향이 맞는 친구 찾기 **/
     public Set<UserDto> findFriendByTag(int userId, int opponentId) {
         // 변수
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Set<Tag> userTags = user.getTags();
-        Set<TagType> userTagsType = userTags.stream().map(Tag::getTagName).collect(Collectors.toSet());
+        Set<TagType> userTagsType = userTags.stream().map(Tag::getTagType).collect(Collectors.toSet());
         // 취향 맞는 추천 친구 조회
         Set<User> recommendedUsers = userRepository.findTOP10RecommendedUser(userId, opponentId, userTagsType);
         // 사용자 태그 수집

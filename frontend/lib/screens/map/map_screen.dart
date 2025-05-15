@@ -196,9 +196,12 @@ class _MapScreenState extends State<MapScreen> {
 
     setState(() {
       _isLoading = true;
+      // 현재 위치 마커만 남기고 모든 마커 제거
       _markers.removeWhere(
         (marker) => marker.markerId.value != 'currentLocation',
       );
+      // 폴리라인 제거
+      _polylines.clear();
     });
 
     try {
@@ -273,7 +276,7 @@ class _MapScreenState extends State<MapScreen> {
               icon: BitmapDescriptor.defaultMarkerWithHue(
                 _currentPlaceType == 'library'
                     ? BitmapDescriptor
-                        .hueGreen // 도서관은 녹색
+                        .hueRed // 도서관은 빨간색
                     : BitmapDescriptor.hueGreen, // 공원은 녹색
               ),
             ),
@@ -311,7 +314,7 @@ class _MapScreenState extends State<MapScreen> {
               icon: BitmapDescriptor.defaultMarkerWithHue(
                 _currentPlaceType == 'library'
                     ? BitmapDescriptor
-                        .hueGreen // 도서관은 녹색
+                        .hueRed // 도서관은 빨간색
                     : BitmapDescriptor.hueGreen, // 공원은 녹색
               ),
             ),
@@ -425,35 +428,49 @@ class _MapScreenState extends State<MapScreen> {
 
     try {
       PolylinePoints polylinePoints = PolylinePoints();
-
-      // Directions API 사용
-      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-        googleApiKey: ApiConstants.googleMapsApiKey,
-        request: PolylineRequest(
-          origin: PointLatLng(
-            _currentPosition!.latitude,
-            _currentPosition!.longitude,
-          ),
-          destination: PointLatLng(
-            place.location.latitude,
-            place.location.longitude,
-          ),
-          mode: TravelMode.walking,
-        ),
-      );
-
       List<LatLng> polylineCoordinates = [];
+      
+      try {
+        // Directions API 사용
+        PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+          googleApiKey: ApiConstants.googleMapsApiKey,
+          request: PolylineRequest(
+            origin: PointLatLng(
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            ),
+            destination: PointLatLng(
+              place.location.latitude,
+              place.location.longitude,
+            ),
+            mode: TravelMode.walking,
+          ),
+        );
 
-      if (result.points.isNotEmpty) {
-        for (var point in result.points) {
-          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        if (result.points.isNotEmpty) {
+          for (var point in result.points) {
+            polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+          }
+          debugPrint('경로 포인트 ${result.points.length}개 찾음');
+        } else {
+          // API 결과가 없는 경우 직선 경로 사용
+          debugPrint('길찾기 결과 없음: ${result.errorMessage}');
+          polylineCoordinates = _getDirectLine(place);
         }
-      } else {
-        // API 결과가 없는 경우 직선 경로 사용
-        debugPrint('길찾기 결과 없음: ${result.errorMessage}');
+      } catch (e) {
+        // 예외 발생시 직선 경로 사용
+        debugPrint('길찾기 API 오류: $e');
         polylineCoordinates = _getDirectLine(place);
+        // 사용자에게 알림
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
 
+      // 폴리라인 생성
       PolylineId id = const PolylineId('route');
       Polyline polyline = Polyline(
         polylineId: id,
@@ -468,15 +485,16 @@ class _MapScreenState extends State<MapScreen> {
       });
 
       // 지도 카메라를 경로가 모두 보이도록 조정
-      LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
-      _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      if (polylineCoordinates.isNotEmpty) {
+        LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
+        _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      }
     } catch (e) {
       debugPrint('길찾기 오류: $e');
-      _showErrorDialog('길찾기 정보를 가져오는 중 오류가 발생했습니다.');
-
-      // 오류 발생 시 직선 경로 사용
+      
+      // 오류 발생 시 직선 경로 대신 표시
       final polylineCoordinates = _getDirectLine(place);
-
+      
       PolylineId id = const PolylineId('route');
       Polyline polyline = Polyline(
         polylineId: id,
@@ -493,6 +511,14 @@ class _MapScreenState extends State<MapScreen> {
       // 지도 카메라를 경로가 모두 보이도록 조정
       LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
       _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      
+      // 사용자에게 알림
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -500,22 +526,43 @@ class _MapScreenState extends State<MapScreen> {
   List<LatLng> _getDirectLine(Place place) {
     if (_currentPosition == null) return [];
 
-    return [
-      LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-      LatLng(
-        _currentPosition!.latitude +
-            (place.location.latitude - _currentPosition!.latitude) / 3,
-        _currentPosition!.longitude +
-            (place.location.longitude - _currentPosition!.longitude) / 3,
-      ),
-      LatLng(
-        _currentPosition!.latitude +
-            2 * (place.location.latitude - _currentPosition!.latitude) / 3,
-        _currentPosition!.longitude +
-            2 * (place.location.longitude - _currentPosition!.longitude) / 3,
-      ),
-      LatLng(place.location.latitude, place.location.longitude),
-    ];
+    final start = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+    final end = LatLng(place.location.latitude, place.location.longitude);
+    
+    // 중간 지점을 더 많이 생성하여 자연스러운 경로 생성
+    List<LatLng> points = [];
+    points.add(start);
+    
+    // 중간 포인트 개수 (거리에 따라 조정)
+    final distance = _calculateDistance(
+      start.latitude, start.longitude, 
+      end.latitude, end.longitude
+    );
+    
+    // 거리에 비례하여 중간 지점 개수 설정
+    int segments = (distance / 200).round();
+    segments = segments.clamp(3, 15);
+    
+    for (int i = 1; i < segments; i++) {
+      double fraction = i / segments;
+      
+      // 시작점과 끝점 사이의 중간점 계산
+      double lat = start.latitude + (end.latitude - start.latitude) * fraction;
+      double lng = start.longitude + (end.longitude - start.longitude) * fraction;
+      
+      // 자연스러운 곡선을 위한 약간의 랜덤 편차 추가
+      if (i > 1 && i < segments - 1) {
+        final rnd = Random();
+        double offsetFactor = 0.0001; // 편차 크기
+        lat += (rnd.nextDouble() - 0.5) * offsetFactor;
+        lng += (rnd.nextDouble() - 0.5) * offsetFactor;
+      }
+      
+      points.add(LatLng(lat, lng));
+    }
+    
+    points.add(end);
+    return points;
   }
 
   // 좌표 목록에서 경계 계산
@@ -573,10 +620,12 @@ class _MapScreenState extends State<MapScreen> {
         final showList = args['showList'] as bool? ?? false;
 
         if (placeType != null &&
-            (placeType == 'park' || placeType == 'library')) {
+          (placeType == 'park' || placeType == 'library')) {
           setState(() {
             _currentPlaceType = placeType;
             _isPlacesVisible = showList; // 목록 자동 표시 여부 설정
+            // 항상 목록 초기화
+            _nearbyPlaces = [];
           });
 
           // 특정 도서관으로 길찾기인 경우
@@ -740,8 +789,10 @@ class _MapScreenState extends State<MapScreen> {
                                   // 도서관 목록 표시
                                   _currentPlaceType = 'library';
                                   _isPlacesVisible = true;
-                                  if (_nearbyPlaces.isEmpty &&
-                                      _currentPosition != null) {
+                                  // 장소 목록 초기화
+                                  _nearbyPlaces = [];
+                                  // 항상 새로 검색
+                                  if (_currentPosition != null) {
                                     _searchNearbyPlaces();
                                   }
                                 }
@@ -796,8 +847,10 @@ class _MapScreenState extends State<MapScreen> {
                                   // 공원 목록 표시
                                   _currentPlaceType = 'park';
                                   _isPlacesVisible = true;
-                                  if (_nearbyPlaces.isEmpty &&
-                                      _currentPosition != null) {
+                                  // 장소 목록 초기화
+                                  _nearbyPlaces = [];
+                                  // 항상 새로 검색
+                                  if (_currentPosition != null) {
                                     _searchNearbyPlaces();
                                   }
                                 }
@@ -865,15 +918,32 @@ class _MapScreenState extends State<MapScreen> {
               ],
             ),
           ),
+
+          // 내 위치 버튼 - 앱바 아래 우측에 위치
+          Positioned(
+            top: 40, // 앱바 아래 여유있게 위치
+            right: 10,
+            child: Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                onPressed: _getCurrentLocation,
+                backgroundColor: Colors.white,
+                mini: true, // 작은 크기의 버튼
+                child: const Icon(Icons.my_location, color: Colors.blue),
+                tooltip: '내 위치',
+              ),
+            ),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _getCurrentLocation,
-        backgroundColor: Colors.blue,
-        child: const Icon(Icons.my_location, color: Colors.white),
-        tooltip: '내 위치',
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 

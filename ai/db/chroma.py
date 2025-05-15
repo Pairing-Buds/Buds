@@ -37,7 +37,7 @@ class ChromaDB:
     def save_conversation(self, user_id, user_message, ai_response, is_voice=False):
         """
         사용자와 AI의 대화 내용을 저장합니다.
-        is_voice 파라미터를 추가하여 음성 메시지 여부를 표시합니다.
+        일관된 타임스탬프 형식을 사용하여 정렬 문제를 방지합니다.
         """
         try:
             # 입력값 검증
@@ -52,34 +52,48 @@ class ChromaDB:
                 logging.error(f"사용자 ID {user_id}의 컬렉션을 가져올 수 없습니다.")
                 return False
 
-            # 타임스탬프 생성
-            timestamp = datetime.now().isoformat()
+            # 타임스탬프 생성 (ISO 8601 형식으로 통일)
+            # 밀리초 단위까지 포함하여 정확한 순서 보장
+            timestamp = datetime.now().isoformat(timespec='milliseconds')
+            date_str = timestamp.split('T')[0]  # YYYY-MM-DD
+
+            # 고유 ID 생성 (타임스탬프 기반, 사용자와 AI 메시지 구분)
+            # 메시지 쌍이 순차적으로 저장되도록 ms 단위로 차이를 둠
+            current_time_ms = int(datetime.now().timestamp() * 1000)
+            user_id_str = f"user_{timestamp}_{current_time_ms}"
+            ai_id_str = f"ai_{timestamp}_{current_time_ms + 1}"  # 1ms 차이
 
             # 사용자 메시지 저장
             user_metadata = {
                 "type": "user",
                 "timestamp": timestamp,
-                "is_voice": is_voice,  # 음성 메시지 여부 저장
-                "date": timestamp.split('T')[0]  # 날짜 부분만 저장(YYYY-MM-DD)
+                "is_voice": is_voice,
+                "date": date_str
             }
+
             collection.add(
                 documents=[user_message],
                 metadatas=[user_metadata],
-                ids=[f"user_{timestamp}"]
+                ids=[user_id_str]
             )
+
+            logging.debug(f"사용자 메시지 저장: ID={user_id_str}, 타임스탬프={timestamp}")
 
             # AI 응답 저장
             ai_metadata = {
                 "type": "ai",
-                "timestamp": timestamp,
-                "is_voice": False,  # AI 응답은 항상 텍스트
-                "date": timestamp.split('T')[0]  # 날짜 부분만 저장(YYYY-MM-DD)
+                "timestamp": timestamp,  # 동일한 시간대 사용 (ms 단위 차이는 ID에만 반영)
+                "is_voice": False,  # AI 응답은 항상 텍스트 (음성은 별도 처리)
+                "date": date_str
             }
+
             collection.add(
                 documents=[ai_response],
                 metadatas=[ai_metadata],
-                ids=[f"ai_{timestamp}"]
+                ids=[ai_id_str]
             )
+
+            logging.debug(f"AI 메시지 저장: ID={ai_id_str}, 타임스탬프={timestamp}")
 
             return True
         except Exception as e:
@@ -313,106 +327,115 @@ class ChromaDB:
             logging.error(f"일일 메시지 수 조회 오류: {str(e)}")
             return 0
 
-    def clean_old_conversations(self, days_to_keep=30):
-        """오래된 대화를 정리합니다. 지정된 일수보다 오래된 대화는 삭제됩니다."""
-        try:
-            # 모든 컬렉션 가져오기
-            collections = self.client.list_collections()
 
-            # 삭제 기준 날짜 계산
-            cutoff_date = datetime.now() - timedelta(days=days_to_keep)
-            cutoff_timestamp = cutoff_date.isoformat()
-
-            cleaned_count = 0
-
-            for collection_info in collections:
-                collection_name = collection_info.name
-                # 요약 컬렉션은 건너뛰기
-                if "_summary" in collection_name:
-                    continue
-
-                collection = self.client.get_collection(name=collection_name)
-
-                # 오래된 메시지 검색
-                try:
-                    old_messages = collection.get(
-                        where={"timestamp": {"$lt": cutoff_timestamp}}
-                    )
-
-                    if old_messages and old_messages["ids"]:
-                        # 오래된 메시지 삭제
-                        collection.delete(ids=old_messages["ids"])
-                        cleaned_count += len(old_messages["ids"])
-                except Exception as col_err:
-                    logging.error(f"컬렉션 {collection_name} 정리 중 오류: {str(col_err)}")
-                    continue
-
-            logging.info(f"대화 정리 완료: {cleaned_count}개 오래된 메시지 삭제됨")
-            return cleaned_count
-
-        except Exception as e:
-            logging.error(f"대화 정리 중 오류: {str(e)}")
-            return 0
-
-    def export_user_conversations(self, user_id, start_date=None, end_date=None):
+    def get_conversation_history_with_offset(self, user_id, limit=20, offset=0):
         """
-        사용자의 대화 기록을 내보냅니다.
-        선택적으로 시작 및 종료 날짜를 지정하여 특정 기간의 대화만 내보낼 수 있습니다.
+        오프셋 기반으로 사용자의 대화 기록을 가져옵니다.
+        반환값: (메시지 목록, 전체 메시지 수)
         """
         try:
             collection = self.get_or_create_collection(user_id)
             if collection is None:
-                return []
+                return [], 0
 
-            # 날짜 필터링을 위한 조건 준비
-            where_condition = {}
+            # 전체 메시지 개수 확인
+            try:
+                total_count = collection.count()
+                if total_count == 0:
+                    return [], 0
+            except Exception as count_err:
+                logging.error(f"메시지 수 조회 오류: {str(count_err)}")
+                return [], 0
 
-            if start_date and end_date:
-                # ISO 형식으로 변환
-                start_iso = datetime.strptime(start_date, '%Y-%m-%d').isoformat()
-                # 종료일은 다음날로 설정하여 해당일까지 포함
-                end_iso = (datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)).isoformat()
-
-                where_condition = {
-                    "timestamp": {
-                        "$gte": start_iso,
-                        "$lt": end_iso
-                    }
-                }
-
-                # 날짜 조건으로 쿼리
-                results = collection.get(where=where_condition)
-            else:
-                # 모든 메시지 가져오기
-                results = collection.get()
+            # 모든 메시지 가져오기 (ChromaDB는 직접적인 오프셋/페이지네이션 기능이 제한적)
+            results = collection.get()
 
             if not results or not results["documents"]:
-                return []
+                return [], 0
 
-            # 대화 형식화
-            conversations = []
+            # 결과를 메시지 객체로 변환
+            messages = []
             for i, doc in enumerate(results["documents"]):
-                meta = results["metadatas"][i]
-                timestamp = meta.get("timestamp", "")
+                metadata = results["metadatas"][i]
+                message_id = results["ids"][i]
 
-                conversation = {
+                # 타임스탬프 처리 (일관성 보장)
+                timestamp = metadata.get("timestamp", "")
+
+                # 타임스탬프가 없거나 유효하지 않은 경우 대체 방법 시도
+                if not timestamp or not isinstance(timestamp, str):
+                    try:
+                        # ID에서 타임스탬프 추출 시도 (user_2023-01-01T12:34:56 형식)
+                        if "_" in message_id:
+                            parts = message_id.split("_", 1)
+                            if len(parts) > 1:
+                                # ISO 형식 타임스탬프 추출 시도
+                                timestamp_candidate = parts[1]
+                                # 타임스탬프 유효성 검증
+                                try:
+                                    datetime.fromisoformat(timestamp_candidate.replace('Z', '+00:00'))
+                                    timestamp = timestamp_candidate
+                                except ValueError:
+                                    # 유닉스 타임스탬프일 수도 있음
+                                    if timestamp_candidate.replace('.', '').isdigit():
+                                        try:
+                                            dt = datetime.fromtimestamp(float(timestamp_candidate))
+                                            timestamp = dt.isoformat()
+                                        except (ValueError, OverflowError):
+                                            # 변환 실패 시 현재 시간 사용
+                                            timestamp = datetime.now().isoformat()
+                                    else:
+                                        # 추출 실패 시 현재 시간 사용
+                                        timestamp = datetime.now().isoformat()
+                            else:
+                                # 분리 실패 시 현재 시간 사용
+                                timestamp = datetime.now().isoformat()
+                        else:
+                            # ID 분리 불가 시 현재 시간 사용
+                            timestamp = datetime.now().isoformat()
+                    except Exception as ts_err:
+                        logging.error(f"타임스탬프 추출 오류: {str(ts_err)}")
+                        timestamp = datetime.now().isoformat()
+
+                message = {
+                    "message_id": message_id,
                     "message": doc,
-                    "is_user": meta.get("type") == "user",
-                    "timestamp": timestamp,
-                    "is_voice": meta.get("is_voice", False)
+                    "is_user": metadata.get("type", "") == "user",
+                    "is_voice": metadata.get("is_voice", False),
+                    "created_at": timestamp
                 }
+                messages.append(message)
 
-                conversations.append(conversation)
+            # 타임스탬프로 정렬 (오름차순 - 과거 -> 현재)
+            try:
+                # 안정적인 정렬을 위한 함수
+                def get_timestamp_for_sorting(msg):
+                    try:
+                        # ISO 형식 타임스탬프 처리
+                        return datetime.fromisoformat(msg["created_at"].replace('Z', '+00:00'))
+                    except (ValueError, TypeError, AttributeError):
+                        # 다른 형식이거나 오류 발생 시 기본값 반환
+                        return datetime.min
 
-            # 시간순 정렬
-            conversations.sort(key=lambda x: x["timestamp"])
+                messages.sort(key=get_timestamp_for_sorting)
+            except Exception as sort_err:
+                logging.error(f"메시지 정렬 오류: {str(sort_err)}")
+                # 정렬 실패 시 원본 순서 유지
 
-            return conversations
+            # 정렬 결과 로깅 (디버깅용)
+            if messages:
+                logging.debug(f"정렬된 메시지 예시 (처음 3개):")
+                for i, msg in enumerate(messages[:3]):
+                    logging.debug(f"  {i}: ID={msg['message_id']}, 시간={msg['created_at']}")
+
+            # 오프셋과 한도를 적용하여 필요한 부분만 반환
+            paginated_messages = messages[offset:offset + limit] if offset < len(messages) else []
+
+            return paginated_messages, total_count
 
         except Exception as e:
-            logging.error(f"대화 내보내기 오류: {str(e)}")
-            return []
-
+            logging.error(f"대화 기록 조회 오류: {str(e)}")
+            return [], 0
 
 # 전역 ChromaDB 인스턴스
 chroma_db = ChromaDB()

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -32,6 +33,14 @@ public class RedisService {
     public void deleteRefreshToken(Integer userId) {
         String key = REFRESH_PREFIX + userId;
         redisTemplate.delete(key);
+    }
+
+    // (중복로그인 테스트용) 모든 키를 가져온 뒤 한 번에 삭제
+    public void deleteRefreshTokenAll() {
+        Set<String> keys = redisTemplate.keys("refresh_token:*");
+        if (!keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
 }

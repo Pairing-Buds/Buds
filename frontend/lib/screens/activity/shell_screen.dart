@@ -12,6 +12,9 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/models/activity_quote_model.dart';
 import 'package:buds/services/activity_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/widgets/common_dialog.dart';
+import 'package:buds/widgets/toast_bar.dart';
+
 
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});
@@ -76,6 +79,9 @@ class _ShellScreenState extends State<ShellScreen> {
             _recognizedText = result.recognizedWords;
             if (result.finalResult) {
               _similarity = _calcSimilarity();
+              if (_similarity < 0.7) {
+                _showLowSimilarityWarning();
+              }
             }
           });
         },
@@ -87,51 +93,68 @@ class _ShellScreenState extends State<ShellScreen> {
 
   // STT 결과 전송하기
   void _sendReadText() async {
-    final success = await ActivityService().submitSttResult(
-      originalSentenceText: _quote?.sentence ?? "",
-      userSentenceText: _quote?.sentence ?? "",
-    );
+    try {
+      final success = await ActivityService().submitSttResult(
+        originalSentenceText: _quote?.sentence ?? "",
+        userSentenceText: _recognizedText,
+      );
 
-    if (success) {
-      print("STT 결과 전송 성공");
-      _showSuccessModal();
-    } else {
-      print("STT 결과 전송 실패");
+      if (success) {
+        print("STT 결과 전송 성공");
+        _showSuccessModal();
+      } else {
+        print("STT 결과 전송 실패");
+        _showErrorModal();
+      }
+    } catch (e) {
+      print("STT 제출 에러: $e");
+      _showErrorModal();
     }
+  }
+
+  // 유사도 낮음 알림
+  void _showLowSimilarityWarning() {
+    Toast(context, '유사도가 낮아요. 다시 읽어주세요.');
+  }
+
+
+  // 에러 모달 (이미 편지지 받은 경우)
+  void _showErrorModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => CommonDialog(
+        title: "오늘의 편지지",
+        description: "오늘은 이미 편지지를 받았어요.",
+        cancelText: "확인",
+        confirmText: "", // 버튼 하나만
+        onCancel: _redirectToHome,
+        onConfirm: () {}, // 사용되지 않음
+      ),
+    );
+    Future.delayed(const Duration(seconds: 2), _redirectToHome);
   }
 
   // 인증 성공 모달 + 홈 화면 리다이렉트
   void _showSuccessModal() {
     showDialog(
       context: context,
-      barrierDismissible: false, // 모달 외부 클릭으로 닫히지 않도록
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("인증 성공"),
-          content: const Text("선물로 편지지 5장을 드립니다."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _redirectToHome();
-              },
-              child: const Text("확인"),
-            ),
-          ],
-        );
-      },
+      barrierDismissible: false,
+      builder: (context) => CommonDialog(
+        title: "인증 성공",
+        description: "선물로 편지지 5장을 드립니다.",
+        cancelText: "확인",
+        confirmText: "", // 버튼 하나
+        onCancel: () {
+          Navigator.of(context).pop(); // dialog 닫기
+          _redirectToHome(); // 닫은 후 이동
+        },
+        onConfirm: () {},
+      ),
     );
-
-    // 2초 후 자동으로 홈으로 리다이렉트
-    Future.delayed(const Duration(seconds: 2), () {
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop(); // 모달 닫기
-      }
-      _redirectToHome();
-    });
   }
 
-// 홈 화면으로 리다이렉트 함수
+  // 홈 화면으로 리다이렉트 함수
   void _redirectToHome() {
     Navigator.of(context).pushReplacementNamed('/main');
   }
@@ -178,13 +201,19 @@ class _ShellScreenState extends State<ShellScreen> {
                         const SizedBox(height: 10),
                         Text(
                           _quote?.sentence ?? '"명언 불러오는 중..."',
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _quote?.speaker ?? '알 수 없음',
-                          style: const TextStyle(fontSize: 12, color: Colors.black54),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
@@ -198,22 +227,36 @@ class _ShellScreenState extends State<ShellScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Image.asset('assets/images/marmet_cutting_head.png', width: 80, height: 80),
+                        Image.asset(
+                          'assets/images/marmet_cutting_head.png',
+                          width: 80,
+                          height: 80,
+                        ),
                         const SizedBox(width: 20),
                         GestureDetector(
                           onTap: _toggleListening,
-                          child: Image.asset('assets/images/stand_mic.png', width: 40, height: 40),
+                          child: Image.asset(
+                            'assets/images/stand_mic.png',
+                            width: 40,
+                            height: 40,
+                          ),
                         ),
                         const SizedBox(width: 20),
                         ElevatedButton(
                           onPressed: _toggleListening,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey.shade200,
+                            backgroundColor:
+                                _isListening
+                                    ? Colors.transparent
+                                    : AppColors.primary,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: Text(_isListening ? '다시 읽기' : '따라 읽기', style: const TextStyle(fontSize: 14)),
+                          child: Text(
+                            _isListening ? '다시 읽기' : '따라 읽기',
+                            style: const TextStyle(fontSize: 14),
+                          ),
                         ),
                       ],
                     ),
@@ -244,7 +287,10 @@ class _ShellScreenState extends State<ShellScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
-              child: const Text('편지지 받기', style: TextStyle(color: Color(0xFF5D4037))),
+              child: const Text(
+                '편지지 받기',
+                style: TextStyle(color: Color(0xFF5D4037)),
+              ),
             ),
         ],
       ),

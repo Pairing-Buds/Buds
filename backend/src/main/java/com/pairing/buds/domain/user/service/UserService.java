@@ -11,9 +11,11 @@ import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
 import com.pairing.buds.domain.user.dto.response.MyInfoResDto;
 import com.pairing.buds.domain.user.dto.response.TagResDto;
+import com.pairing.buds.domain.user.dto.response.TagTypeResDto;
 import com.pairing.buds.domain.user.entity.*;
 import com.pairing.buds.domain.user.repository.RandomNameRepository;
 import com.pairing.buds.domain.user.repository.TagRepository;
+import com.pairing.buds.domain.user.repository.TagTypeRepository;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,8 +29,6 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.EnumSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,6 +44,7 @@ public class UserService {
     private final RedisService redisService;
     private final TagRepository tagRepository;
     private final RandomNameRepository randomNameRepository;
+    private final TagTypeRepository tagTypeRepository;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -58,25 +59,36 @@ public class UserService {
 
     /** 태그 업데이트(신규 저장 포함) **/
     @Transactional
-    public void updateUserTags(Integer userId, List<TagType> selected) {
+    public void updateUserTags(Integer userId, List<Integer> tagTypeIds) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
-        Set<TagType> valid = EnumSet.allOf(TagType.class);
-        for (TagType t : selected) {
-            if (!valid.contains(t)) {
-                throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_FOUND);
-            }
+        // 중복제거 & 개수 검증
+        List<Integer> uniqueIds = tagTypeIds.stream()
+            .distinct()
+            .toList();
+        if (uniqueIds.size() > 3) {
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAG_CNT_OUT_OF_BOUND);
+        }
+
+        // DB에서 실제 존재하는 TagType 조회
+        List<TagType> tagTypes = tagTypeRepository.findAllById(uniqueIds);
+
+        // 요청한 ID 중 유효하지 않은 것이 있는지 확인
+        if (tagTypes.size() != uniqueIds.size()) {
+            List<Integer> invalidIds = uniqueIds.stream()
+                    .filter(id -> tagTypes.stream().noneMatch(tt -> tt.getId().equals(id)))
+                    .toList();
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_FOUND);
         }
 
         // 기존 태그 삭제
         userRepository.deleteTagsByUserId(userId);
 
-        Set<TagType> uniqueTypes = new LinkedHashSet<>(selected);
-        for (TagType type : uniqueTypes) {
+        for (TagType tagType : tagTypes) {
             Tag tag = new Tag();
                 tag.setUser(user);
-                tag.setTagName(type);
+                tag.setTagType(tagType);
             user.getTags().add(tag);
         }
 
@@ -84,8 +96,10 @@ public class UserService {
     }
 
     /** 전체 태그 조회 **/
-    public String[] getAllTags(int userId) {
-        return new String[]{"취업", "자격증", "운동", "패션", "음악", "독서", "요리", "게임", "만화","영화"};
+    public List<TagTypeResDto> getAllTags(int userId) {
+        return tagTypeRepository.findAll().stream()
+                .map(TagTypeResDto::of)
+                .collect(Collectors.toList());
     }
 
     /** 설문조사 결과 저장 **/
@@ -100,7 +114,7 @@ public class UserService {
         Set<Tag> newTags = dto.getTags().parallelStream().map( newTag ->
                 Tag.builder()
                         .user(user)
-                        .tagName(newTag)
+                        .tagType(newTag)
                         .build()
         ).collect(Collectors.toSet());
         // 수정

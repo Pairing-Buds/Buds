@@ -1,6 +1,7 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Package imports:
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Project imports:
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/providers/my_page_provider.dart';
+import 'package:buds/screens/activity/activity_screen.dart';
 import 'package:buds/screens/alarm/alarm_screen.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/services/api_service.dart';
@@ -22,6 +24,7 @@ import 'providers/agree_provider.dart';
 import 'providers/character_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/login/login_main.dart';
+import 'screens/splash_screen.dart';
 
 // import 'screens/login/login_screen.dart';
 // import 'package:buds/providers/letter_provider.dart';
@@ -87,6 +90,12 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 void main() async {
   // Flutter 엔진 초기화 보장
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 세로 방향 고정
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // .env 파일 로드 시도 (오류 발생해도 앱이 종료되지 않도록 try-catch로 감싸기)
   try {
@@ -240,27 +249,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
   }
 
-  Future<void> _initializeApp() async {
-    try {
-      // AuthProvider 초기화
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
-
-      if (kDebugMode) {
-        print('앱 초기화 완료: 로그인 상태 = ${authProvider.isLoggedIn}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('앱 초기화 오류: $e');
-      }
-    } finally {
-      setState(() {
-        _isInitialized = true;
-      });
-    }
+  void _onInitializationComplete() {
+    setState(() {
+      _isInitialized = true;
+    });
   }
 
   @override
@@ -270,17 +264,22 @@ class _MyAppState extends State<MyApp> {
       'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
     );
 
-    // 초기화 중이면 로딩 화면 표시
+    // 초기화 중이면 스플래시 화면 표시
     if (!_isInitialized) {
       return MaterialApp(
         title: 'buds',
         theme: appTheme,
-        home: Scaffold(
-          backgroundColor: AppColors.background,
-          body: Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          ),
-        ),
+        debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('ko', 'KR'), // 한국어
+          Locale('en', 'US'), // 영어
+        ],
+        home: SplashScreen(onInitializationComplete: _onInitializationComplete),
       );
     }
 
@@ -312,6 +311,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (context) => const LoginMainScreen(),
         '/main': (context) => const MainScreen(),
+        '/activity': (context) => const ActivityScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',

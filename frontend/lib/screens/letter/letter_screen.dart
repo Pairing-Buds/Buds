@@ -27,7 +27,7 @@ class _LetterScreenState extends State<LetterScreen> {
 
   Future<void> fetchLetterCount() async {
     try {
-      final letterResponse  = await LetterService().fetchLetters();
+      final letterResponse = await LetterService().fetchLetters();
       if (letterResponse.letters.isNotEmpty) {
         setState(() {
           letterCnt = letterResponse.letterCnt;
@@ -62,75 +62,103 @@ class _LetterScreenState extends State<LetterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 가로 모드 감지
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    // 가로 모드 시 마진 조정
+    final paddingValue = isLandscape ? 50.0 : 16.0;
+
     return Scaffold(
-      // backgroundColor: const Color(0xFFF9F9F9),
       appBar: const CustomAppBar(
         title: '편지함',
-        leftIconPath: 'assets/icons/bottle_icon.png',
+        leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
-        showBackButton: false,
+        showBackButton: true,
       ),
-      body: Column(
-        children: [
-          // 퀘스트 배너
-          Container(
-            margin: const EdgeInsets.all(10),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.skyblue,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Expanded(
-                  child: Text(
-                    '오늘의 퀘스트를 완료하고\n편지지를 모아봐요',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                Transform.translate(
-                  offset: const Offset(0, 16),
-                  child: Image.asset(
-                    'assets/images/marmet_cutting_head.png',
-                    width: 80,
-                    height: 80,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 탭 제목
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Text(
-                  '편지 목록',
-                  style: TextStyle(color: Colors.grey, fontSize: 18),
-                ),
-                const Spacer(),
-                Text(
-                  '나의 편지 $letterCnt', // LetterModel의 letterCnt 사용
-                  style: const TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // 편지 목록 컴포넌트
-          Expanded(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: LetterList(
-                onCountFetched: updateLetterCount,
-                onWritePressed: navigateToWrite,
+              padding: EdgeInsets.symmetric(horizontal: paddingValue),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 퀘스트 배너
+                  Container(
+                    // margin: const EdgeInsets.all(10),
+                    margin: EdgeInsets.only(
+                      top: 10,
+                      bottom: isLandscape ? 10 : 10,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.skyblue,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            '오늘의 활동을 하고\n편지지를 모아봐요',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Transform.translate(
+                          offset: const Offset(0, 13),
+                          child: Image.asset(
+                            'assets/images/marmet_cutting_head.png',
+                            width: 80,
+                            height: 80,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 탭 제목
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 1),
+                    child: Row(
+                      children: [
+                        const Text(
+                          '편지 목록',
+                          style: TextStyle(color: Colors.grey, fontSize: 18),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '나의 편지 $letterCnt', // LetterModel의 letterCnt 사용
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // 편지 목록 컴포넌트
+                  SizedBox(
+                    height:
+                        isLandscape
+                            ? constraints.maxHeight * 0.8
+                            : constraints.maxHeight * 0.76,
+                    child: LetterList(
+                      onCountFetched: updateLetterCount,
+                      onWritePressed: navigateToWrite,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
