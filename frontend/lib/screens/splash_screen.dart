@@ -3,6 +3,8 @@ import 'package:buds/config/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/login/widgets/chat_bubble.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onInitializationComplete;
@@ -128,6 +130,13 @@ class _SplashScreenState extends State<SplashScreen>
       await authProvider.initialize();
 
       if (!mounted) return;
+
+
+      // 애니메이션이 아직 완료되지 않았다면 애니메이션을 실행
+      if (!_controller.isCompleted) {
+        _controller.forward();
+      }
+
     } catch (e) {
       debugPrint('앱 초기화 오류: $e');
       // 오류가 발생해도 스플래시 화면 완료 후 앱으로 진행
@@ -256,6 +265,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
+
 // 채팅 메시지 데이터 클래스
 class _ChatMessage {
   final String text;
@@ -272,3 +282,4 @@ class _ChatMessage {
     this.visible = false,
   });
 }
+
