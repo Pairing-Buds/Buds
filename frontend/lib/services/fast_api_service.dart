@@ -37,7 +37,7 @@ class FastApiService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final cookies = await _cookieJar.loadForRequest(Uri.parse(ApiConstants.baseUrl));
+        final cookies = await _cookieJar.loadForRequest(Uri.parse(ApiConstants.fastApiUrl));
         final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
         options.headers['Cookie'] = cookieHeader;
         print('🍪 FastAPI 요청에 붙인 쿠키: $cookieHeader');

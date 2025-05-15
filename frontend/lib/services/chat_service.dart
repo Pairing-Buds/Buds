@@ -43,21 +43,29 @@ class ChatService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getChatHistory() async {
+  Future<Map<String, dynamic>> getChatHistory(
+      {int offset = 0, int limit = 30}) async {
     try {
       final response = await _fastApiService.post(
         '/chat/history',
-        data: {'limit': 50}, // ✅ Cookie 헤더 제거!
+        data: {'offset': offset, 'limit': limit},
       );
 
-      if (response.data is List) {
-        return List<Map<String, dynamic>>.from(response.data);
-      } else {
-        return [];
-      }
+      final data = response.data;
+      return {
+        'messages': List<Map<String, dynamic>>.from(data['messages']),
+        'hasMore': data['has_more'],
+        'nextOffset': data['next_offset'],
+        'totalCount': data['total_count'],
+      };
     } catch (e) {
       print('❌ getChatHistory 오류: $e');
-      return [];
+      return {
+        'messages': [],
+        'hasMore': false,
+        'nextOffset': null,
+        'totalCount': 0,
+      };
     }
   }
 }
