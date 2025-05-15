@@ -30,7 +30,7 @@ public interface LetterRepository extends JpaRepository<Letter, Integer> {
     Optional<Letter> findFirstByReceiver_IdOrderByCreatedAtDescIdDesc(Integer receiverId);
 
 
-    void findIfAnswerEnable();
+//    void findIfAnswerEnable();
 
     Optional<Letter> findTop1BySender_IdAndReceiver_IdOrderByCreatedAtDesc(int senderId, int receiverId);
 }
