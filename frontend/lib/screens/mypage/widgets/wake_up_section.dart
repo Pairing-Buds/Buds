@@ -11,6 +11,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/main.dart';
 import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/services/notification_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 import 'dart:async'; // Timer 사용을 위한 import 추가
 import 'package:buds/services/wake_up_service.dart'; // 추가
@@ -207,12 +208,7 @@ class _WakeUpSectionState extends State<WakeUpSection> {
                       ),
                       onPressed: () {
                         _checkAlarmStatus();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('알람 상태를 확인했습니다.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
+                        Toast(context, '알람 상태를 확인했습니다.');
                       },
                     ),
                     const SizedBox(width: 16),
@@ -281,23 +277,15 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       _checkAlarmStatus();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('모든 알람이 취소되었습니다.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        Toast(context, '모든 알람이 취소되었습니다.');
       }
     } catch (e) {
       debugPrint('알람 취소 오류: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('알람 취소 오류: $e'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
+        Toast(
+          context, 
+          '알람 취소 오류: $e',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
@@ -397,48 +385,35 @@ class _WakeUpSectionState extends State<WakeUpSection> {
           await NotificationService().checkAndRequestAllPermissions();
 
       if (!permissions['notification']! && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('알림 권한이 필요합니다. 설정에서 알림 권한을 허용해주세요.'),
-            duration: Duration(seconds: 5),
-            backgroundColor: Colors.orange,
-          ),
+        Toast(
+          context,
+          '알림 권한이 필요합니다. 설정에서 알림 권한을 허용해주세요.',
+          icon: const Icon(Icons.warning, color: Colors.orange),
         );
         return;
       }
 
       if (!permissions['exactAlarm']! && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('정확한 알람 권한이 필요합니다. 설정에서 권한을 허용해주세요.'),
-            duration: Duration(seconds: 5),
-            backgroundColor: Colors.orange,
-          ),
+        Toast(
+          context,
+          '정확한 알람 권한이 필요합니다. 설정에서 권한을 허용해주세요.',
+          icon: const Icon(Icons.warning, color: Colors.orange),
         );
         return;
       }
 
       if (!permissions['batteryOptimization']! && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              '배터리 최적화 예외 설정이 필요할 수 있습니다. 알람이 정시에 울리지 않으면 설정을 확인해주세요.',
-            ),
-            duration: Duration(seconds: 5),
-            backgroundColor: Colors.orange,
-          ),
+        Toast(
+          context,
+          '배터리 최적화 예외 설정이 필요할 수 있습니다. 알람이 정시에 울리지 않으면 설정을 확인해주세요.',
+          icon: const Icon(Icons.info, color: Colors.blue),
         );
         // 배터리 최적화는 선택적이므로 계속 진행
       }
 
       // 알람 예약 전 진행 메시지
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('알람 설정 중...'),
-            duration: Duration(seconds: 1),
-          ),
-        );
+        Toast(context, '알람 설정 중...');
       }
 
       // 서버에 기상 시간 등록
@@ -447,12 +422,10 @@ class _WakeUpSectionState extends State<WakeUpSection> {
 
       if (!success) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('기상 시간 등록에 실패했습니다.'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
+          Toast(
+            context,
+            '기상 시간 등록에 실패했습니다.',
+            icon: const Icon(Icons.error, color: Colors.red),
           );
         }
         return;
@@ -475,25 +448,17 @@ class _WakeUpSectionState extends State<WakeUpSection> {
 
       // 성공 메시지 표시
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('기상 알람이 설정되었습니다: ${_formatTime(wakeUpTime)}'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        Toast(context, '기상 알람이 설정되었습니다: ${_formatTime(wakeUpTime)}');
 
         // 알람 설정 성공 시 설명 추가 다이얼로그 표시
         _showAlarmInfoDialog(context, wakeUpTime);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('알람 설정 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
+        Toast(
+          context, 
+          '알람 설정 중 오류가 발생했습니다: $e',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
@@ -506,23 +471,18 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       await NotificationService().sendTestNotification();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('테스트 알림이 발송되었습니다\n알림을 탭하여 알람 화면으로 이동하세요'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 5),
-          ),
+        Toast(
+          context, 
+          '테스트 알림이 발송되었습니다\n알림을 탭하여 알람 화면으로 이동하세요',
         );
       }
     } catch (e) {
       debugPrint('테스트 알림 오류: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('알림 오류: $e'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
-          ),
+        Toast(
+          context, 
+          '알림 오류: $e',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }
@@ -535,23 +495,15 @@ class _WakeUpSectionState extends State<WakeUpSection> {
       await NotificationService().testAlarmIntent();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('인텐트 테스트가 시작되었습니다'),
-            backgroundColor: Colors.purple,
-            duration: Duration(seconds: 3),
-          ),
-        );
+        Toast(context, '인텐트 테스트가 시작되었습니다');
       }
     } catch (e) {
       debugPrint('인텐트 테스트 오류: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('인텐트 테스트 오류: $e'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 5),
-          ),
+        Toast(
+          context, 
+          '인텐트 테스트 오류: $e',
+          icon: const Icon(Icons.error, color: Colors.red),
         );
       }
     }

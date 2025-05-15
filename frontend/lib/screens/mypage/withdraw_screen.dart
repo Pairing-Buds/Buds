@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 // Project imports:
 import 'package:buds/screens/login/login_main.dart';
 import 'package:buds/services/auth_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'widgets/withdraw_confirm_dialog.dart';
 import 'widgets/withdraw_reason_selector.dart';
 
@@ -43,14 +44,14 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                       ),
                       (route) => false,
                     );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('탈퇴가 완료되었습니다.')),
-                    );
+                    Toast(context, '탈퇴가 완료되었습니다.');
                   }
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('탈퇴 실패: \\${e.toString()}')),
+                Toast(
+                  context, 
+                  '탈퇴 실패: ${e.toString()}',
+                  icon: const Icon(Icons.error, color: Colors.red),
                 );
               }
             },
