@@ -3,68 +3,81 @@ import 'package:flutter/material.dart';
 
 /// 채팅 버블 위젯
 class ChatBubble extends StatelessWidget {
-  final Color color;
   final String text;
+  final Color color;
   final bool isLeft;
+  final String iconPath;
   final Color? backgroundColor;
-  final String? iconPath;
 
   const ChatBubble({
     super.key,
-    required this.color,
     required this.text,
+    required this.color,
     required this.isLeft,
+    required this.iconPath,
     this.backgroundColor,
-    this.iconPath,
   });
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Row(
       mainAxisAlignment:
           isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          constraints: BoxConstraints(maxWidth: screenWidth * 0.7),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color:
-                backgroundColor ??
-                const Color.fromARGB(255, 253, 253, 253).withOpacity(0.8),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 3),
+        if (isLeft) _buildProfileImage(),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color:
+                  backgroundColor ??
+                  (isLeft ? Colors.white : color.withOpacity(0.2)),
+              borderRadius: BorderRadius.only(
+                topLeft:
+                    isLeft
+                        ? const Radius.circular(4)
+                        : const Radius.circular(16),
+                topRight:
+                    isLeft
+                        ? const Radius.circular(16)
+                        : const Radius.circular(4),
+                bottomLeft: const Radius.circular(16),
+                bottomRight: const Radius.circular(16),
               ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (iconPath != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.asset(iconPath!, width: 24, height: 24),
-                )
-              else
-                CircleAvatar(radius: 8, backgroundColor: color),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  text,
-                  style: const TextStyle(fontSize: 14),
-                  overflow: TextOverflow.visible,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
                 ),
+              ],
+            ),
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: isLeft ? Colors.black87 : Colors.black87,
               ),
-            ],
+            ),
           ),
         ),
+        const SizedBox(width: 8),
+        if (!isLeft) _buildProfileImage(),
       ],
+    );
+  }
+
+  Widget _buildProfileImage() {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.3),
+        shape: BoxShape.circle,
+        image: DecorationImage(image: AssetImage(iconPath), fit: BoxFit.cover),
+      ),
     );
   }
 }

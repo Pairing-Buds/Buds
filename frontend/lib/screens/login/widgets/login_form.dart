@@ -25,6 +25,24 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_validateForm);
+    _passwordController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid =
+          _emailController.text.isNotEmpty &&
+          _passwordController.text.isNotEmpty &&
+          _passwordController.text.length >= 6 &&
+          _emailController.text.contains('@');
+    });
+  }
 
   @override
   void dispose() {
@@ -93,7 +111,7 @@ class _LoginFormState extends State<LoginForm> {
             } else {
               // 로그인 실패
               Toast(
-                context, 
+                context,
                 '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다',
                 icon: const Icon(Icons.error, color: Colors.red),
               );
@@ -117,7 +135,7 @@ class _LoginFormState extends State<LoginForm> {
             }
 
             Toast(
-              context, 
+              context,
               errorMessage,
               icon: const Icon(Icons.error, color: Colors.red),
             );
@@ -219,7 +237,7 @@ class _LoginFormState extends State<LoginForm> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _login,
+              onPressed: (_isLoading || !_isFormValid) ? null : _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.brown[800],
@@ -228,6 +246,7 @@ class _LoginFormState extends State<LoginForm> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
+                disabledBackgroundColor: Colors.grey[300],
               ),
               child:
                   _isLoading
