@@ -41,7 +41,7 @@ public class GetLetterDetailResDto {
         response.setContent(letter.getContent());
         response.setStatus(letter.getStatus());
         response.setCreatedAt(letter.getCreatedAt());
-        response.setScrapped(letter.isScrapped());
+        response.setScrapped(letter.getIsScrapped());
         return response;
     }
 
