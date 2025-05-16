@@ -1,6 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
+// import 'dart:math';
 // Package imports:
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -203,10 +203,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
           icon: const Icon(Icons.check_circle, color: Colors.green),
         );
         _controller.clear();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LetterScreen()),
-        );
+        Navigator.pushReplacementNamed(context, '/letter');
       }
     } catch (e) {
       Toast(
