@@ -41,7 +41,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
     if (name.isEmpty) return "에게";
     final lastChar = name.characters.last;
     final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
-    return hasFinalConsonant ? "에게" : "게";
+    return hasFinalConsonant ? "게" : "에게";
   }
 
   // 받침 여부에 따른 '이' / '가' 처리 함수
