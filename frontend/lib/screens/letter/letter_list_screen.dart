@@ -130,24 +130,13 @@ class _LetterListState extends State<LetterList> {
                                             : Colors.grey,
                                   ),
                                 ),
-                                // Text(
-                                //   isUnread ? "읽지 않음" : "읽음",
-                                //   style: TextStyle(
-                                //     fontSize: 12,
-                                //     color: isUnread ? Colors.red : Colors.grey,
-                                //   ),
-                                // ),
                               ],
                             ),
                           ),
                           Image.asset(
-                            isUnread
-                                ? (letter.received
-                                    ? 'assets/icons/letter/receive_letter_icon.png'
-                                    : 'assets/icons/letter/send_letter_icon.png')
-                                : (letter.received
-                                    ? 'assets/icons/letter/receive_inactive_icon.png'
-                                    : 'assets/icons/letter/send_inactive_icon.png'),
+                            letter.received
+                                ? 'assets/icons/letter/receive_letter_icon.png'
+                                : 'assets/icons/letter/send_letter_icon.png',
                             width: 50,
                             height: 50,
                           ),

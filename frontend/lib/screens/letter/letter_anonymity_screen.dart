@@ -214,3 +214,22 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
     }
   }
 }
+
+// 전송 버튼
+// Padding(
+//   padding: const EdgeInsets.symmetric(vertical: 12),
+//   child: ElevatedButton(
+//     style: ElevatedButton.styleFrom(
+//       backgroundColor: AppColors.primary,
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(24),
+//       ),
+//       minimumSize: const Size(140, 44),
+//     ),
+//     onPressed: _sendLetter,
+//     child: const Text(
+//       '편지보내기',
+//       style: TextStyle(color: Colors.black, fontSize: 16),
+//     ),
+//   ),
+// ),
