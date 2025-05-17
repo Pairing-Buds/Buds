@@ -1,5 +1,3 @@
-// ChatDetailScreen.dart (무한 스크롤 적용 버전)
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -297,7 +295,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       );
     }
 
-    final timeText = DateFormat('a h:mm', 'ko').format(DateTime.parse(createdAt).toLocal());
+    final utcTime = DateTime.parse(createdAt);
+    final kstTime = utcTime.add(const Duration(hours: 9));
+    final timeText = DateFormat('a h:mm', 'ko').format(kstTime);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),

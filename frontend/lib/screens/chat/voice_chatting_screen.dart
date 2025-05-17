@@ -9,10 +9,12 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 // Project imports:
 import 'package:buds/config/theme.dart';
-import 'package:buds/screens/chat/chat_detail_screen.dart';
 import 'package:buds/services/chat_service.dart';
 
 class VoiceChattingScreen extends StatefulWidget {
@@ -35,6 +37,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
 
   late NoiseMeter _noiseMeter;
   StreamSubscription<NoiseReading>? _noiseSubscription;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -63,6 +66,38 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
       if (!_isMuted) _startListening();
     });
   }
+
+  Future<void> _playRemoteAudio(String audioPath) async {
+    final baseUrl = dotenv.env['FASTAPI_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      print('❌ FASTAPI_URL 누락');
+      return;
+    }
+
+    final url = '$baseUrl$audioPath';
+    print('🔊 재생할 URL: $url');
+
+    try {
+      final player = AudioPlayer();
+
+      // 🔍 재생 상태 먼저 listen() 등록
+      player.onPlayerStateChanged.listen((state) {
+        print('🎧 현재 상태: $state');
+      });
+
+      // 🔊 설정
+      await player.setReleaseMode(ReleaseMode.stop);
+      await player.setVolume(1.0);
+
+      // ▶️ 재생 시도
+      print('📢 오디오 재생 시도 전');
+      await player.play(UrlSource(url));
+      print('📢 오디오 재생 시도 후');
+    } catch (e) {
+      print('❌ 오디오 재생 오류: $e');
+    }
+  }
+
   Future<void> _checkMicPermission() async {
     final status = await Permission.microphone.status;
 
@@ -70,10 +105,9 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
       final result = await Permission.microphone.request();
       if (result.isGranted) {
         print('🎤 마이크 권한 허용됨');
-        _initializeSTT(); // 권한 허용되면 STT 초기화 시작
+        _initializeSTT();
       } else {
         print('❌ 마이크 권한 거부됨');
-        // 안내 메시지 띄우기
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('마이크 권한이 필요합니다')),
@@ -101,11 +135,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
   }
 
   Future<void> _startListening() async {
-
-    // 2. 마이크 리소스 반환 대기 (중요)
     await Future.delayed(const Duration(milliseconds: 200));
 
-    // 3. 기존 코드 계속 진행
     if (_speech.isListening || _isMuted || _ttsPlaying) return;
 
     final initialized = await _speech.initialize(
@@ -149,8 +180,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     }
   }
 
-
-
   void _stopListening() {
     if (_speech.isListening) {
       _speech.stop();
@@ -158,7 +187,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
   }
 
   void _startNoiseListener() {
-    // 이미 실행 중이면 다시 시작 안 함
     if (_noiseSubscription != null) return;
 
     _noiseMeter = NoiseMeter();
@@ -174,11 +202,9 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
           _tts.stop();
           _ttsPlaying = false;
 
-          // 🔻 소음 측정 중단
           _noiseSubscription?.cancel();
           _noiseSubscription = null;
 
-          // 기존 STT 중지 후 재시작
           if (_speech.isListening) _speech.stop();
           Future.delayed(const Duration(milliseconds: 300), _startListening);
         }
@@ -188,26 +214,38 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     }
   }
 
-
-
-
   void _handleUserSpeech(String text) async {
     setState(() {
       _chatHistory.add({"text": text, "isUser": true});
     });
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+
     try {
       final response = await _chatService.sendMessage(
         message: text,
-        isVoice: false,
+        isVoice: true,
       );
 
+      final messageText = response['text'];
+      final audioPath = response['audioPath'];
+
       setState(() {
-        _chatHistory.add({"text": response, "isUser": false});
+        _chatHistory.add({"text": messageText, "isUser": false});
       });
 
-      if (!_isMuted) {
-        await _tts.speak(response);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+
+      if (!_isMuted && audioPath != null) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _playRemoteAudio(audioPath);
+        });
+      } else if (!_isMuted) {
+        await _tts.speak(messageText);
       } else {
         _startListening();
       }
@@ -234,12 +272,12 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     }
   }
 
-
   @override
   void dispose() {
     _noiseSubscription?.cancel();
     _speech.stop();
     _tts.stop();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -258,6 +296,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 itemCount: _chatHistory.length,
                 itemBuilder: (context, index) {
@@ -294,10 +333,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
                       _tts.stop();
                       _speech.stop();
                       _noiseSubscription?.cancel();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ChatDetailScreen()),
-                      );
+                      Navigator.pop(context);
                     },
                     child: const Icon(Icons.close, size: 40, color: Colors.black),
                   ),
