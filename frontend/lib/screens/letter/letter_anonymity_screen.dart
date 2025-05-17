@@ -1,6 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
+// import 'dart:math';
 // Package imports:
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -90,7 +90,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
+                    color: AppColors.letterBackground,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -203,10 +203,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
           icon: const Icon(Icons.check_circle, color: Colors.green),
         );
         _controller.clear();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LetterScreen()),
-        );
+        Navigator.pushReplacementNamed(context, '/letter');
       }
     } catch (e) {
       Toast(
@@ -217,3 +214,22 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
     }
   }
 }
+
+// 전송 버튼
+// Padding(
+//   padding: const EdgeInsets.symmetric(vertical: 12),
+//   child: ElevatedButton(
+//     style: ElevatedButton.styleFrom(
+//       backgroundColor: AppColors.primary,
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(24),
+//       ),
+//       minimumSize: const Size(140, 44),
+//     ),
+//     onPressed: _sendLetter,
+//     child: const Text(
+//       '편지보내기',
+//       style: TextStyle(color: Colors.black, fontSize: 16),
+//     ),
+//   ),
+// ),

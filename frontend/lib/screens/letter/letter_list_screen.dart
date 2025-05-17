@@ -110,24 +110,33 @@ class _LetterListState extends State<LetterList> {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                // Text(
-                                //   isUnread ? "읽지 않음" : "",
-                                //   style: TextStyle(
-                                //     fontSize: 12,
-                                //     color: isUnread ? Colors.red : Colors.grey,
-                                //   ),
-                                // ),
+                                Text(
+                                  // 받은 편지: "읽지 않음" 또는 "읽음"으로 상태 표시
+                                  // 보낸 편지: 항상 "보낸 편지"로 표시
+                                  letter.received
+                                      ? (isUnread
+                                          ? "받은 편지: 읽지 않음"
+                                          : "받은 편지: 읽음")
+                                      : "내가 보낸 편지",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    // 받은 편지: 읽지 않음은 빨간색, 읽음은 회색
+                                    // 보낸 편지: 항상 회색
+                                    color:
+                                        letter.received
+                                            ? (isUnread
+                                                ? Colors.red
+                                                : Colors.grey)
+                                            : Colors.grey,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Image.asset(
-                            isUnread
-                                ? (letter.received
-                                    ? 'assets/icons/letter/receive_letter_icon.png'
-                                    : 'assets/icons/letter/send_letter_icon.png')
-                                : (letter.received
-                                    ? 'assets/icons/letter/receive_inactive_icon.png'
-                                    : 'assets/icons/letter/send_inactive_icon.png'),
+                            letter.received
+                                ? 'assets/icons/letter/receive_letter_icon.png'
+                                : 'assets/icons/letter/send_letter_icon.png',
                             width: 50,
                             height: 50,
                           ),
