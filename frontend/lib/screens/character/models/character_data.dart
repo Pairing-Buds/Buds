@@ -53,7 +53,7 @@ class CharacterData {
       case 2:
         return '개구리'; // 개구리
       case 3:
-        return '도마뱀'; // 도마뱀
+        return '게코'; // 도마뱀
       case 4:
         return '마멋'; // 마멋
       case 5:
