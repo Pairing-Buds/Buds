@@ -73,7 +73,7 @@ class _LetterScreenState extends State<LetterScreen> {
         title: '편지함',
         leftIconPath: 'assets/icons/bottle_letter.png',
         centerTitle: true,
-        showBackButton: true,
+        showBackButton: false,
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
