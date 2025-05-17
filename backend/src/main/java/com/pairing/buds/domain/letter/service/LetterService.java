@@ -208,7 +208,7 @@ public class LetterService {
 //        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
         // 기존 편지 조회
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
-        if(letter.getReceiver().getId().equals(userId)){
+        if(letter.getSender().getId().equals(userId)){
             throw new ApiException(StatusCode.CONFLICT, Message.ANSWER_LETTER_ERROR);
         }
 
