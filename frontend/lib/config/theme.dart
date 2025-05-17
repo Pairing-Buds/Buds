@@ -20,6 +20,8 @@ class AppColors {
   static const Color green = Color(0xFFEEFFD3);
   // 일기 채팅 배경색
   static const Color cardBackground = Color(0xFFFFFDF4);
+  // 편지 배경색
+  static const Color letterBackground = Color(0xFFFFFAE6);
   // 연한 회색
   static const Color lightGrey = Color(0xFFF5F5F5);
   // 회원가입 회색 색상

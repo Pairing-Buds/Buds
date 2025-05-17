@@ -117,7 +117,7 @@ class _LetterListState extends State<LetterList> {
                                       ? (isUnread
                                           ? "받은 편지: 읽지 않음"
                                           : "받은 편지: 읽음")
-                                      : "보낸 편지",
+                                      : "내가 보낸 편지",
                                   style: TextStyle(
                                     fontSize: 12,
                                     // 받은 편지: 읽지 않음은 빨간색, 읽음은 회색

@@ -39,6 +39,22 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     loadLetters(); // 초기 로드시 편지 목록 로드
   }
 
+  // ⭐ 받침 여부에 따른 '에게' / '게' 처리 함수
+  String getPostpositionTo(String name) {
+    if (name.isEmpty) return "에게";
+    final lastChar = name.characters.last;
+    final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
+    return hasFinalConsonant ? "게" : "에게";
+  }
+
+  // ⭐ 받침 여부에 따른 '이' / '가' 처리 함수
+  String getPostpositionFrom(String name) {
+    if (name.isEmpty) return "가";
+    final lastChar = name.characters.last;
+    final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
+    return hasFinalConsonant ? "이" : "가";
+  }
+
   /// 페이지네이션 적용된 편지 목록 로드
   Future<void> loadLetters({int page = 0}) async {
     setState(() {
@@ -166,10 +182,12 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                     child: Row(
                       children: [
                         Text(
-                          (isReceived ? '보낼 편지' : '받은 편지'),
+                          (isReceived ? '보낸 편지' : '받은 편지'),
                           style: TextStyle(color: Colors.grey, fontSize: 16),
                         ),
                         Spacer(),
+                        // ⭐편지 ID, 편지 번호는 테스트 용으로 넣었습니다
+                        // ⭐ 이 유저와 주고받은 편지가 표시되며 좋겠습니다 5번째 편지
                         Text(
                           currentLetter != null
                               ? '편지 ID: ${currentLetter!.letterId}'
@@ -198,6 +216,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                             ? buildLetterContent(currentLetter!, loggedInUser)
                             : const Center(child: Text('편지를 불러올 수 없습니다.')),
                   ),
+
                   // ⭐ 페이지네이션 UI (노란 박스 바로 아래로 위치)
                   Container(
                     padding: const EdgeInsets.only(
@@ -250,7 +269,7 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
           padding: const EdgeInsets.all(20),
           margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
+            color: AppColors.letterBackground,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -269,8 +288,8 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                 children: [
                   Text(
                     isReceived
-                        ? 'To. $loggedInUser'
-                        : 'To. ${widget.opponentName}',
+                        ? '${loggedInUser}${getPostpositionTo(loggedInUser)}'
+                        : '${widget.opponentName}${getPostpositionTo(widget.opponentName)}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(width: 10),
@@ -302,13 +321,31 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
               Align(
                 alignment: Alignment.bottomRight,
                 child: Text(
-                  'From. ${letter.senderName}',
+                  '${letter.senderName}${getPostpositionFrom(letter.senderName)}',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
             ],
           ),
         ),
+        // 전송하기 버튼(박스외부)
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        //   child: ElevatedButton(
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: AppColors.primary,
+        //       shape: RoundedRectangleBorder(
+        //         borderRadius: BorderRadius.circular(24),
+        //       ),
+        //       minimumSize: const Size(double.infinity, 44), // 전체 너비 적용
+        //     ),
+        //     onPressed: _sendLetter,
+        //     child: const Text(
+        //       '편지보내기',
+        //       style: TextStyle(color: Colors.black, fontSize: 16),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

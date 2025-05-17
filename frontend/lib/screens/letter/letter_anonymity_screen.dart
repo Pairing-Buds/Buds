@@ -90,7 +90,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
+                    color: AppColors.letterBackground,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
