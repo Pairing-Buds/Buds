@@ -28,9 +28,7 @@ import 'providers/character_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/login/login_main.dart';
 import 'screens/splash_screen.dart';
-
-// import 'screens/login/login_screen.dart';
-// import 'package:buds/providers/letter_provider.dart';
+import 'providers/letter_provider.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -239,19 +237,16 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AgreementProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => CharacterProvider()),
-        // ChangeNotifierProvider(
-        //   create: (_) => LetterProvider(),
-        //   child: const MyApp(),
-        // ),
         ChangeNotifierProvider(
           create:
               (context) => MyPageProvider(
                 Provider.of<CharacterProvider>(context, listen: false),
               ),
         ),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AgreementProvider()),
+        ChangeNotifierProvider(create: (_) => LetterProvider()),
       ],
       child: const MyApp(),
     ),

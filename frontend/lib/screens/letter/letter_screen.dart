@@ -1,12 +1,15 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
+// Package imports:
+import 'package:provider/provider.dart';
+
 // Project imports:
-import 'package:buds/config/theme.dart';
-import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/providers/letter_provider.dart';
 import 'package:buds/screens/letter/letter_anonymity_screen.dart';
 import 'package:buds/screens/letter/letter_list_screen.dart';
-import 'package:buds/services/letter_service.dart';
+import 'package:buds/screens/letter/widgets/letter_header.dart';
+import 'package:buds/screens/letter/widgets/letter_quest_banner.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 
 class LetterScreen extends StatefulWidget {
@@ -17,37 +20,12 @@ class LetterScreen extends StatefulWidget {
 }
 
 class _LetterScreenState extends State<LetterScreen> {
-  int letterCnt = 0;
-
   @override
   void initState() {
     super.initState();
-    fetchLetterCount();
-  }
-
-  Future<void> fetchLetterCount() async {
-    try {
-      final letterResponse = await LetterService().fetchLetters();
-      if (letterResponse.letters.isNotEmpty) {
-        setState(() {
-          letterCnt = letterResponse.letterCnt;
-        });
-      } else {
-        setState(() {
-          letterCnt = 0;
-        });
-      }
-    } catch (e) {
-      print('편지 수 조회 에러: $e');
-      setState(() {
-        letterCnt = 0;
-      });
-    }
-  }
-
-  void updateLetterCount(int count) {
-    setState(() {
-      letterCnt = count;
+    // Provider를 통해 편지 목록 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<LetterProvider>(context, listen: false).fetchLetters();
     });
   }
 
@@ -56,7 +34,8 @@ class _LetterScreenState extends State<LetterScreen> {
       context,
       MaterialPageRoute(builder: (_) => const LetterAnonymityScreen()),
     ).then((_) {
-      fetchLetterCount(); // 돌아왔을 때 리스트 새로고침
+      // 화면으로 돌아왔을 때 편지 목록 새로고침
+      Provider.of<LetterProvider>(context, listen: false).fetchLetters();
     });
   }
 
@@ -84,63 +63,11 @@ class _LetterScreenState extends State<LetterScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 퀘스트 배너
-                  Container(
-                    // margin: const EdgeInsets.all(10),
-                    margin: EdgeInsets.only(
-                      top: 10,
-                      bottom: isLandscape ? 10 : 10,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.skyblue,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            '오늘의 활동을 하고\n편지지를 모아봐요',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        Transform.translate(
-                          offset: const Offset(0, 13),
-                          child: Image.asset(
-                            'assets/images/marmet_cutting_head.png',
-                            width: 80,
-                            height: 80,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  LetterQuestBanner(isLandscape: isLandscape),
+
                   // 탭 제목
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 1),
-                    child: Row(
-                      children: [
-                        const Text(
-                          '편지 목록',
-                          style: TextStyle(color: Colors.grey, fontSize: 18),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '나의 편지 $letterCnt', // LetterModel의 letterCnt 사용
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const LetterHeader(),
+
                   const SizedBox(height: 8),
 
                   // 편지 목록 컴포넌트
@@ -149,10 +76,7 @@ class _LetterScreenState extends State<LetterScreen> {
                         isLandscape
                             ? constraints.maxHeight * 0.8
                             : constraints.maxHeight * 0.76,
-                    child: LetterList(
-                      onCountFetched: updateLetterCount,
-                      onWritePressed: navigateToWrite,
-                    ),
+                    child: LetterList(onWritePressed: navigateToWrite),
                   ),
                 ],
               ),
