@@ -1,7 +1,6 @@
 package com.pairing.buds.domain.admin.dto.request;
 
 import com.pairing.buds.domain.user.entity.User;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
@@ -11,7 +10,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Valid
 public class ActiveUserReqDto {
 
     @NotNull

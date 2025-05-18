@@ -46,7 +46,7 @@ public class AdminService {
     /** 문의 목록 조회 **/
     public List<GetAnsweredQuestionListReqDto> getAnsweredQuestionList(int adminId) {
 
-        if(adminRepository.existsById(adminId)){
+        if(!adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
         return questionRepository.findAnsweredQuestionsByStatusOrderByCreatedAt(QuestionStatus.ANSWERED);
@@ -54,14 +54,14 @@ public class AdminService {
     /** 미답변 문의 목록 조회 **/
     public List<GetUnAnsweredQuestionListReqDto> getUnAnsweredQuestionList(int adminId) {
 
-        if(adminRepository.existsById(adminId)){
+        if(!adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
         return questionRepository.findUnAnsweredQuestionsByStatusOrderByCreatedAt(QuestionStatus.UNANSWERED);
     }
     /** 특정 유저의 문의 조회 **/
     public Object getQuestionOfUser(int adminId, int userId) {
-        if(adminRepository.existsById(adminId)){
+        if(!adminRepository.existsById(adminId)){
             throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         }
         // 조회
@@ -99,7 +99,7 @@ public class AdminService {
         String content = dto.getContent();
 
         if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
-        Answer answer = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
+        Answer answer = answerRepository.findById(answerId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
 
         Answer answerToSave = PatchAnswerReqDto.patchAnswer(answer, content);
         answerRepository.save(answerToSave);
@@ -117,7 +117,7 @@ public class AdminService {
     public void inactiveUser(int adminId, InActiveUserReqDto dto) {
         int userId = dto.getUserId();
 
-        if(adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
+        if(!adminRepository.existsById(adminId)){ throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);}
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         User inActivatedUser = InActiveUserReqDto.toInActiveUser(user);
         userRepository.save(inActivatedUser);
@@ -131,10 +131,8 @@ public class AdminService {
         int answerId = dto.getAnswerId();
 
         if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
-        Answer answerToDelete = answerRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
+        Answer answerToDelete = answerRepository.findById(answerId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
         answerRepository.delete(answerToDelete); // 에러 시 OptimisticLockingFailureException 발생
     }
-
-
 
 }
