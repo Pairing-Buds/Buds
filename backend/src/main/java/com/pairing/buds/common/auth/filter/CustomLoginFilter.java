@@ -9,14 +9,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -27,17 +26,15 @@ import java.util.Optional;
 
 @Component
 public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final RedisService redisService;
 
     public CustomLoginFilter(AuthenticationManager authenticationManager,
                              JwtTokenProvider jwtTokenProvider,
-                             @Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate, RedisService redisService) {
+                             RedisService redisService) {
         super(new AntPathRequestMatcher("/login", "POST"), authenticationManager);
         this.jwtTokenProvider = jwtTokenProvider;
-        this.redisTemplate = redisTemplate;
         this.redisService = redisService;
     }
 
@@ -58,7 +55,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
         // JSON 바디 파싱
         UserLoginReqDto creds;
         try {
-            creds = objectMapper.readValue(request.getInputStream(), UserLoginReqDto.class);
+            creds = OBJECT_MAPPER.readValue(request.getInputStream(), UserLoginReqDto.class);
         } catch (IOException e) {
             throw new AuthenticationServiceException("잘못된 로그인 요청 포맷입니다.", e);
         }
@@ -82,11 +79,18 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
         CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
         Integer userId = principal.getUserId();
 
-        // 이전 RT 무효화
+        // 이전 RT 무효화, 엑세스 토큰 버전 +1
         redisService.deleteRefreshToken(userId);
+        long newVersion = redisService.incrementTokenVersion(userId);
 
-        // 새 RT 생성 및 저장 (만료시간은 JwtTokenProvider.getRefreshExpiration() 활용)
-        String accessToken = jwtTokenProvider.createAccessToken(userId); // 액세스 토큰 생성
+        // principal에 담긴 권한(user 혹은 admin)
+        String role = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("권한 정보가 없습니다."));
+
+        // 새 토큰 생성 및 저장
+        String accessToken = jwtTokenProvider.createAccessToken(userId, newVersion, role); // 액세스 토큰 생성
         String refreshToken = jwtTokenProvider.createRefreshToken(userId); // 리프레시 토큰 생성
         redisService.saveRefreshToken(userId, refreshToken, jwtTokenProvider.getRefreshExpiration());
 
@@ -94,14 +98,13 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
         jwtTokenProvider.addTokensToResponse(response, accessToken, refreshToken); // 쿠키에 새로운 토큰 설정
 
         // SecurityContext 업데이트
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(
+        Authentication newAuth =
+            new UsernamePasswordAuthenticationToken(
                 userId,
                 null,
                 principal.getAuthorities()
-        );
+            );
         SecurityContextHolder.getContext().setAuthentication(newAuth);
-
-        response.getWriter().close();
     }
 
     @Override

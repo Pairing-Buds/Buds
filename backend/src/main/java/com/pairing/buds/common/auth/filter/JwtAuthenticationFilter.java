@@ -1,10 +1,9 @@
 package com.pairing.buds.common.auth.filter;
 
 import com.pairing.buds.common.auth.service.RedisService;
-import com.pairing.buds.common.auth.utils.CustomUserDetails;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
-import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -23,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * 클라이언트 요청에 포함된 JWT 토큰 확인하고 이를 기반으로 인증 처리
@@ -58,84 +57,106 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
+    /**
+     * Access Token 유효 & 버전 일치 시 바로 인증 처리
+     * Access Token 만료 시 ExpiredJwtException을 캐치해 Refresh 흐름으로 진입
+     * Refresh Token 유효 & Redis 저장 토큰과 일치 시 새 Access Token 발급 후 Authentication 재설정
+     * 그 외의 경우 401 응답
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain)
             throws ServletException, IOException {
 
-        if (isPublicPath(request)){
+        if (isPublicPath(request)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 토큰 추출
-        String accessToken = extractCookie(request, "access_token");
+        String accessToken  = extractCookie(request, "access_token");
         String refreshToken = extractCookie(request, "refresh_token");
-        Authentication auth;
+        Authentication auth = null;
+
         try {
-            auth = resolveAuthentication(accessToken, refreshToken, response);
-        } catch (JwtException ex) {
-            log.warn("JWT 처리 중 오류 발생: {}", ex.getMessage());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
-            return;
-        }
+            if (StringUtils.hasText(accessToken)) {
+                try {
+                    // 1) Access Token 검증
+                    jwtTokenProvider.validateToken(accessToken);
 
-        // 토큰이 없거나 재로그인이 필요한 상태 -> 401 반환
-        if (auth == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 정보가 없습니다");
-            return;
-        }
-        SecurityContextHolder.getContext().setAuthentication(auth);
+                    // 2) 버전 비교
+                    Integer userId   = jwtTokenProvider.getUserId(accessToken);
+                    long    claimVer = jwtTokenProvider.getVersionFromToken(accessToken);
+                    long    currVer  = redisService.getTokenVersion(userId);
+                    if (claimVer != currVer) {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                                "다른 기기 로그인으로 액세스 토큰이 무효화되었습니다.");
+                        return;
+                    }
 
-        chain.doFilter(request, response);
-    }
+                    // 3) 유효한 Token이라면 인증 정보 생성
+                    auth = getAuthenticationFromAccessToken(accessToken);
 
-    /**
-     * Access/Refresh 토큰을 받아서,
-     *  1) accessToken이 유효하면 해당 Authentication 반환
-     *  2) accessToken 만료 & refreshToken 유효 & Redis와 일치하면 새 access 발급 Authentication 반환
-     *  3) 그 외엔 null 반환
-     */
-    private Authentication resolveAuthentication(String accessToken,
-                                                 String refreshToken,
-                                                 HttpServletResponse response) {
-        // A) accessToken이 유효하면 바로 인증 (리프레시 일치 여부 확인 추가?)
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-            return getAuthenticationFromAccessToken(accessToken);
-        }
-
-        // B) accessToken 만료 & refreshToken 유효 & Redis와 일치하면 새 access 발급
-        if (StringUtils.hasText(refreshToken)
-                && jwtTokenProvider.validateToken(refreshToken)) {
-            Integer userId = jwtTokenProvider.getUserId(refreshToken);
-            String savedRefresh = redisService.getRefreshToken(userId);
-
-            if (refreshToken.equals(savedRefresh)) {
-                String newAccess = jwtTokenProvider.createAccessToken(userId);
-                // 쿠키에 새 Access만, Refresh는 그대로 재설정
-                jwtTokenProvider.addTokensToResponse(response, newAccess, refreshToken);
-                return getAuthenticationFromAccessToken(newAccess);
+                } catch (ExpiredJwtException eje) {
+                    // 액세스 만료 시 리프레시 확인 로직 실행
+                }
             }
-        }
 
-        // 인증 정보 없음
-        return null;
+            if (auth == null && StringUtils.hasText(refreshToken)) {
+                // 4) Refresh Token 검증
+                if (jwtTokenProvider.validateToken(refreshToken)) {
+                    Integer userId = jwtTokenProvider.getUserId(refreshToken);
+                    String savedRefresh = redisService.getRefreshToken(userId);
+                    if (refreshToken.equals(savedRefresh)) {
+                        // 5) Redis 일치 → 새 Access 발급
+                        long currVer = redisService.getTokenVersion(userId);
+
+                        // 새 엑세스 토큰 발행시 role도 함꼐 전달
+                        String role   = jwtTokenProvider.getRoleFromToken(refreshToken);
+                        String newAccess = jwtTokenProvider.createAccessToken(userId, currVer, role);
+
+                        jwtTokenProvider.addTokensToResponse(response, newAccess, refreshToken);
+                        auth = getAuthenticationFromAccessToken(newAccess);
+                    } else {
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED,
+                                "리프레시 토큰이 유효하지 않습니다.");
+                        return;
+                    }
+                }
+            }
+
+            if (auth == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 정보가 없습니다.");
+                return;
+            }
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            chain.doFilter(request, response);
+
+        } catch (JwtException ex) {
+            log.warn("JWT 처리 중 오류: {}", ex.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰 검증 실패");
+        }
     }
 
     private Authentication getAuthenticationFromAccessToken(String token) {
         Integer userId = jwtTokenProvider.getUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id=" + userId));
+        String  role   = jwtTokenProvider.getRoleFromToken(token);
 
-        // 권한 정보만 CustomUserDetails에서 꺼내 온다고 가정
-        CustomUserDetails userDetails = new CustomUserDetails(user);
-        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        // role(claim) 기반으로 GrantedAuthority 생성
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id=" + userId));
+//
+//        // 권한 정보만 CustomUserDetails에서 꺼내 온다고 가정
+//        CustomUserDetails userDetails = new CustomUserDetails(user);
+//        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 
         return new UsernamePasswordAuthenticationToken(
                 userId,
                 null,
-                authorities
+                List.of(authority)
         );
     }
 

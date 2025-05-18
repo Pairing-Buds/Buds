@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:buds/services/activity_service.dart';
-import 'package:buds/services/letter_service.dart';
+import 'package:provider/provider.dart';
+
+import 'package:buds/config/theme.dart';
+import 'package:buds/providers/letter_provider.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/widgets/toast_bar.dart';
-import 'package:buds/config/theme.dart';
+import 'package:buds/screens/letter/widgets/letter_answer_header.dart';
+import 'package:buds/screens/letter/widgets/letter_content_input.dart';
+import 'package:buds/screens/letter/widgets/letter_sender_footer.dart';
+import 'package:buds/screens/letter/widgets/letter_send_button.dart';
 
 class LetterAnswerScreen extends StatefulWidget {
   final int? letterId;
@@ -28,7 +33,6 @@ class LetterAnswerScreen extends StatefulWidget {
 
 class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
   final TextEditingController _controller = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -55,6 +59,20 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
   @override
   Widget build(BuildContext context) {
     String today = DateFormat('yyyy.MM.dd').format(DateTime.now());
+    final letterProvider = Provider.of<LetterProvider>(context);
+
+    // 수신자와 발신자 이름 및 조사 설정
+    final String recipientName =
+        widget.letterId != null
+            ? widget.senderName ?? "익명"
+            : widget.receiverName ?? "나";
+    final String recipientPostposition = getPostpositionTo(recipientName);
+
+    final String senderName =
+        widget.letterId != null
+            ? widget.receiverName ?? "익명"
+            : widget.senderName ?? "나";
+    final String senderPostposition = getPostpositionFrom(senderName);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -87,92 +105,29 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 수신자 표시
-                Row(
-                  children: [
-                    const Expanded(child: SizedBox()),
-                    Expanded(
-                      flex: 5,
-                      child: Center(
-                        child: Text(
-                          widget.letterId != null
-                              ? '${widget.senderName ?? "익명"}${getPostpositionTo(widget.senderName ?? "익명")}'
-                              : '${widget.receiverName ?? "나"}${getPostpositionTo(widget.receiverName ?? "나")}',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 48),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(
-                    today,
-                    style: const TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
+                // 수신자 헤더
+                LetterAnswerHeader(
+                  recipientName: recipientName,
+                  postPosition: recipientPostposition,
+                  date: today,
                 ),
                 const SizedBox(height: 20),
 
                 // 편지 입력 필드
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  height: MediaQuery.of(context).size.height * 0.4, //  최대 높이 제한
-                  child: TextField(
-                    controller: _controller,
-                    expands: true,
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    decoration: const InputDecoration(
-                      hintText: '클릭하고 편지를 입력해보세요',
-                      hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
-                      border: InputBorder.none,
-                    ),
-                    style: const TextStyle(fontSize: 14),
-                    textAlign: TextAlign.left,
-                  ),
-                ),
+                LetterContentInput(controller: _controller),
                 const SizedBox(height: 12),
 
-                // 수신자 (현재 사용자) 표시
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    widget.letterId != null
-                        ? '${widget.receiverName ?? "익명"}${getPostpositionFrom(widget.receiverName ?? "익명")}'
-                        : '${widget.senderName ?? "나"}${getPostpositionFrom(widget.senderName ?? "나")}',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                // 발신자 푸터
+                LetterSenderFooter(
+                  senderName: senderName,
+                  postPosition: senderPostposition,
                 ),
                 const SizedBox(height: 12),
 
                 // 답장 보내기 버튼
-                Center(
-                  child: GestureDetector(
-                    onTap: _isLoading ? null : _sendLetter,
-                    child: Container(
-                      width: 140,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: _isLoading ? Colors.grey : AppColors.primary,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Center(
-                        child:
-                            _isLoading
-                                ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                                : const Text(
-                                  '편지보내기',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                      ),
-                    ),
-                  ),
+                LetterSendButton(
+                  isLoading: letterProvider.isSending,
+                  onTap: () => _sendLetter(letterProvider),
                 ),
                 const SizedBox(height: 6),
               ],
@@ -184,7 +139,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
   }
 
   /// 편지 또는 답장 전송 함수
-  Future<void> _sendLetter() async {
+  Future<void> _sendLetter(LetterProvider provider) async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
       Toast(
@@ -195,36 +150,26 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       bool success;
       if (widget.letterId != null) {
-        success = await LetterService().sendletterAnswer(
-          widget.letterId!,
-          content,
-        );
+        success = await provider.sendLetterAnswer(widget.letterId!, content);
       } else if (widget.userId != null) {
-        success = await ActivityService().sendUserLetter(
-          widget.userId!,
-          content,
-        );
+        success = await provider.sendUserLetter(widget.userId!, content);
       } else {
         throw Exception('잘못된 요청: letterId나 userId 중 하나가 필요합니다.');
       }
 
       if (success) {
         Toast(context, '편지가 전송되었습니다');
-        Navigator.pushReplacementNamed(context, widget.redirectRoute);
+        Navigator.pop(context, true); // 성공 결과 반환
       } else {
         Toast(
           context,
           '편지 전송에 실패했습니다. 다시 시도해주세요.',
           icon: const Icon(Icons.error, color: Colors.red),
         );
-        Navigator.pushReplacementNamed(context, widget.redirectRoute);
+        Navigator.pop(context, false); // 실패 결과 반환
       }
     } catch (e) {
       if (e.toString().contains('409')) {
@@ -240,10 +185,6 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
           icon: const Icon(Icons.error, color: Colors.red),
         );
       }
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 }

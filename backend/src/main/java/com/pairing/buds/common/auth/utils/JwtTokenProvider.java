@@ -59,7 +59,7 @@ public class JwtTokenProvider {
 
 
     /** 엑세스 토큰 생성 메서드 **/
-    public String createAccessToken(Integer userId) {
+    public String createAccessToken(Integer userId, long version, String role) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         UserRole userRole = user.getRole();
@@ -70,7 +70,8 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .id(jti)
                 .claim("userId", userId)
-                .claim("role", userRole.name())
+                .claim("role", role)
+                .claim("ver", version)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessExpiration))
                 .signWith(secretKeyInstance)
@@ -126,29 +127,34 @@ public class JwtTokenProvider {
         return null;
     }
 
-    /** 쿠키에서 엑세스 토큰 추출 - 서브 메서드 **/
-    public String resolveAccessToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return extractCookie(request, "access_token");
+    /** 토큰에서 ver(claim) 꺼내기 **/
+    public long getVersionFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKeyInstance)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("ver", Long.class);
     }
 
-    /** 쿠키에서 리프레시 토큰 추출 - 서브 메서드 **/
-    public String resolveRefreshToken(HttpServletRequest request) {
-        return extractCookie(request, "refresh_token");
+    /** 토큰에서 role 추출 */
+    public String getRoleFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKeyInstance)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 
-    /** 토큰 유효성 검증 (parser객체 -> JWT 검증, 해석할 수 있게 해줌) **/
-    public boolean isExpired(String token) {
+    /** jwt 토큰에서 userId 추출 **/
+    public Integer getUserId(String token) {
         return Jwts.parser()
                 .verifyWith(secretKeyInstance)
                 .build()
                 .parseSignedClaims(token) // JWT의 서명 검증 진행, JWT의 페이로드에서 Claims 추출
                 .getPayload()
-                .getExpiration()
-                .before(new Date());
+                .get("userId", Integer.class);
     }
 
     public boolean validateToken(String token) {
@@ -161,20 +167,25 @@ public class JwtTokenProvider {
             return true;
         } catch (ExpiredJwtException e) {
             logger.info("만료된 JWT: {}", e.getMessage());
+            return false;
         } catch (JwtException | IllegalArgumentException e) {
             logger.warn("JWT 검증 실패: {}", e.getMessage());
+            return false;
         }
-        return false;
     }
 
-    /** jwt 토큰에서 userId 추출 **/
-    public Integer getUserId(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKeyInstance)
-                .build()
-                .parseSignedClaims(token) // JWT의 서명 검증 진행, JWT의 페이로드에서 Claims 추출
-                .getPayload()
-                .get("userId", Integer.class);
+    /** 쿠키에서 엑세스 토큰 추출 - 서브 메서드 **/
+    public String resolveAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return extractCookie(request, "access_token");
+    }
+
+    /** 쿠키에서 리프레시 토큰 추출 - 서브 메서드 **/
+    public String resolveRefreshToken(HttpServletRequest request) {
+        return extractCookie(request, "refresh_token");
     }
 
 }

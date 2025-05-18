@@ -1,21 +1,13 @@
-// ChatDetailScreen.dart (voice + text 통합)
-
-// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-// Package imports:
 import 'package:intl/intl.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-
-// Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/screens/chat/voice_chatting_screen.dart';
 import 'package:buds/screens/chat/widgets/typing_indicator.dart';
 import 'package:buds/services/chat_service.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
 import 'package:buds/providers/auth_provider.dart';
-
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({super.key});
@@ -33,36 +25,51 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   bool _hasStarted = false;
   late stt.SpeechToText _speech;
 
+  // 무한 스크롤 관련 변수
+  int _offset = 0;
+  final int _limit = 30;
+  bool _hasMore = true;
+  bool _isLoading = false;
+
   static const String loadingMessage = 'LOADING';
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _loadChatHistory();
+    _loadMoreChat();
+    _scrollController.addListener(_onScroll);
   }
 
-  Future<void> _loadChatHistory() async {
-    final history = await _chatService.getChatHistory();
+  void _onScroll() {
+    if (_scrollController.position.pixels <= _scrollController.position.minScrollExtent + 100 && !_isLoading) {
+      _loadMoreChat();
+    }
+  }
 
-    history.sort((a, b) {
-      final timeA = DateTime.parse(a['created_at']);
-      final timeB = DateTime.parse(b['created_at']);
-      return timeA.compareTo(timeB);
-    });
+  Future<void> _loadMoreChat() async {
+    if (!_hasMore || _isLoading) return;
+
+    setState(() => _isLoading = true);
+
+    final result = await _chatService.getChatHistory(offset: _offset, limit: _limit);
+    final List<Map<String, dynamic>> newMessages = result['messages'];
+    final nextOffset = result['nextOffset'];
+    final hasMore = result['hasMore'];
+
+    newMessages.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));
 
     setState(() {
-      _chatHistory = history;
-      _hasStarted = history.isNotEmpty;
+      _chatHistory.insertAll(0, newMessages);
+      _offset = nextOffset ?? _offset;
+      _hasMore = hasMore ?? false;
+      _hasStarted = _chatHistory.isNotEmpty;
+      _isLoading = false;
     });
-
-    _scrollToBottom();
   }
 
   void _handleSend() async {
-    if (_controller.text
-        .trim()
-        .isEmpty) return;
+    if (_controller.text.trim().isEmpty) return;
 
     final userMessage = _controller.text.trim();
     setState(() {
@@ -104,9 +111,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -128,7 +141,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-
   Widget _buildStartView() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -149,16 +161,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 14, horizontal: 20),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               suffixIcon: GestureDetector(
                 onTap: () {
                   final input = _controller.text.trim();
                   if (input.isEmpty) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const VoiceChattingScreen()),
+                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
                     );
                   } else {
                     _handleSend();
@@ -169,8 +179,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   child: Image.asset('assets/icons/chat.png', width: 30),
                 ),
               ),
-              suffixIconConstraints: const BoxConstraints(
-                  minWidth: 40, minHeight: 20),
+              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: BorderSide.none,
@@ -183,42 +192,23 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 
   Widget _buildChatView() {
-    final latestDate = _chatHistory.isNotEmpty &&
-        _chatHistory.last['created_at'] != null
-        ? DateFormat('yyyy년 M월 d일').format(
-        DateTime.parse(_chatHistory.last['created_at']))
-        : '';
-
     return Column(
       children: [
-        if (latestDate.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
-            child: Row(
-              children: [
-                const Expanded(
-                    child: Divider(color: Colors.black, thickness: 0.5)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(latestDate),
-                ),
-                const Expanded(
-                    child: Divider(color: Colors.black, thickness: 0.5)),
-              ],
-            ),
-          ),
         Expanded(
-          child: NotificationListener<OverscrollIndicatorNotification>(
-            onNotification: (overscroll) {
-              overscroll.disallowIndicator();
-              return true;
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (scrollInfo) {
+              if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 50 && !_isLoading) {
+                _loadMoreChat();
+              }
+              return false;
             },
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16),
+              reverse: true,
               itemCount: _chatHistory.length,
               itemBuilder: (context, index) {
-                final chat = _chatHistory[index];
+                final chat = _chatHistory[_chatHistory.length - 1 - index];
                 return _buildChatBubble(
                   chat['message'],
                   isBot: !(chat['is_user'] ?? false),
@@ -239,16 +229,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
               filled: true,
               fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(
-                  vertical: 14, horizontal: 20),
+              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               suffixIcon: GestureDetector(
                 onTap: () {
                   final input = _controller.text.trim();
                   if (input.isEmpty) {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const VoiceChattingScreen()),
+                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
                     );
                   } else {
                     _handleSend();
@@ -259,8 +247,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   child: Image.asset('assets/icons/chat.png', width: 30),
                 ),
               ),
-              suffixIconConstraints: const BoxConstraints(
-                  minWidth: 40, minHeight: 20),
+              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: BorderSide.none,
@@ -308,21 +295,18 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       );
     }
 
-    final timeText = DateFormat('a h:mm', 'ko').format(
-        DateTime.parse(createdAt).toLocal());
+    final utcTime = DateTime.parse(createdAt);
+    final kstTime = utcTime.add(const Duration(hours: 9));
+    final timeText = DateFormat('a h:mm', 'ko').format(kstTime);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
-        crossAxisAlignment: isBot
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.end,
+        crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: isBot
-                ? MainAxisAlignment.start
-                : MainAxisAlignment.end,
+            mainAxisAlignment: isBot ? MainAxisAlignment.start : MainAxisAlignment.end,
             children: [
               if (isBot)
                 Padding(
@@ -335,12 +319,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ),
               Flexible(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isBot
-                        ? AppColors.primary.withOpacity(0.44)
-                        : AppColors.primary,
+                    color: isBot ? AppColors.primary.withOpacity(0.44) : AppColors.primary,
                     borderRadius: isBot
                         ? const BorderRadius.only(
                       topLeft: Radius.circular(0),

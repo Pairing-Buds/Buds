@@ -32,51 +32,24 @@ public class RefreshController {
         if (refreshCookie == null)
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰이 없습니다
         String refreshToken = refreshCookie.getValue();
-
-        // 유효성 검사 & Redis 에 저장된 것과 비교
+         // 유효성 검사 & Redis 에 저장된 것과 비교
         if (!jwtTokenProvider.validateToken(refreshToken))
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 유효하지 않은 리프레시 토큰입니다.
 
         Integer userId = jwtTokenProvider.getUserId(refreshToken);
-
         // Redis에 저장된 리프레시 토큰과 비교
         String savedRefresh = redisService.getRefreshToken(userId);
         if (!refreshToken.equals(savedRefresh))
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰 불일치
 
-        // 새로운 Access 토큰 생성
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        // 새로운 Access 토큰 생성, 발행시 role도 함꼐 전달
+        long currentVer = redisService.getTokenVersion(userId);
+        String role = jwtTokenProvider.getRoleFromToken(refreshToken);
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId, currentVer, role);
 
         // 쿠키에 새로운 토큰 세팅 (기존 쿠키 덮어쓰기)
         jwtTokenProvider.addTokensToResponse(response, newAccessToken, refreshToken);
-
         return new ResponseDto(StatusCode.OK, "Access Token 재발급 완료");
     }
-
-
-//    @GetMapping("/test/redis-save")
-//    public ResponseEntity<String> saveTest() {
-//        redisService.saveRefreshToken(999, "test-refresh-token", 60000);
-//        return ResponseEntity.ok("저장 성공");
-//    }
-//
-//    @GetMapping("/test/redis-get")
-//    public ResponseEntity<String> getTest() {
-//        String token = redisService.getRefreshToken(999);
-//        return ResponseEntity.ok("조회된 토큰: " + token);
-//    }
-//
-//    @GetMapping("/jwt-test")
-//    public ResponseEntity<String> jwtTest(HttpServletRequest request) {
-//        String token = null;
-//        if (request.getCookies() != null) {
-//            token = Arrays.stream(request.getCookies())
-//                    .filter(c -> "access_token".equals(c.getName()))
-//                    .findFirst()
-//                    .map(Cookie::getValue)
-//                    .orElse(null);
-//        }
-//        return ResponseEntity.ok("쿠키에서 뽑은 토큰: " + token);
-//    }
 
 }

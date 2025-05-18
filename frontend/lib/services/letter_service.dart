@@ -168,4 +168,27 @@ class LetterService {
       return false;
     }
   }
+
+  /// 익명 편지 전송
+  Future<bool> sendAnonymityLetter(String content, bool isTagBased) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.letterAnonymityUrl,
+        data: {'content': content, 'isTagBased': isTagBased},
+      );
+
+      if (response is Response &&
+          (response.statusCode == 200 || response.statusCode == 201)) {
+        final data = response.data as Map<String, dynamic>;
+        return data['statusCode'] == 'OK';
+      } else {
+        throw Exception('익명 편지 전송 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('sendAnonymityLetter 오류: $e');
+      }
+      rethrow;
+    }
+  }
 }
