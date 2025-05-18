@@ -43,6 +43,11 @@ dependencies:
   flutter_local_notifications: ^19.1.0
   timezone: ^0.10.1
   permission_handler: ^11.0.1
+
+  audioplayers: ^5.2.0
+  # 3d glb 파일 업로드용
+  model_viewer_plus: ^1.9.3
+
   
   # 지도 관련 패키지
   google_maps_flutter: ^2.5.3
@@ -100,6 +105,7 @@ flutter:
    
     - assets/animations/
     - assets/onboarding/
+    - assets/models/
 
   fonts:
     - family: GmarketSans

@@ -19,6 +19,7 @@ import 'package:buds/widgets/toast_bar.dart';
 import 'package:buds/config/theme.dart';
 import 'widgets/step_section.dart';
 import 'widgets/wake_up_section.dart';
+import 'package:buds/screens/survey/tags_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
@@ -134,6 +135,52 @@ class _MyPageScreenState extends State<MyPageScreen> {
                       width: double.infinity,
                     ),
                     const SizedBox(height: 40),
+                    /// 재설문 재태그 관련 속성
+// // ⭐ 수정된 아이콘 디자인 (주황색 동그라미, 노란색 반원)
+//                     // ⭐ 수정된 아이콘 디자인 (주황색 동그라미, 노란색 반원, 온탭 추가)
+//                     GestureDetector(
+//                       onTap: () => Navigator.of(context).push(
+//                         MaterialPageRoute(
+//                           builder: (context) => const SurveyRetagScreen(),
+//                         ),
+//                       ),
+//                       child: Row(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           Stack(
+//                             alignment: Alignment.center,
+//                             children: [
+//                               Container(
+//                                 width: 60,
+//                                 height: 60,
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.orange,
+//                                   shape: BoxShape.circle,
+//                                 ),
+//                               ),
+//                               Positioned(
+//                                 bottom: 5,
+//                                 child: Container(
+//                                   width: 40,
+//                                   height: 20,
+//                                   decoration: BoxDecoration(
+//                                     color: Colors.yellow,
+//                                     borderRadius: BorderRadius.circular(10),
+//                                   ),
+//                                   child: const Center(child: Text('관심분야')),
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                           const SizedBox(width: 20),
+//                           const Text('관심분야 재설정', style: TextStyle(fontSize: 16)),
+//                         ],
+//                       ),
+//                     ),
+//
+
+
+
                     Container(
                       padding: const EdgeInsets.all(16),
                       width: double.infinity,
