@@ -32,24 +32,22 @@ public class RefreshController {
         if (refreshCookie == null)
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰이 없습니다
         String refreshToken = refreshCookie.getValue();
-
-        // 유효성 검사 & Redis 에 저장된 것과 비교
+         // 유효성 검사 & Redis 에 저장된 것과 비교
         if (!jwtTokenProvider.validateToken(refreshToken))
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 유효하지 않은 리프레시 토큰입니다.
 
         Integer userId = jwtTokenProvider.getUserId(refreshToken);
-
         // Redis에 저장된 리프레시 토큰과 비교
         String savedRefresh = redisService.getRefreshToken(userId);
         if (!refreshToken.equals(savedRefresh))
             throw new ApiException(StatusCode.UNAUTHORIZED, Message.TOKEN_NOT_FOUND); // 리프레시 토큰 불일치
 
-        // 새로운 Access 토큰 생성
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        // 새로운 Access 토큰 생성, 현재 Redis에 저장된 버전을 조회해서 전달
+        long currentVer = redisService.getTokenVersion(userId);
+        String newAccessToken = jwtTokenProvider.createAccessToken(userId, currentVer);
 
         // 쿠키에 새로운 토큰 세팅 (기존 쿠키 덮어쓰기)
         jwtTokenProvider.addTokensToResponse(response, newAccessToken, refreshToken);
-
         return new ResponseDto(StatusCode.OK, "Access Token 재발급 완료");
     }
 
