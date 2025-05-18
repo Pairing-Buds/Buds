@@ -23,7 +23,8 @@
     <application
         android:label="buds"
         android:name="${applicationName}"
-        android:icon="@mipmap/island">
+        android:icon="@mipmap/island"
+        android:usesCleartextTraffic="true">
         <!-- Google Maps API 키 설정 -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
