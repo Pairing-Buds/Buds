@@ -33,4 +33,8 @@ public interface LetterRepository extends JpaRepository<Letter, Integer> {
 //    void findIfAnswerEnable();
 
     Optional<Letter> findTop1BySender_IdAndReceiver_IdOrderByCreatedAtDesc(int senderId, int receiverId);
+
+    boolean existsBySender_IdAndReceiver_Id(int senderId, int receiverId);
+
+
 }

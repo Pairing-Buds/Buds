@@ -75,6 +75,7 @@ public class ActivityController {
         activityService.firstVisitReward(userId, dto);
         return new ResponseDto(StatusCode.OK, Message.OK);
     }
+
     /** 추천 장소 방문 리워드 **/
     @PostMapping("/visit-recommended-place")
     public ResponseDto visitRecommendedPlaceReward(

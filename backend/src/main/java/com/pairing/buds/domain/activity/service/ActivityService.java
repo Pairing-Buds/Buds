@@ -19,11 +19,14 @@ import com.pairing.buds.domain.user.dto.response.UserDto;
 import com.pairing.buds.domain.user.entity.Tag;
 import com.pairing.buds.domain.user.entity.TagType;
 import com.pairing.buds.domain.user.entity.User;
+import com.pairing.buds.domain.user.repository.TagRepository;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -45,6 +48,7 @@ public class ActivityService {
     private final CalendarRepository calendarRepository;
     private final BadgeRepository badgeRepository;
     private final CalendarBadgeRepository calendarBadgeRepository;
+    private final TagRepository tagRepository;
 
     /** 기상 시간 등록 **/
     @Transactional
@@ -311,16 +315,11 @@ public class ActivityService {
     public Set<UserDto> findFriendByTag(int userId, int opponentId) {
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        Set<Tag> userTags = user.getTags();
-        Set<TagType> userTagsType = userTags.stream().map(Tag::getTagType).collect(Collectors.toSet());
-        // 취향 맞는 추천 친구 조회
-        Set<User> recommendedUsers = userRepository.findTOP10RecommendedUser(userId, opponentId, userTagsType);
-        // 사용자 태그 수집
-        // 유저가 아닌 다른 사람만
-        // IN으로 사용자 태그 리스트 안에 있는 것 수집
-        // 활성화된 사용자만
-        // 10개만 수집
-        // 랜덤은 parallel 메소드로 순서 보장 하지 않음
+        User opponent = userRepository.findById(opponentId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+
+        // 취향 맞는 추천 친구 조회 (10명)
+        Pageable pageable = PageRequest.of(0, 10);
+        Set<User> recommendedUsers = tagRepository.findTop10RecommendedUsers(userId, pageable);
         return FindFriendByTagResDto.toDto(recommendedUsers);
     }
 

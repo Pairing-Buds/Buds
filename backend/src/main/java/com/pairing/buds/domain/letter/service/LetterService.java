@@ -183,11 +183,19 @@ public class LetterService {
     public void createLetterByUserId(int userId, CreateLetterByUserIdReqDto dto) {
         int receiverId = dto.getReceiverId();
         String content = dto.getContent();
+
         // 욕설 포함 시 에러
-//        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+
         // 발신, 수신자 조회
        User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
        User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+
+       // 이미 대화를 한 적이 있는 유저인지 검증
+       if(letterRepository.existsBySender_IdAndReceiver_Id(sender.getId(), receiver.getId())){
+           throw new ApiException(StatusCode.BAD_REQUEST, Message.LETTER_HAVE_SENT_ALREADY);
+       }
+
        // 편지 빌드 및 저장
        Letter letter = new Letter();
        letter.setSender(sender);
@@ -204,8 +212,10 @@ public class LetterService {
     public void answerLetter(int userId, AnswerLetterReqDto dto) {
         int letterId = dto.getLetterId();
         String content = dto.getContent();
+
         // 욕설 필터링
-//        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+        if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
+
         // 기존 편지 조회
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
         if(letter.getReceiver().getId().equals(userId)){
@@ -215,6 +225,7 @@ public class LetterService {
         // 답장 편지 빌드
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
         answeredLetter.setIsTagBased(false);
+
         // 저장
         letterRepository.save(answeredLetter);
     }
