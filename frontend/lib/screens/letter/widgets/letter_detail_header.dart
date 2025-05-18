@@ -28,11 +28,7 @@ class LetterDetailHeader extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            '편지 ID: $letterId',
-            style: const TextStyle(color: Colors.grey, fontSize: 14),
-          ),
-          Text(
-            '편지 번호: $letterNumber',
+            '$letterNumber번째 편지',
             style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
