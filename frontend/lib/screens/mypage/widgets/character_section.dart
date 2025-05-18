@@ -1,93 +1,80 @@
 // Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:provider/provider.dart';
 
 // Project imports:
-import 'package:buds/providers/my_page_provider.dart';
+import 'package:buds/providers/auth_provider.dart';
+import 'package:buds/screens/character/models/character_data.dart';
+import 'package:buds/screens/mypage/widgets/character_select_bottom_sheet.dart';
 
 /// 캐릭터 섹션 위젯
 class CharacterSection extends StatelessWidget {
-  const CharacterSection({super.key});
-
+  const CharacterSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final myPageProvider = Provider.of<MyPageProvider>(context);
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        const Text('나의 캐릭터', style: TextStyle(fontSize: 20)),
+        const SizedBox(height: 16),
+        Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            final userCharacter = authProvider.userData?['userCharacter'];
+            final userName = authProvider.userData?['name'] ?? '사용자';
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 5, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        children: [
-          const SizedBox(height: 40),
-          const Text(
-            '나의 캐릭터',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          Image.asset(
-            myPageProvider.selectedCharacterImage,
-            width: 100,
-            height: 100,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            myPageProvider.selectedCharacterName,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          _buildStepCounter(myPageProvider),
-        ],
-      ),
-    );
-  }
+            if (kDebugMode) {
+              print('마이페이지: 현재 캐릭터: $userCharacter');
+            }
 
-  Widget _buildStepCounter(MyPageProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('목표 걸음', style: TextStyle(fontSize: 16)),
-              SizedBox(height: 4),
-              Text(
-                '6,000 보',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text('현재', style: TextStyle(fontSize: 16)),
-              const SizedBox(height: 4),
-              Text(
-                provider.formatSteps(provider.currentSteps),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
+            // 캐릭터 인덱스 찾기
+            int characterIndex = 0;
+            for (int i = 0; i < CharacterData.characterCount; i++) {
+              final characterName = CharacterData.getName(i);
+              if (kDebugMode) {
+                print(
+                  '마이페이지: 비교 중 - $characterName vs $userCharacter',
+                );
+              }
+              if (characterName == userCharacter) {
+                characterIndex = i;
+                if (kDebugMode) {
+                  print('마이페이지: 캐릭터 인덱스 찾음: $i');
+                }
+                break;
+              }
+            }
+
+            return Column(
+              children: [
+                GestureDetector(
+                  onTap: () => showCharacterSelectBottomSheet(
+                    context,
+                    authProvider,
+                    characterIndex,
+                  ),
+                  child: Image.asset(
+                    CharacterData.getMyPageImage(characterIndex),
+                    width: 100,
+                    height: 100,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
+                const SizedBox(height: 16),
+                Text(
+                  userName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }

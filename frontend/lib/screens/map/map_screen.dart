@@ -15,6 +15,7 @@ import 'dart:convert';
 // Project imports:
 import 'package:buds/constants/api_constants.dart';
 import 'package:buds/services/location_service.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'widgets/place_list_item.dart';
 
 // Google API 키는 환경 변수로 관리됩니다
@@ -53,11 +54,11 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-
-    // 1초 후에 arguments 처리 (화면이 그려진 후)
-    Future.delayed(const Duration(milliseconds: 500), () {
+    
+    // 화면이 그려진 직후 arguments 처리를 먼저 하고 위치 가져오기
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _processArguments();
+      _getCurrentLocation();
     });
   }
 
@@ -130,6 +131,11 @@ class _MapScreenState extends State<MapScreen> {
 
       // 테스트 - 맵 스타일 설정
       _setMapStyle();
+      
+      // 위치를 가져온 후 인자를 다시 확인하고, 필요하면 장소 검색 시작
+      if (_isPlacesVisible) {
+        _searchNearbyPlaces();
+      }
     } catch (e) {
       debugPrint('위치 가져오기 오류: $e');
       _showErrorDialog('위치 정보를 가져오는 중 오류가 발생했습니다.');
@@ -462,12 +468,7 @@ class _MapScreenState extends State<MapScreen> {
         debugPrint('길찾기 API 오류: $e');
         polylineCoordinates = _getDirectLine(place);
         // 사용자에게 알림
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
       }
 
       // 폴리라인 생성
@@ -513,12 +514,7 @@ class _MapScreenState extends State<MapScreen> {
       _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
       
       // 사용자에게 알림
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('경로를 찾을 수 없어 직선 경로로 표시합니다.'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
     }
   }
 

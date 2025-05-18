@@ -40,7 +40,7 @@ class LoginMainScreen extends StatelessWidget {
 
                   SizedBox(height: middlePad),
 
-                  // 채팅 버블 
+                  // 채팅 버블
                   const ChatContainer(),
 
                   SizedBox(height: middlePad),

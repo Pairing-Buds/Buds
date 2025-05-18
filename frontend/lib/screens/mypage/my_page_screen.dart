@@ -12,8 +12,11 @@ import 'package:buds/providers/my_page_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/character/models/character_data.dart';
 import 'package:buds/screens/customercenter/customer_center_screen.dart';
+import 'package:buds/screens/mypage/widgets/character_section.dart';
 import 'package:buds/screens/mypage/withdraw_screen.dart';
 import 'package:buds/screens/step/step_detail_screen.dart';
+import 'package:buds/widgets/toast_bar.dart';
+import 'package:buds/config/theme.dart';
 import 'widgets/step_section.dart';
 import 'widgets/wake_up_section.dart';
 
@@ -85,57 +88,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 ),
                 child: Column(
                   children: [
-                    const SizedBox(height: 40),
-                    const Text('나의 캐릭터', style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 16),
-                    Consumer<AuthProvider>(
-                      builder: (context, authProvider, child) {
-                        final userCharacter =
-                            authProvider.userData?['userCharacter'];
-                        final userName =
-                            authProvider.userData?['name'] ?? '사용자';
-
-                        if (kDebugMode) {
-                          print('마이페이지: 현재 캐릭터: $userCharacter');
-                        }
-
-                        // 캐릭터 인덱스 찾기
-                        int characterIndex = 0;
-                        for (int i = 0; i < CharacterData.characterCount; i++) {
-                          final characterName = CharacterData.getName(i);
-                          if (kDebugMode) {
-                            print(
-                              '마이페이지: 비교 중 - $characterName vs $userCharacter',
-                            );
-                          }
-                          if (characterName == userCharacter) {
-                            characterIndex = i;
-                            if (kDebugMode) {
-                              print('마이페이지: 캐릭터 인덱스 찾음: $i');
-                            }
-                            break;
-                          }
-                        }
-
-                        return Column(
-                          children: [
-                            Image.asset(
-                              CharacterData.getMyPageImage(characterIndex),
-                              width: 100,
-                              height: 100,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              userName,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                    const CharacterSection(),
                     const SizedBox(height: 16),
                     InkWell(
                       onTap: () {

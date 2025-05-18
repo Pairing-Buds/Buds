@@ -36,6 +36,7 @@ public enum Message {
     ANSWER_LETTER_ERROR("스스로에게 답장 할 수 없습니다."),
     TAG_CNT_OUT_OF_BOUND("태그는 최대 3개까지 선택 가능합니다."),
     LETTER_HAVE_SENT_ALREADY("이미 대화를 한 적이 있는 대상입니다."),
+    EMAIL_NOT_FOUND("존재하지 않는 이메일 입니다."),
 
     OK("성공"),
     CREATED("성공")

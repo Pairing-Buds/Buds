@@ -41,7 +41,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
     if (name.isEmpty) return "에게";
     final lastChar = name.characters.last;
     final hasFinalConsonant = (lastChar.codeUnitAt(0) - 0xAC00) % 28 != 0;
-    return hasFinalConsonant ? "에게" : "게";
+    return hasFinalConsonant ? "게" : "에게";
   }
 
   // 받침 여부에 따른 '이' / '가' 처리 함수
@@ -74,7 +74,7 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
+              color: AppColors.letterBackground,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -187,9 +187,11 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
   Future<void> _sendLetter() async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(
+      Toast(
         context,
-      ).showSnackBar(const SnackBar(content: Text('편지 내용을 입력해주세요')));
+        '편지 내용을 입력해주세요.',
+        icon: const Icon(Icons.error, color: Colors.red),
+      );
       return;
     }
 
@@ -217,10 +219,27 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
         Toast(context, '편지가 전송되었습니다');
         Navigator.pushReplacementNamed(context, widget.redirectRoute);
       } else {
-        Toast(context, '편지가 전송되었습니다');
+        Toast(
+          context,
+          '편지 전송에 실패했습니다. 다시 시도해주세요.',
+          icon: const Icon(Icons.error, color: Colors.red),
+        );
+        Navigator.pushReplacementNamed(context, widget.redirectRoute);
       }
     } catch (e) {
-      Toast(context, '편지 전송 오류: $e');
+      if (e.toString().contains('409')) {
+        Toast(
+          context,
+          '이미 보낸 편지입니다.',
+          icon: const Icon(Icons.info, color: Colors.orange),
+        );
+      } else {
+        Toast(
+          context,
+          '편지 전송 오류',
+          icon: const Icon(Icons.error, color: Colors.red),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;

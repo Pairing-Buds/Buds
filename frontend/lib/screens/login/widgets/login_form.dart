@@ -10,6 +10,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/login/password_reset_email_screen.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -24,6 +25,24 @@ class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_validateForm);
+    _passwordController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid =
+          _emailController.text.isNotEmpty &&
+          _passwordController.text.isNotEmpty &&
+          _passwordController.text.length >= 6 &&
+          _emailController.text.contains('@');
+    });
+  }
 
   @override
   void dispose() {
@@ -53,9 +72,7 @@ class _LoginFormState extends State<LoginForm> {
           .then((success) {
             if (success) {
               // 로그인 성공
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('로그인 성공')));
+              Toast(context, '로그인 성공');
 
               // 내 정보 조회 API 호출
               if (kDebugMode) {
@@ -93,11 +110,10 @@ class _LoginFormState extends State<LoginForm> {
                   });
             } else {
               // 로그인 실패
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다'),
-                  backgroundColor: Colors.red,
-                ),
+              Toast(
+                context,
+                '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다',
+                icon: const Icon(Icons.error, color: Colors.red),
               );
             }
           })
@@ -118,11 +134,10 @@ class _LoginFormState extends State<LoginForm> {
               errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
             }
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(errorMessage),
-                backgroundColor: Colors.red,
-              ),
+            Toast(
+              context,
+              errorMessage,
+              icon: const Icon(Icons.error, color: Colors.red),
             );
           })
           .whenComplete(() {
@@ -222,7 +237,7 @@ class _LoginFormState extends State<LoginForm> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _login,
+              onPressed: (_isLoading || !_isFormValid) ? null : _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.brown[800],
@@ -231,6 +246,7 @@ class _LoginFormState extends State<LoginForm> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
+                disabledBackgroundColor: Colors.grey[300],
               ),
               child:
                   _isLoading

@@ -56,9 +56,17 @@ async def send_message(
         logging.info(f"사용자 {user_id}로부터 메시지 수신: {request.message[:20]}...")
         logging.info(f"음성 입력: {request.is_voice}")
 
-        # 메시지 카운트 가져오기 - 필요한 경우 데이터베이스에서 오늘의 메시지 수 조회
-        today = now.strftime('%Y-%m-%d')
-        message_count = chroma_db.get_daily_message_count(user_id, today)
+        # 메시지 카운트 가져오기 - ChromaDB 오류 처리 개선
+        message_count = 0
+        try:
+            today = now.strftime('%Y-%m-%d')
+            message_count = chroma_db.get_daily_message_count(user_id, today)
+        except ConnectionError as e:
+            logging.error(f"ChromaDB 연결 오류 (메시지 카운트): {str(e)}")
+            # 연결 오류 시에도 계속 진행하되, 메시지 카운트는 0으로 설정
+        except Exception as e:
+            logging.error(f"메시지 카운트 조회 오류: {str(e)}")
+            # 다른 오류도 비슷하게 처리
 
         # 일일 제한 확인
         if message_count >= 100:
@@ -68,13 +76,31 @@ async def send_message(
             )
 
         # 텍스트 메시지 처리 - 비동기 방식으로 개인화된 응답 생성
-        # is_voice 파라미터를 전달하여 음성 응답도 함께 생성
-        response = await chatbot.get_response(
-            user_id,
-            request.message,
-            message_count=message_count,
-            is_voice=request.is_voice  # 음성 입력이 들어왔을 때 음성 출력도 생성
-        )
+        try:
+            response = await chatbot.get_response(
+                user_id,
+                request.message,
+                message_count=message_count,
+                is_voice=request.is_voice  # 음성 입력이 들어왔을 때 음성 출력도 생성
+            )
+        except ConnectionError as e:
+            # ChromaDB 연결 오류 발생 시 컨텍스트 없이 기본 응답 생성
+            logging.error(f"ChromaDB 연결 오류 (응답 생성): {str(e)}")
+            # 간단한 응답만 생성 (컨텍스트 없이)
+            simple_response = "죄송합니다. 현재 대화 기록 시스템에 연결할 수 없습니다. 기본 응답만 제공해 드립니다."
+
+            # 음성 처리
+            if request.is_voice:
+                try:
+                    audio_path = chatbot.generate_animalese_tts(simple_response, user_id)
+                    response = {
+                        "text": simple_response,
+                        "audio_path": audio_path
+                    }
+                except:
+                    response = simple_response
+            else:
+                response = simple_response
 
         # 응답 형식 확인 및 처리
         if isinstance(response, dict) and "text" in response and "audio_path" in response:
@@ -92,13 +118,20 @@ async def send_message(
             text_response = response
             audio_url = None
 
-        # 메시지 저장 (음성 원본 여부 표시)
-        chroma_db.save_conversation(
-            user_id,
-            request.message,
-            text_response,
-            is_voice=request.is_voice
-        )
+        # 메시지 저장 시도 - 실패해도 응답은 계속 제공
+        try:
+            chroma_db.save_conversation(
+                user_id,
+                request.message,
+                text_response,
+                is_voice=request.is_voice
+            )
+        except ConnectionError as e:
+            logging.error(f"ChromaDB 연결 오류 (대화 저장): {str(e)}")
+            # 저장 실패해도 계속 진행
+        except Exception as e:
+            logging.error(f"대화 저장 오류: {str(e)}")
+            # 다른 오류도 비슷하게 처리
 
         # 남은 메시지 수 계산
         remaining_messages = 100 - (message_count + 1)
@@ -136,11 +169,32 @@ async def get_chat_history(
             raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
 
         # 메시지와 전체 개수 가져오기
-        messages, total_count = chroma_db.get_conversation_history_with_offset(
-            user_id=user_id,
-            limit=request.limit,
-            offset=request.offset
-        )
+        try:
+            messages, total_count = chroma_db.get_conversation_history_with_offset(
+                user_id=user_id,
+                limit=request.limit,
+                offset=request.offset
+            )
+        except ConnectionError as e:
+            logging.error(f"ChromaDB 연결 오류 (대화 기록 조회): {str(e)}")
+            # 연결 오류 시 빈 결과 반환
+            return {
+                "messages": [],
+                "has_more": False,
+                "next_offset": None,
+                "total_count": 0,
+                "error": "대화 기록을 불러올 수 없습니다. 서버 연결 오류가 발생했습니다."
+            }
+        except Exception as e:
+            logging.error(f"대화 기록 조회 오류: {str(e)}")
+            # 다른 오류도 비슷하게 처리하지만, 오류 메시지만 다르게
+            return {
+                "messages": [],
+                "has_more": False,
+                "next_offset": None,
+                "total_count": 0,
+                "error": f"대화 기록을 불러올 수 없습니다: {str(e)}"
+            }
 
         # 다음 오프셋 계산
         next_offset = request.offset + len(messages)
@@ -158,6 +212,31 @@ async def get_chat_history(
     except Exception as e:
         logging.error(f"채팅 기록 조회 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"서버 오류: {str(e)}")
+
+
+@router.get("/test/chroma_connection")
+async def test_chroma_connection():
+    """ChromaDB 연결 테스트 엔드포인트"""
+    try:
+        # 연결 상태 확인
+        collections = chroma_db.client.list_collections()
+
+        return {
+            "status": "success",
+            "message": "ChromaDB 연결 성공",
+            "collections_count": len(collections),
+            "collections": [c.name for c in collections[:10]],  # 최대 10개만 표시
+            "client_info": {
+                "type": str(type(chroma_db.client)),
+                "host": getattr(chroma_db.client, '_host', 'unknown'),
+                "port": getattr(chroma_db.client, '_port', 'unknown')
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"ChromaDB 연결 오류: {str(e)}"
+        }
 
 
 @router.get("/api/audio/{filename}")

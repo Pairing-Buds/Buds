@@ -167,7 +167,7 @@ public class LetterService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
-        letter.setScrapped(true);
+        letter.setIsScrapped(true);
 
         LetterFavorite letterFavorite = new LetterFavorite();
         letterFavorite.setId(new LetterFavoriteId(userId, letterId));
@@ -218,7 +218,7 @@ public class LetterService {
 
         // 기존 편지 조회
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
-        if(letter.getReceiver().getId().equals(userId)){
+        if(letter.getSender().getId().equals(userId)){
             throw new ApiException(StatusCode.CONFLICT, Message.ANSWER_LETTER_ERROR);
         }
 
@@ -310,7 +310,7 @@ public class LetterService {
         // 편지 조회
 
         Letter letter = letterRepository.findById(letterId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
-        letter.setScrapped(false);
+        letter.setIsScrapped(false);
         LetterFavorite letterFavorite = letterFavoriteRepository.findByUserIdAndLetterId(userId, letterId).orElseThrow(
                 () -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_FAVORITE_NOT_FOUND)
         );

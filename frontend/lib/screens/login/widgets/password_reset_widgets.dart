@@ -6,7 +6,7 @@ import 'package:buds/config/theme.dart';
 import 'package:buds/widgets/form_widgets.dart';
 
 /// 비밀번호 재설정 이메일 입력 폼
-class PasswordResetEmailForm extends StatelessWidget {
+class PasswordResetEmailForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController emailController;
   final bool isLoading;
@@ -23,9 +23,36 @@ class PasswordResetEmailForm extends StatelessWidget {
   });
 
   @override
+  State<PasswordResetEmailForm> createState() => _PasswordResetEmailFormState();
+}
+
+class _PasswordResetEmailFormState extends State<PasswordResetEmailForm> {
+  bool _isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.emailController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid =
+          widget.emailController.text.isNotEmpty &&
+          widget.emailController.text.contains('@');
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.emailController.removeListener(_validateForm);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Form(
-      key: formKey,
+      key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,12 +76,12 @@ class PasswordResetEmailForm extends StatelessWidget {
             ),
           ),
 
-          ResetEmailField(controller: emailController),
+          ResetEmailField(controller: widget.emailController),
 
-          if (errorMessage != null) ...[
+          if (widget.errorMessage != null) ...[
             const SizedBox(height: 12),
             Text(
-              errorMessage!,
+              widget.errorMessage!,
               style: const TextStyle(color: Colors.red, fontSize: 14),
             ),
           ],
@@ -63,8 +90,9 @@ class PasswordResetEmailForm extends StatelessWidget {
 
           SubmitButton(
             text: '비밀번호 재설정 링크 받기',
-            onPressed: onSubmit,
-            isLoading: isLoading,
+            onPressed:
+                widget.isLoading || !_isFormValid ? null : widget.onSubmit,
+            isLoading: widget.isLoading,
             borderRadius: BorderRadius.circular(12),
           ),
         ],
@@ -105,7 +133,7 @@ class ResetEmailField extends StatelessWidget {
 }
 
 /// 재설정 비밀번호 입력 폼
-class PasswordResetForm extends StatelessWidget {
+class PasswordResetForm extends StatefulWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController tokenController;
   final TextEditingController passwordController;
@@ -136,9 +164,44 @@ class PasswordResetForm extends StatelessWidget {
   });
 
   @override
+  State<PasswordResetForm> createState() => _PasswordResetFormState();
+}
+
+class _PasswordResetFormState extends State<PasswordResetForm> {
+  bool _isFormValid = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.tokenController.addListener(_validateForm);
+    widget.passwordController.addListener(_validateForm);
+    widget.confirmPasswordController.addListener(_validateForm);
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid =
+          widget.tokenController.text.isNotEmpty &&
+          widget.passwordController.text.isNotEmpty &&
+          widget.confirmPasswordController.text.isNotEmpty &&
+          widget.passwordController.text.length >= 6 &&
+          widget.passwordController.text ==
+              widget.confirmPasswordController.text;
+    });
+  }
+
+  @override
+  void dispose() {
+    widget.tokenController.removeListener(_validateForm);
+    widget.passwordController.removeListener(_validateForm);
+    widget.confirmPasswordController.removeListener(_validateForm);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Form(
-      key: formKey,
+      key: widget.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -149,7 +212,7 @@ class PasswordResetForm extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(bottom: 30),
             child: Text(
-              '$email로 전송된\n인증 코드와 새 비밀번호를 입력해주세요.',
+              '${widget.email}로 전송된\n인증 코드와 새 비밀번호를 입력해주세요.',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
@@ -161,29 +224,29 @@ class PasswordResetForm extends StatelessWidget {
           const SizedBox(height: 10),
 
           // 토큰 입력 필드
-          ResetTokenField(controller: tokenController),
+          ResetTokenField(controller: widget.tokenController),
           const SizedBox(height: 16),
 
           // 새 비밀번호 입력 필드
           ResetPasswordField(
-            controller: passwordController,
-            isVisible: isPasswordVisible,
-            onToggleVisibility: onTogglePassword,
+            controller: widget.passwordController,
+            isVisible: widget.isPasswordVisible,
+            onToggleVisibility: widget.onTogglePassword,
           ),
           const SizedBox(height: 16),
 
           // 비밀번호 확인 필드
           ResetConfirmPasswordField(
-            controller: confirmPasswordController,
-            passwordController: passwordController,
-            isVisible: isConfirmPasswordVisible,
-            onToggleVisibility: onToggleConfirmPassword,
+            controller: widget.confirmPasswordController,
+            passwordController: widget.passwordController,
+            isVisible: widget.isConfirmPasswordVisible,
+            onToggleVisibility: widget.onToggleConfirmPassword,
           ),
 
-          if (errorMessage != null) ...[
+          if (widget.errorMessage != null) ...[
             const SizedBox(height: 12),
             Text(
-              errorMessage!,
+              widget.errorMessage!,
               style: const TextStyle(color: Colors.red, fontSize: 14),
             ),
           ],
@@ -192,8 +255,9 @@ class PasswordResetForm extends StatelessWidget {
 
           SubmitButton(
             text: '비밀번호 변경하기',
-            onPressed: onSubmit,
-            isLoading: isLoading,
+            onPressed:
+                widget.isLoading || !_isFormValid ? null : widget.onSubmit,
+            isLoading: widget.isLoading,
             borderRadius: BorderRadius.circular(12),
           ),
         ],
@@ -347,66 +411,3 @@ class ResetConfirmPasswordField extends StatelessWidget {
 }
 
 /// 비밀번호 재설정 완료 화면
-class PasswordResetSuccess extends StatelessWidget {
-  final VoidCallback onGoToLogin;
-
-  const PasswordResetSuccess({super.key, required this.onGoToLogin});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // 상단 여백
-          const SizedBox(height: 40),
-
-          // 성공 아이콘
-          const Icon(
-            Icons.check_circle_outline,
-            color: Colors.green,
-            size: 100,
-          ),
-          const SizedBox(height: 40),
-
-          // 성공 메시지
-          const Text(
-            '비밀번호 변경 완료',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-
-          const Text(
-            '새 비밀번호로 로그인해주세요.',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-          const SizedBox(height: 50),
-
-          // 버튼
-          SizedBox(
-            width: 240,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: onGoToLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.brown[800],
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                '로그인하러 가기',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

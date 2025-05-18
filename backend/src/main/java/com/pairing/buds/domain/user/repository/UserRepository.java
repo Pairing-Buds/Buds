@@ -45,61 +45,73 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Set<User> findTOP10RecommendedUser(int userId, int opponentId, Set<TagType> userTags);
 
     /**
-     * 편지 랜덤 발송 (필터링 적용)
+     * 편지 랜덤 발송
      * - u.id <> :senderId
-     * - 가장 최근 편지가 내가 보낸 편지이면서 1개월 이내인 경우 제외
+     * - u.isActive = true
+     * - 상대가 답장(B→A)한 적이 있으면 무조건 제외
+     * - A→B 단방향 발신이 있고, 그 발신일이 최근 1개월 이내(:oneMonthAgo <= createdAt)인 경우 제외
+     * - 그 외는 모두 후보에 포함
      */
     @Query("""
-        SELECT u FROM User u
+        SELECT u
+        FROM User u
         WHERE u.id <> :senderId
           AND u.isActive = true
           AND NOT EXISTS (
-            SELECT l FROM Letter l
-            WHERE ((l.sender.id = :senderId AND l.receiver.id = u.id)
-                OR   (l.sender.id = u.id       AND l.receiver.id = :senderId))
-              AND l.sender.id = :senderId
-              AND l.createdAt >= :oneMonthAgo
-              AND l.createdAt = (
-                SELECT MAX(l2.createdAt) FROM Letter l2
-                WHERE ((l2.sender.id = :senderId AND l2.receiver.id = u.id)
-                    OR   (l2.sender.id = u.id       AND l2.receiver.id = :senderId))
+            SELECT l
+            FROM Letter l
+            WHERE
+              (
+                l.sender.id   = u.id AND l.receiver.id = :senderId
+              )
+              OR
+              (
+                l.sender.id   = :senderId AND l.receiver.id = u.id
+                AND l.createdAt >= :oneMonthAgo
               )
           )
         ORDER BY function('RAND')
         """)
     List<User> findRandomReceiver(
-            @Param("senderId") Integer senderId,
+            @Param("senderId")    Integer senderId,
             @Param("oneMonthAgo") LocalDateTime oneMonthAgo,
             Pageable pageable
     );
 
     /**
      * 편지 랜덤 발송 (태그 필터링 + 위 조건)
+     * - u.id <> :senderId
+     * - u.isActive = true
+     * - t.tagType IN :senderTagTypes
+     * - 상대가 답장한 적 있으면 제외
+     * - 내가 보낸 편지 중 최근 1개월 이내 것만 제외
      */
     @Query("""
-        SELECT DISTINCT u FROM User u
+        SELECT DISTINCT u
+        FROM User u
         JOIN u.tags t
         WHERE u.id <> :senderId
           AND u.isActive = true
           AND t.tagType IN :senderTagTypes
           AND NOT EXISTS (
-            SELECT l FROM Letter l
-            WHERE ((l.sender.id = :senderId AND l.receiver.id = u.id)
-                OR   (l.sender.id = u.id       AND l.receiver.id = :senderId))
-              AND l.sender.id = :senderId
-              AND l.createdAt >= :oneMonthAgo
-              AND l.createdAt = (
-                SELECT MAX(l2.createdAt) FROM Letter l2
-                WHERE ((l2.sender.id = :senderId AND l2.receiver.id = u.id)
-                    OR   (l2.sender.id = u.id       AND l2.receiver.id = :senderId))
+            SELECT l
+            FROM Letter l
+            WHERE
+              (
+                l.sender.id   = u.id AND l.receiver.id = :senderId
+              )
+              OR
+              (
+                l.sender.id   = :senderId AND l.receiver.id = u.id
+                AND l.createdAt >= :oneMonthAgo
               )
           )
         ORDER BY function('RAND')
         """)
     List<User> findRandomReceiverByTags(
-            @Param("senderId") Integer senderId,
-            @Param("senderTagTypes") List<TagType> senderTagTypes,
-            @Param("oneMonthAgo") LocalDateTime oneMonthAgo,
+            @Param("senderId")        Integer senderId,
+            @Param("senderTagTypes")  List<TagType> senderTagTypes,
+            @Param("oneMonthAgo")     LocalDateTime oneMonthAgo,
             Pageable pageable
     );
 

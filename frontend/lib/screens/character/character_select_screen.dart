@@ -13,6 +13,8 @@ import '../../providers/character_provider.dart';
 import '../../services/auth_service.dart';
 import 'widgets/character_selection_manager.dart';
 import 'widgets/nickname_dialog.dart';
+import 'package:buds/screens/survey/survey_screen.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 /// 캐릭터 선택 화면
 class CharacterSelectScreen extends StatefulWidget {
@@ -179,11 +181,10 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+        Toast(
+          context,
+          '캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}',
+          icon: const Icon(Icons.error, color: Colors.red, size: 20),
         );
       }
     } finally {
@@ -194,18 +195,17 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
   }
 
   void _showSelectionMessage(String nickname, String character) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${nickname}님, ${character}와(과) 함께하게 되었습니다!'),
-        backgroundColor: AppColors.primary,
-      ),
+    Toast(
+      context,
+      '${nickname}님, ${character}와(과) 함께하게 되었습니다!',
+      icon: const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
     );
   }
 
   void _navigateToMainScreen() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const MainScreen()),
+      MaterialPageRoute(builder: (context) => const SurveyScreen()),
     );
   }
 }

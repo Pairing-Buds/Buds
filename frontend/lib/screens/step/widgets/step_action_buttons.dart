@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:buds/screens/map/map_screen.dart';
 import 'package:buds/services/location_service.dart';
 import 'package:buds/constants/api_constants.dart';
+import 'package:buds/widgets/toast_bar.dart';
 
 class StepActionButtons extends StatefulWidget {
   const StepActionButtons({super.key});
@@ -346,10 +347,13 @@ class _StepActionButtonsState extends State<StepActionButtons> {
 
   // 에러 메시지 표시
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    Toast(
+      context,
+      message,
+      icon: const Icon(Icons.error, color: Colors.red),
     );
   }
+
 
   // 도서관 목록 토글
   void _toggleLibraryList() async {

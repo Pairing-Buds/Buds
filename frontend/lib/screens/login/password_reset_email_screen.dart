@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/login/password_reset_screen.dart';
+import 'package:buds/widgets/toast_bar.dart';
 import 'widgets/password_reset_widgets.dart';
 
 /// 비밀번호 재설정 이메일 입력 화면
@@ -48,9 +49,7 @@ class _PasswordResetEmailScreenState extends State<PasswordResetEmailScreen> {
         if (!mounted) return;
 
         if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('이메일로 비밀번호 재설정 링크가 발송되었습니다.')),
-          );
+          Toast(context, '이메일로 비밀번호 재설정 링크가 발송되었습니다.');
 
           // 비밀번호 재설정 화면으로 이동
           Navigator.push(

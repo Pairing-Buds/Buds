@@ -1,6 +1,9 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
 
+// Project imports:
+import 'package:buds/widgets/toast_bar.dart';
+
 class WithdrawConfirmDialog extends StatefulWidget {
   final Future<void> Function(String password) onWithdraw;
   const WithdrawConfirmDialog({super.key, required this.onWithdraw});
@@ -57,9 +60,7 @@ class _WithdrawConfirmDialogState extends State<WithdrawConfirmDialog> {
                   : () async {
                     final password = _pwController.text.trim();
                     if (password.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('비밀번호를 입력해주세요.')),
-                      );
+                      Toast(context, '비밀번호를 입력해주세요.');
                       return;
                     }
                     setState(() => _isLoading = true);

@@ -1,6 +1,6 @@
 // Flutter imports:
 import 'package:flutter/material.dart';
-
+// import 'dart:math';
 // Package imports:
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +23,6 @@ class LetterAnonymityScreen extends StatefulWidget {
 
 class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
   bool isInterest = true;
-  bool isLoading = false;
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -91,7 +90,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
+                    color: AppColors.letterBackground,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -155,27 +154,19 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
             const SizedBox(height: 12),
             Center(
               child: GestureDetector(
-                onTap: isLoading ? null : _sendLetter,
+                onTap: _sendLetter,
                 child: Container(
                   width: 140,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isLoading ? Colors.grey : AppColors.primary,
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: Center(
-                    child:
-                        isLoading
-                            ? const CircularProgressIndicator(
-                              color: Colors.black,
-                            )
-                            : const Text(
-                              '편지보내기',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                            ),
+                  child: const Center(
+                    child: Text(
+                      '편지보내기',
+                      style: TextStyle(color: Colors.black, fontSize: 16),
+                    ),
                   ),
                 ),
               ),
@@ -187,15 +178,15 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
     );
   }
 
-  /// 전송 함수 (개선)
+  /// 전송 함수 (유지)
   Future<void> _sendLetter() async {
     final content = _controller.text.trim();
     if (content.isEmpty) {
-      _showSnackbar('편지 내용을 입력해주세요');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('편지 내용을 입력해주세요')));
       return;
     }
-
-    setState(() => isLoading = true);
 
     final requestBody = {'content': content, 'isTagBased': isInterest};
 
@@ -206,26 +197,39 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        _showSnackbar('편지를 성공적으로 보냈습니다');
-        _controller.clear();
-        Navigator.pushReplacement(
+        Toast(
           context,
-          MaterialPageRoute(builder: (context) => const LetterScreen()),
+          '편지를 성공적으로 보냈습니다',
+          icon: const Icon(Icons.check_circle, color: Colors.green),
         );
-      } else {
-        _showSnackbar('편지 전송에 실패했습니다');
+        _controller.clear();
+        Navigator.pushReplacementNamed(context, '/letter');
       }
     } catch (e) {
-      _showSnackbar('네트워크 오류: 편지 전송에 실패했습니다');
-    } finally {
-      setState(() => isLoading = false);
+      Toast(
+        context,
+        '편지 전송에 실패했습니다',
+        icon: const Icon(Icons.error, color: Colors.red),
+      );
     }
   }
-
-  /// Snackbar 표시 함수
-  void _showSnackbar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
 }
+
+// 전송 버튼
+// Padding(
+//   padding: const EdgeInsets.symmetric(vertical: 12),
+//   child: ElevatedButton(
+//     style: ElevatedButton.styleFrom(
+//       backgroundColor: AppColors.primary,
+//       shape: RoundedRectangleBorder(
+//         borderRadius: BorderRadius.circular(24),
+//       ),
+//       minimumSize: const Size(140, 44),
+//     ),
+//     onPressed: _sendLetter,
+//     child: const Text(
+//       '편지보내기',
+//       style: TextStyle(color: Colors.black, fontSize: 16),
+//     ),
+//   ),
+// ),
