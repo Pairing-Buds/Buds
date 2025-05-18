@@ -6,6 +6,7 @@ import 'dart:io';
 
 // Flutter imports:
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:cookie_jar/cookie_jar.dart';
@@ -16,19 +17,56 @@ import 'package:path_provider/path_provider.dart';
 // Project imports:
 import '../constants/api_constants.dart';
 import '../utils/dio_logging_interceptor.dart';
+import '../widgets/common_dialog.dart';
 
+// 401 에러 처리를 위한 전역 컨트롤러
+final StreamController<bool> unauthorizedController =
+    StreamController<bool>.broadcast();
+
+// StreamController가 닫혔는지 확인하는 플래그를 클래스 내부 스태틱 변수로 이동
 class DioApiService {
   // 싱글턴 패턴
   static final DioApiService _instance = DioApiService._internal();
   factory DioApiService() => _instance;
+
+  // 컨트롤러 상태 관리를 위한 스태틱 변수
+  static bool isUnauthorizedControllerClosed = false;
 
   late Dio _dio;
   PersistCookieJar? _cookieJar;
   bool _isInitialized = false;
   final Completer<void> _initCompleter = Completer<void>();
 
+  // 중복 로그인 다이얼로그 표시 방지를 위한 플래그
+  bool _isShowingDuplicateLoginDialog = false;
+
   DioApiService._internal() {
     _initDio();
+  }
+
+  // 컨트롤러 상태 제어 메서드들
+  static Future<void> closeUnauthorizedController() async {
+    try {
+      if (!isUnauthorizedControllerClosed) {
+        await unauthorizedController.close();
+        isUnauthorizedControllerClosed = true;
+        if (kDebugMode) {
+          print('unauthorizedController 닫힘');
+        }
+      }
+    } catch (e) {
+      isUnauthorizedControllerClosed = true;
+      if (kDebugMode) {
+        print('unauthorizedController 닫기 오류: $e');
+      }
+    }
+  }
+
+  static void resetUnauthorizedController() {
+    isUnauthorizedControllerClosed = false;
+    if (kDebugMode) {
+      print('unauthorizedController 상태 리셋됨');
+    }
   }
 
   Future<void> ensureInitialized() async {
@@ -99,6 +137,24 @@ class DioApiService {
         },
         onError: (DioException error, handler) {
           // 에러 인터셉터
+          // 401 에러 처리 - 중복 로그인 또는 토큰 만료
+          if (error.response?.statusCode == 401) {
+            if (kDebugMode) {
+              print('401 에러 감지: 중복 로그인 또는 토큰 만료');
+            }
+            // 중복 로그인 처리를 위한 이벤트 발생 (컨트롤러가 닫히지 않았을 때만)
+            if (!isUnauthorizedControllerClosed) {
+              try {
+                unauthorizedController.add(true);
+              } catch (e) {
+                // 컨트롤러가 닫혔거나 다른 에러 발생 시
+                isUnauthorizedControllerClosed = true;
+                if (kDebugMode) {
+                  print('이벤트 추가 실패: $e');
+                }
+              }
+            }
+          }
           return handler.next(error);
         },
       ),
@@ -137,6 +193,36 @@ class DioApiService {
 
     _isInitialized = true;
     _initCompleter.complete();
+  }
+
+  // 중복 로그인 처리 함수
+  void showDuplicateLoginDialog(BuildContext context) {
+    // 이미 다이얼로그가 표시중이면 중복 표시 방지
+    if (_isShowingDuplicateLoginDialog) return;
+    _isShowingDuplicateLoginDialog = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => CommonDialog(
+            title: "중복 로그인 감지",
+            description: "다른 기기에서 로그인되어 로그아웃 됩니다.",
+            cancelText: "확인",
+            confirmText: "",
+            onCancel: () {
+              Navigator.of(context).pop(); // 다이얼로그 닫기
+              // 로그인 화면으로 이동
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/', (route) => false);
+              // 쿠키 삭제
+              clearCookies();
+              _isShowingDuplicateLoginDialog = false;
+            },
+            onConfirm: () {},
+          ),
+    );
   }
 
   // 디버깅용 쿠키 출력 함수

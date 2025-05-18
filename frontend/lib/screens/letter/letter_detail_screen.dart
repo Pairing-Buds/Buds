@@ -53,6 +53,19 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     });
   }
 
+  @override
+  void didUpdateWidget(LetterDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // opponentId가 변경되었을 때만 데이터 다시 로드
+    if (oldWidget.opponentId != widget.opponentId) {
+      Provider.of<LetterProvider>(
+        context,
+        listen: false,
+      ).fetchLetterDetails(opponentId: widget.opponentId);
+    }
+  }
+
   // ⭐ 받침 여부에 따른 '에게' / '게' 처리 함수
   String getPostpositionTo(String name) {
     if (name.isEmpty) return "에게";
@@ -87,11 +100,35 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
   // 부드러운 페이지 전환을 위한 메서드 추가
   void _animateToPage(int page) {
-    _pageController.animateToPage(
-      page,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  // 간단한 스와이프 감지 함수
+  void _handleSwipe(double velocity, LetterProvider provider) {
+    if (velocity < -800 &&
+        provider.currentLetterIndex ==
+            provider.letterPage!.letters.length - 1 &&
+        provider.currentPage < provider.letterPage!.totalPages - 1) {
+      // 왼쪽으로 스와이프하고 현재 페이지의 마지막 편지면 다음 페이지로
+      provider.fetchLetterDetails(
+        opponentId: widget.opponentId,
+        page: provider.currentPage + 1,
+      );
+    } else if (velocity > 800 &&
+        provider.currentLetterIndex == 0 &&
+        provider.currentPage > 0) {
+      // 오른쪽으로 스와이프하고 현재 페이지의 첫 편지면 이전 페이지로
+      provider.fetchLetterDetails(
+        opponentId: widget.opponentId,
+        page: provider.currentPage - 1,
+      );
+    }
   }
 
   @override
@@ -133,10 +170,12 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
           // 페이지 컨트롤러 초기 페이지 설정 (현재 선택된 편지로)
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_pageController.hasClients &&
-                _pageController.page?.toInt() !=
-                    letterProvider.currentLetterIndex) {
-              _animateToPage(letterProvider.currentLetterIndex);
+            if (_pageController.hasClients) {
+              // 페이지가 완전히 로드된 후에 애니메이션 적용
+              if (_pageController.page?.toInt() !=
+                  letterProvider.currentLetterIndex) {
+                _animateToPage(letterProvider.currentLetterIndex);
+              }
             }
           });
 
@@ -153,29 +192,40 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
               // 편지 내용 (PageView로 구현)
               Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: letters.length,
-                  physics: const BouncingScrollPhysics(),
-                  onPageChanged:
-                      (index) => _onPageChanged(index, letterProvider),
-                  itemBuilder: (context, index) {
-                    // 이미 캐싱 메커니즘이 있으므로 항상 provider에서 현재 선택된 편지를 요청
-                    // index가 현재 선택된 인덱스와 다를 경우 자동으로 fetchSingleLetter가 호출됨
-                    final isCurrentIndex =
-                        index == letterProvider.currentLetterIndex;
-
-                    return LetterContentView(
-                      letter: currentLetter,
-                      recipientName: loggedInUser,
-                      recipientPostPosition: getPostpositionTo(
-                        isReceived ? loggedInUser : widget.opponentName,
-                      ),
-                      senderPostPosition: getPostpositionFrom(
-                        letters[index].senderName,
-                      ),
+                child: GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    // 스와이프 감지하여 페이지 전환
+                    _handleSwipe(
+                      details.velocity.pixelsPerSecond.dx,
+                      letterProvider,
                     );
                   },
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: letters.length,
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    onPageChanged:
+                        (index) => _onPageChanged(index, letterProvider),
+                    itemBuilder: (context, index) {
+                      // 이미 캐싱 메커니즘이 있으므로 항상 provider에서 현재 선택된 편지를 요청
+                      // index가 현재 선택된 인덱스와 다를 경우 자동으로 fetchSingleLetter가 호출됨
+                      final isCurrentIndex =
+                          index == letterProvider.currentLetterIndex;
+
+                      return LetterContentView(
+                        letter: currentLetter,
+                        recipientName: loggedInUser,
+                        recipientPostPosition: getPostpositionTo(
+                          isReceived ? loggedInUser : widget.opponentName,
+                        ),
+                        senderPostPosition: getPostpositionFrom(
+                          letters[index].senderName,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
 

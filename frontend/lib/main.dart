@@ -234,6 +234,22 @@ void main() async {
   debugPrint('초기 라우트: $initialRoute');
   debugPrint('======================================');
 
+  // 앱이 비정상 종료되거나 메인 함수 실행이 완료될 때 실행될 클린업 코드
+  WidgetsBinding.instance.addObserver(
+    LifecycleEventHandler(
+      resumeCallBack: () async {
+        debugPrint('앱 resume: ${DateTime.now()}');
+        // StreamController 상태 리셋
+        DioApiService.resetUnauthorizedController();
+      },
+      suspendingCallBack: () async {
+        debugPrint('앱 suspending: ${DateTime.now()}');
+        // 앱이 종료될 때 StreamController 닫기
+        await DioApiService.closeUnauthorizedController();
+      },
+    ),
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -262,6 +278,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isInitialized = false;
+  bool _isUnauthorizedControllerClosed = true;
 
   @override
   void initState() {
@@ -343,5 +360,32 @@ class _MyAppState extends State<MyApp> {
             ),
       },
     );
+  }
+}
+
+// 앱 생명주기 이벤트 핸들러
+class LifecycleEventHandler extends WidgetsBindingObserver {
+  final AsyncCallback resumeCallBack;
+  final AsyncCallback suspendingCallBack;
+
+  LifecycleEventHandler({
+    required this.resumeCallBack,
+    required this.suspendingCallBack,
+  });
+
+  @override
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        await resumeCallBack();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        await suspendingCallBack();
+        break;
+      default:
+        break;
+    }
   }
 }
