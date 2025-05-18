@@ -114,7 +114,7 @@ public class UserService {
         User userToUpdate = SaveSurveyResultReqDto.toUser(user, dto);
 
         // 태그 빌드
-        Set<TagType> newTagTypes = dto.getTags().stream().map( newTag -> tagTypeRepository.findByTagName(newTag).orElseThrow( () -> new ApiException(StatusCode.CONFLICT, Message.TAGS_NOT_FOUND))).collect(Collectors.toSet());
+        Set<TagType> newTagTypes = dto.getTags().stream().map( newTag -> tagTypeRepository.findByTagName(newTag).orElseThrow( () -> new ApiException(StatusCode.BAD_REQUEST , Message.TAGS_NOT_FOUND))).collect(Collectors.toSet());
 
         user.getTags().addAll(newTagTypes.stream().map(newTag -> Tag.builder().user(user).tagType(newTag)
                 .build()).collect(Collectors.toSet()));
