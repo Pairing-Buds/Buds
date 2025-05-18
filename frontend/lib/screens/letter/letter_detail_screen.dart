@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Project imports:
+import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/providers/letter_provider.dart';
+import 'package:buds/screens/letter/letter_answer_screen.dart';
 import 'package:buds/screens/letter/widgets/letter_content_view.dart';
 import 'package:buds/screens/letter/widgets/letter_detail_header.dart';
 import 'package:buds/screens/letter/widgets/letter_page_dots.dart';
@@ -98,6 +100,12 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
           final isReceived = currentLetter.receiverName == loggedInUser;
 
+          // 최신 페이지(0)의 첫 번째 편지(0)이고 받은 편지일 경우에만 답장 버튼 표시
+          final isLatestPage = letterProvider.currentPage == 0;
+          final isLatestLetter = letterProvider.currentLetterIndex == 0;
+          final isLatestReceivedLetter =
+              isLatestPage && isLatestLetter && isReceived;
+
           return Column(
             children: [
               // 상단 탭
@@ -122,6 +130,45 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   ),
                 ),
               ),
+
+              // 최신 편지이고 상대방이 보낸 편지인 경우에만 답장 버튼 표시
+              if (isLatestReceivedLetter)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // 답장하기 화면으로 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => LetterAnswerScreen(
+                                letterId: currentLetter.letterId,
+                                senderName: widget.opponentName,
+                                redirectRoute: '/letter',
+                              ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      '답장하기',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
 
               // 페이지네이션 UI
               LetterPagination(

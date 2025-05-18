@@ -101,7 +101,7 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
         icon: const Icon(Icons.check_circle, color: Colors.green),
       );
       _controller.clear();
-      Navigator.pushReplacementNamed(context, '/letter');
+      Navigator.pop(context);
     } else {
       Toast(
         context,
@@ -111,4 +111,3 @@ class _LetterAnonymityScreenState extends State<LetterAnonymityScreen> {
     }
   }
 }
-

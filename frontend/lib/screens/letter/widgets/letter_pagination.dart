@@ -29,6 +29,22 @@ class LetterPagination extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: () {
+                  if (provider.currentPage > 0) {
+                    provider.fetchLetterDetails(
+                      opponentId: opponentId,
+                      page: provider.currentPage - 1,
+                    );
+                  }
+                },
+                icon: const Icon(Icons.arrow_back_ios),
+                tooltip: '최신 편지로 이동',
+              ),
+              Text(
+                '페이지: ${provider.currentPage + 1} / ${provider.letterPage?.totalPages ?? 1}',
+                style: const TextStyle(fontSize: 16),
+              ),
+              IconButton(
+                onPressed: () {
                   if (provider.currentPage <
                       provider.letterPage!.totalPages - 1) {
                     provider.fetchLetterDetails(
@@ -37,22 +53,8 @@ class LetterPagination extends StatelessWidget {
                     );
                   }
                 },
-                icon: const Icon(Icons.arrow_back_ios),
-              ),
-              Text(
-                '페이지: ${provider.currentPage + 1} / ${provider.letterPage?.totalPages ?? 1}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              IconButton(
-                onPressed: () {
-                  if (provider.currentPage > 0) {
-                    provider.fetchLetterDetails(
-                      opponentId: opponentId,
-                      page: provider.currentPage - 1,
-                    );
-                  }
-                },
                 icon: const Icon(Icons.arrow_forward_ios),
+                tooltip: '과거 편지로 이동',
               ),
             ],
           ),

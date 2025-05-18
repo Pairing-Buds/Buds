@@ -38,7 +38,10 @@ class LetterItem extends StatelessWidget {
                   letter.userName,
                   style: TextStyle(
                     fontSize: 16,
-                    color: isUnread ? Colors.black : Colors.grey,
+                    color:
+                        letter.received && isUnread
+                            ? Colors.black
+                            : Colors.grey,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

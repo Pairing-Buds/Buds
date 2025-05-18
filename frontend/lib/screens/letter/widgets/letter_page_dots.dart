@@ -21,7 +21,7 @@ class LetterPageDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = currentIndex == totalCount - 1 - index;
+    final isActive = currentIndex == index;
 
     return GestureDetector(
       onTap: onTap,
@@ -47,10 +47,8 @@ List<Widget> buildLetterPageDots(LetterProvider provider) {
       totalCount: provider.letterPage!.letters.length,
       currentIndex: provider.currentLetterIndex,
       onTap: () {
-        provider.setCurrentLetterIndex(
-          provider.letterPage!.letters.length - 1 - index,
-        );
+        provider.setCurrentLetterIndex(index);
       },
     );
-  }).reversed.toList();
+  });
 }

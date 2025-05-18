@@ -154,9 +154,28 @@ class LetterProvider extends ChangeNotifier {
         size: size,
       );
 
-      _letterPage = response;
+      // 받아온 편지 목록을 createdAt 기준으로 최신순 정렬
+      if (response.letters.isNotEmpty) {
+        final sortedLetters = List<LetterDetailModel>.from(response.letters);
+        sortedLetters.sort(
+          (a, b) => DateTime.parse(
+            b.createdAt,
+          ).compareTo(DateTime.parse(a.createdAt)),
+        );
+
+        _letterPage = LetterPageModel(
+          opponentId: response.opponentId,
+          opponentName: response.opponentName,
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
+          letters: sortedLetters,
+        );
+      } else {
+        _letterPage = response;
+      }
+
       _currentPage = page;
-      _currentLetterIndex = _letterPage!.letters.length - 1; // 최신 편지부터
+      _currentLetterIndex = 0; // 정렬 후 첫 번째 항목이 최신 편지
 
       if (_letterPage!.letters.isNotEmpty) {
         await fetchSingleLetter(_letterPage!.letters[0].letterId);
@@ -191,9 +210,7 @@ class LetterProvider extends ChangeNotifier {
   void setCurrentLetterIndex(int index) {
     _currentLetterIndex = index;
     if (_letterPage != null && _letterPage!.letters.isNotEmpty) {
-      fetchSingleLetter(
-        _letterPage!.letters[_letterPage!.letters.length - 1 - index].letterId,
-      );
+      fetchSingleLetter(_letterPage!.letters[index].letterId);
     }
     notifyListeners();
   }
