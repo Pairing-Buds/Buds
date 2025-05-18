@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,23 +189,28 @@ public class LetterService {
         if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
 
         // 발신, 수신자 조회
-       User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-       User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        User sender = userRepository.findById(userId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
-       // 이미 대화를 한 적이 있는 유저인지 검증
-       if(letterRepository.existsBySender_IdAndReceiver_Id(sender.getId(), receiver.getId())){
+        // 유저 편지 토큰 검증 1개 이상
+        if(sender.getLetterCnt() <= 0){
+            throw new ApiException(StatusCode.CONFLICT, Message.OUT_OF_LETTER_TOKEN);
+        }
+        User receiver = userRepository.findById(receiverId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+
+        // 이미 대화를 한 적이 있는 유저인지 검증
+        if(letterRepository.existsBySender_IdAndReceiver_Id(sender.getId(), receiver.getId())){
            throw new ApiException(StatusCode.BAD_REQUEST, Message.LETTER_HAVE_SENT_ALREADY);
-       }
+        }
 
-       // 편지 빌드 및 저장
-       Letter letter = new Letter();
-       letter.setSender(sender);
-       letter.setReceiver(receiver);
-       letter.setStatus(LetterStatus.UNREAD);
-       letter.setIsTagBased(true); // 
-       letter.setContent(content);
+        // 편지 빌드 및 저장
+        Letter letter = new Letter();
+        letter.setSender(sender);
+        letter.setReceiver(receiver);
+        letter.setStatus(LetterStatus.UNREAD);
+        letter.setIsTagBased(true); //
+        letter.setContent(content);
 
-       letterRepository.save(letter);
+        letterRepository.save(letter);
     }
 
     /** 답장 작성 **/
@@ -212,6 +218,12 @@ public class LetterService {
     public void answerLetter(int userId, AnswerLetterReqDto dto) {
         int letterId = dto.getLetterId();
         String content = dto.getContent();
+        
+        // 유저 편지 토큰 검증 1개 이상
+        User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        if(user.getLetterCnt() <= 0){
+            throw new ApiException(StatusCode.CONFLICT, Message.OUT_OF_LETTER_TOKEN);
+        }
 
         // 욕설 필터링
         if(badWordFilter.isBadWord(content)){ throw new ApiException(StatusCode.BAD_REQUEST, Message.ARGUMENT_NOT_PROPER);}
@@ -220,6 +232,18 @@ public class LetterService {
         Letter letter = letterRepository.findById(letterId).orElseThrow(()-> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
         if(letter.getSender().getId().equals(userId)){
             throw new ApiException(StatusCode.CONFLICT, Message.ANSWER_LETTER_ERROR);
+        }
+
+        // 기존 답장 여부 확인
+        int senderId = letter.getSender().getId();
+        int receiverId = letter.getReceiver().getId();
+        Optional<Letter> theLatestLetter = letterRepository.findTop1BySender_IdAndReceiver_IdOrReceiver_IdAndSender_IdOrderByCreatedAtDesc(senderId, receiverId, receiverId, senderId);
+        if(theLatestLetter.isEmpty()){
+            throw new ApiException(StatusCode.CONFLICT, Message.LETTER_HISTORY_NOT_FOUND);
+        }
+
+        if(theLatestLetter.get().getSender().equals(userId)){
+            throw new ApiException(StatusCode.BAD_REQUEST, Message.LAST_LETTER_IS_NOT_ANSWERED_YET);
         }
 
         // 답장 편지 빌드

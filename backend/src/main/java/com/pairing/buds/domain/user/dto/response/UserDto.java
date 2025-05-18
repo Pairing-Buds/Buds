@@ -38,6 +38,7 @@ public class UserDto {
 
         List<String> allowedTagTypes = user.getTags().stream()
                 .map(tag -> tag.getTagType().getTagName())
+                .distinct()
                 .filter(allowedTags::contains).toList();
 
         return UserDto.builder()
