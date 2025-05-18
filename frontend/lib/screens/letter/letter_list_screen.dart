@@ -8,8 +8,7 @@ import 'package:buds/screens/letter/widgets/letter_container.dart';
 import 'package:buds/screens/letter/widgets/letter_empty_state.dart';
 import 'package:buds/screens/letter/widgets/letter_item.dart';
 import 'package:buds/screens/letter/widgets/letter_write_button.dart';
-
-// import 'package:buds/models/letter_list_model.dart';
+import 'package:buds/models/letter_list_model.dart';
 
 class LetterList extends StatelessWidget {
   final VoidCallback onWritePressed;

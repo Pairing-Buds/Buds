@@ -10,8 +10,9 @@ import 'package:buds/screens/letter/letter_answer_screen.dart';
 import 'package:buds/screens/letter/widgets/letter_content_view.dart';
 import 'package:buds/screens/letter/widgets/letter_detail_header.dart';
 import 'package:buds/screens/letter/widgets/letter_page_dots.dart';
-import 'package:buds/screens/letter/widgets/letter_pagination.dart';
 import 'package:buds/widgets/custom_app_bar.dart';
+import 'package:buds/models/letter_content_model.dart';
+import 'package:buds/models/letter_detail_model.dart';
 
 class LetterDetailScreen extends StatefulWidget {
   final int opponentId;
@@ -28,6 +29,18 @@ class LetterDetailScreen extends StatefulWidget {
 }
 
 class _LetterDetailScreenState extends State<LetterDetailScreen> {
+  // 캐러셀용 컨트롤러 추가
+  final PageController _pageController = PageController(
+    viewportFraction: 0.9,
+    initialPage: 0,
+  );
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -67,11 +80,18 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
     return totalLetters;
   }
 
-  // 캐러셀에서 편지 변경 시 처리
-  void _onLetterChanged(int index, LetterProvider provider) {
-    if (provider.currentLetterIndex != index) {
-      provider.setCurrentLetterIndex(index);
-    }
+  // 캐러셀에서 페이지 변경 시 처리
+  void _onPageChanged(int index, LetterProvider provider) {
+    provider.setCurrentLetterIndex(index);
+  }
+
+  // 부드러운 페이지 전환을 위한 메서드 추가
+  void _animateToPage(int page) {
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -93,9 +113,14 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final currentLetter = letterProvider.currentLetter;
-          if (currentLetter == null || letterProvider.letterPage == null) {
+          final letters = letterProvider.letterPage?.letters;
+          if (letters == null || letters.isEmpty) {
             return const Center(child: Text('편지를 불러올 수 없습니다.'));
+          }
+
+          final currentLetter = letterProvider.currentLetter;
+          if (currentLetter == null) {
+            return const Center(child: Text('편지 내용을 불러올 수 없습니다.'));
           }
 
           final isReceived = currentLetter.receiverName == loggedInUser;
@@ -105,6 +130,15 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
           final isLatestLetter = letterProvider.currentLetterIndex == 0;
           final isLatestReceivedLetter =
               isLatestPage && isLatestLetter && isReceived;
+
+          // 페이지 컨트롤러 초기 페이지 설정 (현재 선택된 편지로)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_pageController.hasClients &&
+                _pageController.page?.toInt() !=
+                    letterProvider.currentLetterIndex) {
+              _animateToPage(letterProvider.currentLetterIndex);
+            }
+          });
 
           return Column(
             children: [
@@ -117,17 +151,31 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
 
               const SizedBox(height: 5),
 
-              // 편지 내용
+              // 편지 내용 (PageView로 구현)
               Expanded(
-                child: LetterContentView(
-                  letter: currentLetter,
-                  recipientName: loggedInUser,
-                  recipientPostPosition: getPostpositionTo(
-                    isReceived ? loggedInUser : widget.opponentName,
-                  ),
-                  senderPostPosition: getPostpositionFrom(
-                    currentLetter.senderName,
-                  ),
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: letters.length,
+                  physics: const BouncingScrollPhysics(),
+                  onPageChanged:
+                      (index) => _onPageChanged(index, letterProvider),
+                  itemBuilder: (context, index) {
+                    // 이미 캐싱 메커니즘이 있으므로 항상 provider에서 현재 선택된 편지를 요청
+                    // index가 현재 선택된 인덱스와 다를 경우 자동으로 fetchSingleLetter가 호출됨
+                    final isCurrentIndex =
+                        index == letterProvider.currentLetterIndex;
+
+                    return LetterContentView(
+                      letter: currentLetter,
+                      recipientName: loggedInUser,
+                      recipientPostPosition: getPostpositionTo(
+                        isReceived ? loggedInUser : widget.opponentName,
+                      ),
+                      senderPostPosition: getPostpositionFrom(
+                        letters[index].senderName,
+                      ),
+                    );
+                  },
                 ),
               ),
 
@@ -139,7 +187,6 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ElevatedButton(
                     onPressed: () {
-                      // 답장하기 화면으로 이동
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -150,7 +197,19 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                                 redirectRoute: '/letter',
                               ),
                         ),
-                      );
+                      ).then((result) {
+                        // 편지 전송이 성공적으로 이루어진 경우에만 새로고침
+                        if (result == true) {
+                          // 편지함으로 돌아왔을 때 편지 목록 새로고침
+                          letterProvider.fetchLetters();
+
+                          // 현재 편지 대화 내용도 새로고침
+                          letterProvider.fetchLetterDetails(
+                            opponentId: widget.opponentId,
+                            page: 0,
+                          );
+                        }
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -170,12 +229,65 @@ class _LetterDetailScreenState extends State<LetterDetailScreen> {
                   ),
                 ),
 
-              // 페이지네이션 UI
-              LetterPagination(
-                provider: letterProvider,
-                opponentId: widget.opponentId,
-                buildPageDots: buildLetterPageDots,
+              // dots 인디케이터만 표시
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: buildLetterPageDots(letterProvider),
+                ),
               ),
+
+              // 현재 페이지 표시 (작게)
+              if (letterProvider.letterPage != null &&
+                  letterProvider.letterPage!.totalPages > 1)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    '페이지 ${letterProvider.currentPage + 1} / ${letterProvider.letterPage!.totalPages}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+
+              // 페이지 이동 버튼 (필요한 경우에만 표시)
+              if (letterProvider.letterPage != null &&
+                  letterProvider.letterPage!.totalPages > 1)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (letterProvider.currentPage > 0)
+                        IconButton(
+                          onPressed: () {
+                            letterProvider.fetchLetterDetails(
+                              opponentId: widget.opponentId,
+                              page: letterProvider.currentPage - 1,
+                            );
+                          },
+                          icon: const Icon(Icons.arrow_back, size: 20),
+                          tooltip: '최신 편지로 이동',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      const SizedBox(width: 32),
+                      if (letterProvider.currentPage <
+                          letterProvider.letterPage!.totalPages - 1)
+                        IconButton(
+                          onPressed: () {
+                            letterProvider.fetchLetterDetails(
+                              opponentId: widget.opponentId,
+                              page: letterProvider.currentPage + 1,
+                            );
+                          },
+                          icon: const Icon(Icons.arrow_forward, size: 20),
+                          tooltip: '과거 편지로 이동',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                    ],
+                  ),
+                ),
 
               const SizedBox(height: 10),
             ],

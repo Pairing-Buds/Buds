@@ -162,14 +162,14 @@ class _LetterAnswerScreenState extends State<LetterAnswerScreen> {
 
       if (success) {
         Toast(context, '편지가 전송되었습니다');
-        Navigator.pop(context);
+        Navigator.pop(context, true); // 성공 결과 반환
       } else {
         Toast(
           context,
           '편지 전송에 실패했습니다. 다시 시도해주세요.',
           icon: const Icon(Icons.error, color: Colors.red),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, false); // 실패 결과 반환
       }
     } catch (e) {
       if (e.toString().contains('409')) {

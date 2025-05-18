@@ -26,6 +26,13 @@ class LetterPagination extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            children: buildPageDots(provider),
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
                 onPressed: () {
@@ -57,11 +64,6 @@ class LetterPagination extends StatelessWidget {
                 tooltip: '과거 편지로 이동',
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: buildPageDots(provider),
           ),
         ],
       ),

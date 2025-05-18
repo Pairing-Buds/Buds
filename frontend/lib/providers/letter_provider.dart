@@ -1,74 +1,6 @@
-// /// lib/providers/letter_provider.dart
-//
-// // Flutter imports:
-// import 'package:flutter/material.dart';
-//
-// // Project imports:
-// import 'package:buds/models/letter_content_model.dart';
-// import 'package:buds/models/letter_detail_model.dart';
-// import 'package:buds/services/letter_service.dart';
-//
-// class LetterProvider extends ChangeNotifier {
-//   final LetterService _service = LetterService();
-//
-//   // 대화 목록 요약
-//   List<LetterDetailModel> _summaries = [];
-//   bool _isLoadingSummaries = false;
-//   int _currentPage = 0;
-//   int _totalPages = 1;
-//
-//   // 선택된 편지 상세
-//   LetterContentModel? _detail;
-//   bool _isLoadingDetail = false;
-//
-//   // getters
-//   List<LetterDetailModel> get summaries => _summaries;
-//   bool get isLoadingSummaries => _isLoadingSummaries;
-//   int get currentPage => _currentPage;
-//   int get totalPages => _totalPages;
-//   LetterContentModel? get detail => _detail;
-//   bool get isLoadingDetail => _isLoadingDetail;
-//
-//   // 대화 목록(요약) 조회
-//   Future<void> fetchSummaries({
-//     required int opponentId,
-//     int page = 0,
-//     int size = 5,
-//   }) async {
-//     if (_isLoadingSummaries) return;
-//     _isLoadingSummaries = true;
-//     notifyListeners();
-//     try {
-//       final list = await _service.fetchLetterDetails(
-//         opponentId: opponentId,
-//         page: page,
-//         size: size,
-//       );
-//       _summaries = list;
-//       _currentPage = page;
-//       _totalPages = (list.length == size) ? page + 2 : page + 1;
-//     } finally {
-//       _isLoadingSummaries = false;
-//       notifyListeners();
-//     }
-//   }
-//
-//   // 상세 내용 조회
-//   Future<void> fetchDetail(int letterId) async {
-//     if (_isLoadingDetail) return;
-//     _isLoadingDetail = true;
-//     notifyListeners();
-//     try {
-//       _detail = await _service.fetchSingleLetter(letterId);
-//     } catch (_) {
-//       _detail = null;
-//     } finally {
-//       _isLoadingDetail = false;
-//       notifyListeners();
-//     }
-//   }
-// }
+/// lib/providers/letter_provider.dart
 
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 // Project imports:
@@ -96,6 +28,9 @@ class LetterProvider extends ChangeNotifier {
   bool _isLoadingDetail = false;
   int _currentPage = 0;
   int _currentLetterIndex = 0;
+
+  // 편지 내용 캐시 추가
+  final Map<int, LetterContentModel> _letterContentCache = {};
 
   // 편지 전송 관련
   bool _isSending = false;
@@ -135,7 +70,7 @@ class LetterProvider extends ChangeNotifier {
     }
   }
 
-  // 특정 사용자와의 편지 상세 페이지 조회
+  // 특정 사용자와의 편지 상세 페이지 조회 및 내용 캐싱
   Future<void> fetchLetterDetails({
     required int opponentId,
     int page = 0,
@@ -177,8 +112,12 @@ class LetterProvider extends ChangeNotifier {
       _currentPage = page;
       _currentLetterIndex = 0; // 정렬 후 첫 번째 항목이 최신 편지
 
+      // 페이지의 첫 번째 편지 로드 (단일 요청)
       if (_letterPage!.letters.isNotEmpty) {
         await fetchSingleLetter(_letterPage!.letters[0].letterId);
+
+        // 백그라운드에서 페이지의 나머지 편지 내용 미리 로드 (캐싱)
+        _prefetchPageLetterContents();
       }
     } catch (e) {
       print('편지 상세 페이지 조회 에러: $e');
@@ -188,9 +127,34 @@ class LetterProvider extends ChangeNotifier {
     }
   }
 
-  // 개별 편지 내용 조회
+  // 현재 페이지의 모든 편지 내용을 백그라운드에서 미리 로드 (최적화)
+  Future<void> _prefetchPageLetterContents() async {
+    if (_letterPage == null || _letterPage!.letters.isEmpty) return;
+
+    for (int i = 0; i < _letterPage!.letters.length; i++) {
+      final letterId = _letterPage!.letters[i].letterId;
+      // 첫 번째 편지는 이미 로드했으므로 건너뜀
+      if (i != 0 && !_letterContentCache.containsKey(letterId)) {
+        try {
+          final content = await _letterService.fetchSingleLetter(letterId);
+          _letterContentCache[letterId] = content;
+        } catch (e) {
+          print('편지 ${letterId} 미리 로드 실패: $e');
+        }
+      }
+    }
+  }
+
+  // 개별 편지 내용 조회 (캐시 활용)
   Future<void> fetchSingleLetter(int letterId) async {
     if (_isLoadingDetail) return;
+
+    // 캐시에 있으면 캐시에서 가져옴
+    if (_letterContentCache.containsKey(letterId)) {
+      _currentLetter = _letterContentCache[letterId];
+      notifyListeners();
+      return;
+    }
 
     _isLoadingDetail = true;
     notifyListeners();
@@ -198,6 +162,8 @@ class LetterProvider extends ChangeNotifier {
     try {
       final letterContent = await _letterService.fetchSingleLetter(letterId);
       _currentLetter = letterContent;
+      // 캐시에 저장
+      _letterContentCache[letterId] = letterContent;
     } catch (e) {
       print('편지 내용 조회 에러: $e');
     } finally {
@@ -206,12 +172,27 @@ class LetterProvider extends ChangeNotifier {
     }
   }
 
-  // 현재 편지 인덱스 설정 (페이지네이션 내에서)
+  // 현재 편지 인덱스 설정 (페이지네이션 내에서) - 캐시 활용
   void setCurrentLetterIndex(int index) {
     _currentLetterIndex = index;
     if (_letterPage != null && _letterPage!.letters.isNotEmpty) {
-      fetchSingleLetter(_letterPage!.letters[index].letterId);
+      final letterId = _letterPage!.letters[index].letterId;
+      fetchSingleLetter(letterId);
     }
+    notifyListeners();
+  }
+
+  // 캐시 관련 메서드 추가
+  bool hasLetterInCache(int letterId) {
+    return _letterContentCache.containsKey(letterId);
+  }
+
+  LetterContentModel getLetterFromCache(int letterId) {
+    return _letterContentCache[letterId]!;
+  }
+
+  void clearLetterCache() {
+    _letterContentCache.clear();
     notifyListeners();
   }
 
