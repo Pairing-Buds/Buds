@@ -37,4 +37,5 @@ public interface LetterRepository extends JpaRepository<Letter, Integer> {
     boolean existsBySender_IdAndReceiver_Id(int senderId, int receiverId);
 
 
+    Optional<Letter> findTop1BySender_IdAndReceiver_IdOrReceiver_IdAndSender_IdOrderByCreatedAtDesc(Integer id, Integer integer, int receiverId, int senderId);
 }
