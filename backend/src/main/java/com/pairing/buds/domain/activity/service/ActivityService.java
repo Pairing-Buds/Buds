@@ -315,12 +315,14 @@ public class ActivityService {
     public Set<UserDto> findFriendByTag(int userId) {
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-//        User opponent = userRepository.findById(opponentId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-
+        // User opponent = userRepository.findById(opponentId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+        
         // 취향 맞는 추천 친구 조회 (10명)
         Pageable pageable = PageRequest.of(0, 10);
         List<User> recommendedUsers = tagRepository.findTop10RecommendedUsers(userId, pageable);
-        return FindFriendByTagResDto.toDto(recommendedUsers);
+        // 공통되는 태그
+        List<String> allowedTags = user.getTags().stream().map(tag -> tag.getTagType().getTagName()).toList();
+        return FindFriendByTagResDto.toDto(recommendedUsers, allowedTags);
     }
 
     /** 명언 랜덤 조회 **/

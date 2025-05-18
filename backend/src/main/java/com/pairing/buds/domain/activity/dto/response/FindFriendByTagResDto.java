@@ -19,8 +19,8 @@ public class FindFriendByTagResDto {
 
     private Set<UserDto> users;
 
-    public static Set<UserDto> toDto(List<User> users){
-        return users.stream().map(UserDto::toDto).collect(Collectors.toSet());
+    public static Set<UserDto> toDto(List<User> users, List<String> allowedTagTypes){
+        return users.stream().map(user -> UserDto.toTagBasedUserDto(user, allowedTagTypes)).collect(Collectors.toSet());
     }
 
 }
