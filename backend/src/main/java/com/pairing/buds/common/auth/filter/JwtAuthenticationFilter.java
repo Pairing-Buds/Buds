@@ -1,9 +1,7 @@
 package com.pairing.buds.common.auth.filter;
 
 import com.pairing.buds.common.auth.service.RedisService;
-import com.pairing.buds.common.auth.utils.CustomUserDetails;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
-import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -16,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -24,7 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 
 /**
  * 클라이언트 요청에 포함된 JWT 토큰 확인하고 이를 기반으로 인증 처리
@@ -112,7 +110,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (refreshToken.equals(savedRefresh)) {
                         // 5) Redis 일치 → 새 Access 발급
                         long currVer = redisService.getTokenVersion(userId);
-                        String newAccess = jwtTokenProvider.createAccessToken(userId, currVer);
+
+                        // 새 엑세스 토큰 발행시 role도 함꼐 전달
+                        String role   = jwtTokenProvider.getRoleFromToken(refreshToken);
+                        String newAccess = jwtTokenProvider.createAccessToken(userId, currVer, role);
+
                         jwtTokenProvider.addTokensToResponse(response, newAccess, refreshToken);
                         auth = getAuthenticationFromAccessToken(newAccess);
                     } else {
@@ -139,17 +141,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private Authentication getAuthenticationFromAccessToken(String token) {
         Integer userId = jwtTokenProvider.getUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id=" + userId));
+        String  role   = jwtTokenProvider.getRoleFromToken(token);
 
-        // 권한 정보만 CustomUserDetails에서 꺼내 온다고 가정
-        CustomUserDetails userDetails = new CustomUserDetails(user);
-        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        // role(claim) 기반으로 GrantedAuthority 생성
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. id=" + userId));
+//
+//        // 권한 정보만 CustomUserDetails에서 꺼내 온다고 가정
+//        CustomUserDetails userDetails = new CustomUserDetails(user);
+//        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
 
         return new UsernamePasswordAuthenticationToken(
                 userId,
                 null,
-                authorities
+                List.of(authority)
         );
     }
 

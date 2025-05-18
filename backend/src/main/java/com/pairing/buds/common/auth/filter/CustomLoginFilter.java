@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -82,8 +83,14 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
         redisService.deleteRefreshToken(userId);
         long newVersion = redisService.incrementTokenVersion(userId);
 
+        // principal에 담긴 권한(user 혹은 admin)
+        String role = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("권한 정보가 없습니다."));
+
         // 새 토큰 생성 및 저장
-        String accessToken = jwtTokenProvider.createAccessToken(userId, newVersion); // 액세스 토큰 생성
+        String accessToken = jwtTokenProvider.createAccessToken(userId, newVersion, role); // 액세스 토큰 생성
         String refreshToken = jwtTokenProvider.createRefreshToken(userId); // 리프레시 토큰 생성
         redisService.saveRefreshToken(userId, refreshToken, jwtTokenProvider.getRefreshExpiration());
 
@@ -91,7 +98,7 @@ public class CustomLoginFilter extends AbstractAuthenticationProcessingFilter {
         jwtTokenProvider.addTokensToResponse(response, accessToken, refreshToken); // 쿠키에 새로운 토큰 설정
 
         // SecurityContext 업데이트
-        UsernamePasswordAuthenticationToken newAuth =
+        Authentication newAuth =
             new UsernamePasswordAuthenticationToken(
                 userId,
                 null,
