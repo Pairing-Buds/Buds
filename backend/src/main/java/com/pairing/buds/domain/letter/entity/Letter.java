@@ -39,4 +39,7 @@ public class Letter extends CreateBaseTime {
     @Column(name = "is_scrapped")
     private Boolean isScrapped = false;
 
+    @Column(name = "is_answered")
+    private Boolean isAnswered = false;
+
 }

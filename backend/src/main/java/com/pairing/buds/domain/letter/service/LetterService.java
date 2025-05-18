@@ -234,17 +234,20 @@ public class LetterService {
             throw new ApiException(StatusCode.CONFLICT, Message.ANSWER_LETTER_ERROR);
         }
 
-        // 기존 답장 여부 확인
-        int senderId = letter.getSender().getId();
-        int receiverId = letter.getReceiver().getId();
-        Optional<Letter> theLatestLetter = letterRepository.findTop1BySender_IdAndReceiver_IdOrReceiver_IdAndSender_IdOrderByCreatedAtDesc(senderId, receiverId, receiverId, senderId);
-        if(theLatestLetter.isEmpty()){
-            throw new ApiException(StatusCode.CONFLICT, Message.LETTER_HISTORY_NOT_FOUND);
+        // 이미 답장 된 편지이면 거부
+        if(letter.getIsAnswered()){
+            throw new ApiException(StatusCode.CONFLICT, Message.LETTER_HAVE_ANSWERED_ALREADY);
         }
+//        int senderId = letter.getSender().getId();
+//        int receiverId = letter.getReceiver().getId();
+//        Optional<Letter> theLatestLetter = letterRepository.findTop1BySender_IdAndReceiver_IdOrReceiver_IdAndSender_IdOrderByCreatedAtDesc(senderId, receiverId, receiverId, senderId);
+//        if(theLatestLetter.isEmpty()){
+//            throw new ApiException(StatusCode.CONFLICT, Message.LETTER_HISTORY_NOT_FOUND);
+//        }
 
-        if(theLatestLetter.get().getSender().equals(userId)){
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.LAST_LETTER_IS_NOT_ANSWERED_YET);
-        }
+//        if(theLatestLetter.get().getSender().equals(userId)){
+//            throw new ApiException(StatusCode.BAD_REQUEST, Message.LAST_LETTER_IS_NOT_ANSWERED_YET);
+//        }
 
         // 답장 편지 빌드
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
