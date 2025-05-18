@@ -28,6 +28,7 @@ public class AnswerLetterReqDto {
         newLetter.setSender(letter.getReceiver());
         newLetter.setReceiver(letter.getSender());
         newLetter.setContent(content);
+        newLetter.setIsAnswered(true);
         return newLetter;
     }
 }
