@@ -34,7 +34,12 @@ public class UserDto {
 
     private List<String> tagTypes;
 
-    public static UserDto toDto(User user){
+    public static UserDto toTagBasedUserDto(User user, List<String> allowedTags){
+
+        List<String> allowedTagTypes = user.getTags().stream()
+                .map(tag -> tag.getTagType().getTagName())
+                .filter(allowedTags::contains).toList();
+
         return UserDto.builder()
                 .userId(user.getId())
                 .userEmail(user.getUserEmail())
@@ -43,8 +48,23 @@ public class UserDto {
                 .isActive(user.getIsActive())
                 .letterCnt(user.getLetterCnt())
                 .userName(user.getUserName())
-                .tagTypes(user.getTags().stream().map(tag -> tag.getTagType().getTagName()).collect(Collectors.toList()))
+                .tagTypes(allowedTagTypes)
                 .build();
     }
+
+    public static UserDto toDto(User user){
+
+        return UserDto.builder()
+                .userId(user.getId())
+                .userEmail(user.getUserEmail())
+                .birthDate(user.getBirthDate())
+                .role(user.getRole())
+                .isActive(user.getIsActive())
+                .letterCnt(user.getLetterCnt())
+                .userName(user.getUserName())
+                .tagTypes(user.getTags().stream().map(tag -> tag.getTagType().getTagName()).toList())
+                .build();
+    }
+
 
 }
