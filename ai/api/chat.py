@@ -234,7 +234,19 @@ async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
         if not os.path.exists(audio_path):
             raise HTTPException(status_code=404, detail="오디오 파일을 찾을 수 없습니다")
 
-        # 백그라운드 작업으로 파일 삭제 예약
+        # ✅ 여기서 파일이 완전히 준비됐는지 확인하는 코드 추가
+        for i in range(5):
+            try:
+                with open(audio_path, 'rb') as f:
+                    f.read()
+                break  # 읽기 성공하면 바로 통과
+            except Exception as e:
+                logging.warning(f"파일 준비 안됨, 재시도 중... ({i+1}/5) - {e}")
+                import time
+                time.sleep(1)
+        else:
+            raise HTTPException(status_code=500, detail="오디오 파일이 완전히 저장되지 않았습니다")
+
         background_tasks.add_task(remove_file, audio_path)
 
         return FileResponse(path=audio_path, media_type="audio/wav", filename=filename)
