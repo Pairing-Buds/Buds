@@ -95,7 +95,17 @@ async def send_message(
         if request.is_voice:
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             audio_filename = f"animalese_{user_id}_{timestamp}.wav"
-            background_tasks.add_task(chatbot.generate_animalese_tts, text_response, user_id, audio_filename)
+            audio_path = os.path.join(tempfile.gettempdir(), audio_filename)
+
+            # generate_animalese_tts 함수에 정확한 파일명 전달
+            background_tasks.add_task(
+                chatbot.generate_animalese_tts,
+                text_response,
+                user_id,
+                audio_filename
+            )
+
+            # 프론트에서 접근할 수 있도록 URL 반환
             audio_url = f"/api/audio/{audio_filename}"
 
         # 대화 저장
