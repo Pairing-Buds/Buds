@@ -277,7 +277,7 @@ class Chatbot:
         response = self.generate_response(prompt)
         return response
 
-    def generate_animalese_tts(self, text, user_id=None):
+    def generate_animalese_tts(self, text, user_id=None, filename =None):
         """
         텍스트를 동물의 숲 스타일 TTS로 변환합니다.
         성공 시 오디오 파일 경로를 반환하고, 실패 시 None을 반환합니다.
@@ -285,11 +285,15 @@ class Chatbot:
         try:
             # 임시 디렉토리 생성 또는 사용
             output_dir = tempfile.gettempdir()
+            if filename:
+                output_filename = filename
 
             # 사용자별 고유 파일명 생성 (충돌 방지)
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            user_part = f"_{user_id}" if user_id else ""
-            output_filename = f"animalese{user_part}_{timestamp}.wav"
+            else:
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                user_part = f"_{user_id}" if user_id else ""
+                output_filename = filename or f"animalese{user_part}_{timestamp}.wav"
+
             output_path = os.path.join(output_dir, output_filename)
 
             # 직접 함수 호출
