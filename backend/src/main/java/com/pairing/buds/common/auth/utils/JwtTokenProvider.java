@@ -59,7 +59,7 @@ public class JwtTokenProvider {
 
 
     /** 엑세스 토큰 생성 메서드 **/
-    public String createAccessToken(Integer userId, long version) {
+    public String createAccessToken(Integer userId, long version, String role) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         UserRole userRole = user.getRole();
@@ -70,7 +70,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .id(jti)
                 .claim("userId", userId)
-                .claim("role", userRole.name())
+                .claim("role", role)
                 .claim("ver", version)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + accessExpiration))
@@ -135,6 +135,16 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .get("ver", Long.class);
+    }
+
+    /** 토큰에서 role 추출 */
+    public String getRoleFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKeyInstance)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
     }
 
     /** jwt 토큰에서 userId 추출 **/
