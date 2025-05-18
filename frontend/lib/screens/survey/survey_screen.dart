@@ -37,30 +37,16 @@ class _SurveyScreenState extends State<SurveyScreen> {
   ];
 
   // 태그 한글 - 영어 매핑
-  final Map<String, String> tagTranslation = {
-    "취업": "JOB",
-    "자격증": "CERTIFICATION",
-    "운동": "SPORTS",
-    "패션": "FASHION",
-    "음악": "MUSIC",
-    "독서": "READING",
-    "요리": "COOKING",
-    "게임": "GAME",
-    "만화": "COMIC",
-    "영화": "MOVIE",
-  };
+  List<String> surveyTags = [
+    '취업', '자격증', '운동', '패션', '음악',
+    '독서', '요리', '게임', '만화', '영화'
+  ];
 
   // 각 질문에 대한 선택값 저장
   List<int?> selectedIndexes = List.filled(15, null);
-  List<String> surveyTags = [];
   List<String> selectedTags = []; // 백으로 보내는 태그
 
   @override
-  void initState() {
-    super.initState();
-    surveyTags = tagTranslation.keys.toList();
-  }
-
   void submitSurvey() async {
     if (selectedIndexes.contains(null)) {
       Toast(context, '설문조사가 끝나지 않았습니다. 모든 질문에 응답해주세요.');
@@ -86,10 +72,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
     int quietnessScore = selectedIndexes[13] ?? 0;
     int expressionScore = selectedIndexes[14] ?? 0;
 
-    // 선택된 태그를 영어로 변환
-    List<String> englishTags =
-        selectedTags.map((tag) => tagTranslation[tag] ?? tag).toList();
-
     bool success = await SurveyService().submitSurveyResult(
       seclusionScore: seclusionScore,
       opennessScore: opennessScore,
@@ -97,7 +79,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
       routineScore: routineScore,
       quietnessScore: quietnessScore,
       expressionScore: expressionScore,
-      tags: englishTags,
+      tags: selectedTags,
     );
 
     if (success) {
@@ -282,7 +264,9 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                 setState(() {
                                   if (isSelected) {
                                     selectedTags.remove(tag);
-                                  } else {
+                                  } else if (selectedTags.length < 3) { // 최대 3개까지만 선택 가능
+                                    Toast(context, '관심 분야는 최대 3개까지 선택할 수 있습니다.');
+                                  }else {
                                     selectedTags.add(tag);
                                   }
                                 });
