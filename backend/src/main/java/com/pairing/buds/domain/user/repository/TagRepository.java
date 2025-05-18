@@ -27,7 +27,7 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
            AND u2.id <> :userId
     """)
          // -- ORDER BY u2.id
-    Set<User> findTop10RecommendedUsers(
+    List<User> findTop10RecommendedUsers(
             @Param("userId") Integer userId,
             Pageable pageable
     );
