@@ -45,7 +45,7 @@ public class SaveSurveyResultReqDto {
     @NotNull
     private int expressionScore;
 
-    private Set<TagType> tags;
+    private Set<String> tags;
 
     public static User toUser(User user, SaveSurveyResultReqDto dto){
         user.setSeclusionScore(dto.getSeclusionScore());

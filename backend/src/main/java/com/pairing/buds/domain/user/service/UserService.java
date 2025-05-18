@@ -102,25 +102,23 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    /** 설문조사 결과 저장 **/
+    /** 첫 설문조사 결과 저장 **/
     public void saveSurveyResult(int userId, SaveSurveyResultReqDto dto) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         // 태그 비우기
         if(!user.getTags().isEmpty()){
-            tagRepository.deleteAll(user.getTags());
             user.getTags().clear();
         }
-        // 태그 빌드
-        Set<Tag> newTags = dto.getTags().parallelStream().map( newTag ->
-                Tag.builder()
-                        .user(user)
-                        .tagType(newTag)
-                        .build()
-        ).collect(Collectors.toSet());
+
         // 수정
         User userToUpdate = SaveSurveyResultReqDto.toUser(user, dto);
 
-        userToUpdate.getTags().addAll(newTags);
+        // 태그 빌드
+        Set<TagType> newTagTypes = dto.getTags().stream().map( newTag -> tagTypeRepository.findByTagName(newTag).orElseThrow( () -> new ApiException(StatusCode.CONFLICT, Message.TAGS_NOT_FOUND))).collect(Collectors.toSet());
+
+        user.getTags().addAll(newTagTypes.stream().map(newTag -> Tag.builder().user(user).tagType(newTag)
+                .build()).collect(Collectors.toSet()));
+
         userRepository.save(userToUpdate);
     }
 
