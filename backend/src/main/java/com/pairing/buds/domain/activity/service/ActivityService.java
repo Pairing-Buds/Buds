@@ -319,7 +319,7 @@ public class ActivityService {
 
         // 취향 맞는 추천 친구 조회 (10명)
         Pageable pageable = PageRequest.of(0, 10);
-        Set<User> recommendedUsers = tagRepository.findTop10RecommendedUsers(userId, pageable);
+        List<User> recommendedUsers = tagRepository.findTop10RecommendedUsers(userId, pageable);
         return FindFriendByTagResDto.toDto(recommendedUsers);
     }
 

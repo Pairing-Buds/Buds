@@ -5,6 +5,7 @@ import com.pairing.buds.domain.user.entity.User;
 import jakarta.validation.Valid;
 import lombok.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,7 @@ public class FindFriendByTagResDto {
 
     private Set<UserDto> users;
 
-    public static Set<UserDto> toDto(Set<User> users){
+    public static Set<UserDto> toDto(List<User> users){
         return users.stream().map(UserDto::toDto).collect(Collectors.toSet());
     }
 
