@@ -20,13 +20,22 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
           JOIN u2.tags t2
          WHERE t2.tagType IN (
                SELECT t1.tagType
-                 FROM User u1
+                 FROM User u1, Letter l
                  JOIN u1.tags t1
                 WHERE u1.id = :userId
                )
            AND u2.id <> :userId
+           AND u2.id NOT IN (
+                        SELECT l.receiver.id
+                          FROM Letter l
+                         WHERE l.sender.id = :userId
+                      )
+                    AND u2.id NOT IN (
+                        SELECT l.sender.id
+                          FROM Letter l
+                         WHERE l.receiver.id = :userId
+                      )
     """)
-         // -- ORDER BY u2.id
     List<User> findTop10RecommendedUsers(
             @Param("userId") Integer userId,
             Pageable pageable
