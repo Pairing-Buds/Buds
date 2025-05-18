@@ -20,10 +20,10 @@ public class ActivityController {
     /** 취향이 맞는 친구 찾기 **/
     @GetMapping("/find-friend-by-tag")
     public ResponseDto findFriendByTag(
-            @AuthenticationPrincipal int userId,
-            @RequestParam("opponentId") int opponentId
+            @AuthenticationPrincipal int userId
+//            @RequestParam("opponentId") int opponentId
     ){
-        return new ResponseDto(StatusCode.OK, activityService.findFriendByTag(userId, opponentId));
+        return new ResponseDto(StatusCode.OK, activityService.findFriendByTag(userId)); // opponentId 제거
     }
     /** 명언 조회 **/
     @GetMapping("/quote")

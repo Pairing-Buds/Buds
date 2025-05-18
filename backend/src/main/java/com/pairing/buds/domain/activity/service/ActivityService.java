@@ -312,10 +312,10 @@ public class ActivityService {
     }
 
     /** 취향이 맞는 친구 찾기 **/
-    public Set<UserDto> findFriendByTag(int userId, int opponentId) {
+    public Set<UserDto> findFriendByTag(int userId) {
         // 유저 및 태그 조회
         User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
-        User opponent = userRepository.findById(opponentId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
+//        User opponent = userRepository.findById(opponentId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
 
         // 취향 맞는 추천 친구 조회 (10명)
         Pageable pageable = PageRequest.of(0, 10);
