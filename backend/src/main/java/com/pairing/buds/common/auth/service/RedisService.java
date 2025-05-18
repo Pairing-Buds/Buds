@@ -12,6 +12,7 @@ public class RedisService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final String REFRESH_PREFIX = "refresh:";
+    private static final String VERSION_PREFIX = "ver:";
 
     public RedisService(@Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -41,6 +42,22 @@ public class RedisService {
         if (!keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
+    }
+
+    // 로그인 시 호출, 버전 1 증가, 증가된 값 반환
+    public long incrementTokenVersion(Integer userId) {
+        return redisTemplate.opsForValue().increment(VERSION_PREFIX + userId, 1);
+    }
+
+    // 요청 검증 시 호출: 현재 버전 조회 (없으면 0)
+    public long getTokenVersion(Integer userId) {
+        String val = redisTemplate.opsForValue().get(VERSION_PREFIX + userId);
+        return (val == null) ? 0L : Long.parseLong(val);
+    }
+
+    // 로그아웃 시 버전 삭제
+    public void deleteTokenVersion(Integer userId) {
+        redisTemplate.delete(VERSION_PREFIX + userId);
     }
 
 }

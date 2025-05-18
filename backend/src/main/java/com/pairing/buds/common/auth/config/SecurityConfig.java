@@ -7,10 +7,8 @@ import java.util.List;
 
 import com.pairing.buds.common.auth.service.RedisService;
 import com.pairing.buds.common.auth.utils.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -36,19 +34,16 @@ public class SecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, String> redisTemplate;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RedisService redisService;
 
     public SecurityConfig(AuthenticationConfiguration authenticationConfiguration,
                           CustomUserDetailsService userDetailsService,
                           JwtTokenProvider jwtTokenProvider,
-                          @Qualifier("CustomRedisTemplate") RedisTemplate<String, String> redisTemplate,
                           JwtAuthenticationFilter jwtAuthenticationFilter, RedisService redisService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.userDetailsService          = userDetailsService;
         this.jwtTokenProvider          = jwtTokenProvider;
-        this.redisTemplate             = redisTemplate;
         this.jwtAuthenticationFilter   = jwtAuthenticationFilter;
         this.redisService = redisService;
     }
@@ -115,7 +110,6 @@ public class SecurityConfig {
                 new CustomLoginFilter(
                         authenticationManager(),
                         jwtTokenProvider,
-                        redisTemplate,
                         redisService
                 );
 
