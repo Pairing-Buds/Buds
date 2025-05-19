@@ -20,6 +20,7 @@ import com.pairing.buds.domain.cs.repository.AnswerRepository;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,7 @@ public class AdminService {
     }
 
     /** 답변 작성 **/
+    @Transactional
     public void createAnswer(int adminId, @Valid CreateAnswerReqDto dto) {
         // 변수
         int questionId = dto.getQuestionId();
@@ -94,6 +96,7 @@ public class AdminService {
     }
 
     /** 답변 수정 **/
+    @Transactional
     public void patchAnswer(int adminId, @Valid PatchAnswerReqDto dto) {
         int answerId = dto.getAnswerId();
         String content = dto.getContent();
@@ -104,6 +107,7 @@ public class AdminService {
         Answer answerToSave = PatchAnswerReqDto.patchAnswer(answer, content);
         answerRepository.save(answerToSave);
     }
+    @Transactional
     /** 회원 활성화 **/
     public void activeUser(int adminId, ActiveUserReqDto dto) {
         int userId = dto.getUserId();
@@ -113,6 +117,7 @@ public class AdminService {
         User activatedUser = ActiveUserReqDto.toActiveUser(user);
         userRepository.save(activatedUser);
     }
+    @Transactional
     /** 회원 비활성화 **/
     public void inactiveUser(int adminId, InActiveUserReqDto dto) {
         int userId = dto.getUserId();
@@ -126,6 +131,7 @@ public class AdminService {
 
 
     /** 답변 삭제 **/
+    @Transactional
     public void deleteAnswer(int adminId, @Valid DeleteAnswerReqDto dto) {
 
         int answerId = dto.getAnswerId();

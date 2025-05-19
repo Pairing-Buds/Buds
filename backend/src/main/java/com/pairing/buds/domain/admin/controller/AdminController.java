@@ -24,7 +24,7 @@ public class AdminController {
     private final AdminService adminService;
 
     /** 해당 유저의 문의 조회 **/
-    @GetMapping("/cs/users/{userId}")
+    @GetMapping("/users/{userId}")
     public ResponseDto getQuestionsOfUser(
             @PathVariable("userId") int userId
 //            @RequestParam("questionId") int questionId
