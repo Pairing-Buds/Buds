@@ -127,19 +127,21 @@ class _SplashScreenState extends State<SplashScreen>
     try {
       // AuthProvider 초기화
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.initialize();
+      await authProvider.initialize(context);
 
       if (!mounted) return;
-
 
       // 애니메이션이 아직 완료되지 않았다면 애니메이션을 실행
       if (!_controller.isCompleted) {
         _controller.forward();
       }
-
     } catch (e) {
       debugPrint('앱 초기화 오류: $e');
       // 오류가 발생해도 스플래시 화면 완료 후 앱으로 진행
+      if (!mounted) return;
+      if (!_controller.isCompleted) {
+        _controller.forward();
+      }
     }
   }
 
