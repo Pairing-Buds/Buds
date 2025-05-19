@@ -283,6 +283,13 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // AuthProvider 초기화
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.initialize(context).then((_) {
+        _onInitializationComplete();
+      });
+    });
   }
 
   void _onInitializationComplete() {
