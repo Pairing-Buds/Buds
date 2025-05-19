@@ -9,6 +9,7 @@ import com.pairing.buds.domain.cs.dto.question.request.PatchQuestionReqDto;
 import com.pairing.buds.domain.cs.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ public class QuestionController {
 
     /** 문의 생성 **/
     @PostMapping("")
+    @PreAuthorize("hasRole('USER')")
     public ResponseDto createQuestion(
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody CreateQuestionReqDto dto
@@ -40,6 +42,7 @@ public class QuestionController {
 
     /** 문의 수정 **/
     @PatchMapping("")
+    @PreAuthorize("hasRole('USER')")
     public ResponseDto patchQuestion(
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody PatchQuestionReqDto dto
@@ -50,6 +53,7 @@ public class QuestionController {
 
     /** 문의 삭제 **/
     @DeleteMapping("")
+    @PreAuthorize("hasRole('USER')")
     public ResponseDto deleteQuestion(
             @AuthenticationPrincipal int userId,
             @Valid @RequestBody DeleteQuestionReqDto dto
