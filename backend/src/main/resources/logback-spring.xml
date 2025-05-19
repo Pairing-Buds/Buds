@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 콘솔 로그 설정 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 로그스태시 전송 설정 -->
+    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- 환경 변수에서 호스트와 포트를 가져옵니다. 기본값은 logstash와 5044 -->
+        <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5044}</destination>
+
+        <!-- 연결 유지 설정 -->
+        <keepAliveDuration>5 minutes</keepAliveDuration>
+
+        <!-- 재연결 관련 설정 -->
+        <reconnectionDelay>1 second</reconnectionDelay>
+        <waitStrategyType>sleeping</waitStrategyType>
+
+        <!-- JSON 인코더 설정 -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"application":"spring-app","service":"springboot"}</customFields>
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS</timestampPattern>
+            <includeMdc>true</includeMdc>
+            <includeContext>true</includeContext>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="LOGSTASH" />
+    </root>
+
+    <logger name="com.pairing.buds.domain" level="DEBUG" />
+</configuration>

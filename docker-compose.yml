@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      - LOGSTASH_HOST=logstash
+      - LOGSTASH_HOST=docker-elk_logstash_1
       - LOGSTASH_PORT=5044
     depends_on:
       mysql:
@@ -28,7 +28,7 @@ services:
     env_file:
       - .env
     environment:
-      - LOGSTASH_HOST=logstash
+      - LOGSTASH_HOST=docker-elk_logstash_1
       - LOGSTASH_PORT=5044
     depends_on:
       mysql:
@@ -46,7 +46,7 @@ services:
     env_file:
       - .env
     environment:
-      - LOGSTASH_HOST=logstash
+      - LOGSTASH_HOST=docker-elk_logstash_1
       - LOGSTASH_PORT=5044
     networks:
       - default
