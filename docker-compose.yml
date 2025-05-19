@@ -94,6 +94,8 @@ services:
 networks:
   default:
     driver: bridge
+  docker-elk_elk:
+    external: true
 
 volumes:
   mysql-data:
