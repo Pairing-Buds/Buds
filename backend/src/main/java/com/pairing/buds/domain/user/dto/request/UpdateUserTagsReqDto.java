@@ -1,6 +1,7 @@
 package com.pairing.buds.domain.user.dto.request;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @Valid
 public class UpdateUserTagsReqDto {
 
-    private List<Integer> tagTypeIds;
+        @Size(min = 0, max = 3)
+        private List<String> tagTypes;
 
 }
