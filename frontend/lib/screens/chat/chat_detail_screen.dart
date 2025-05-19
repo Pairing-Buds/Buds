@@ -129,10 +129,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     _scrollToBottom();
 
-    final botMessage = await _chatService.sendMessage(
+    final response = await _chatService.sendMessage(
       message: userMessage,
       isVoice: false,
     );
+
+    final botMessage = response is Map ? response['text'] ?? '응답 없음' : response;
 
     setState(() {
       _chatHistory.removeLast();
@@ -181,7 +183,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildStartView(String  characterIconPath) {
+  Widget _buildStartView(String characterIconPath) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -344,15 +346,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     required String createdAt,
   }) {
     if (text == loadingMessage) {
+      final characterIconPath = _getCharacterIcon(
+        Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋',
+      );
+
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: Image(
-                image: AssetImage('assets/images/marmet_head.png'),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Image.asset(
+                characterIconPath,
                 width: 28,
                 height: 28,
               ),
@@ -374,6 +380,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ),
       );
     }
+
 
     final utcTime = DateTime.parse(createdAt);
     final kstTime = utcTime.add(const Duration(hours: 9));
