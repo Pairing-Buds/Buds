@@ -25,7 +25,7 @@ class ChatService {
       if (response.statusCode == 200 && data is Map<String, dynamic>) {
         // 텍스트와 오디오 경로를 항상 map으로 반환
         return {
-          'text': data['text'] ?? data['message'] ?? '응답 없음',
+          'text': data['message'] ?? data['text'] ?? '응답 없음',
           'audioPath': data['audio_path'] ?? null,
         };
       } else {
