@@ -7,12 +7,14 @@ import com.pairing.buds.domain.activity.dto.request.*;
 import com.pairing.buds.domain.activity.service.ActivityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/activities")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class ActivityController {
 
     private final ActivityService activityService;
@@ -104,6 +106,7 @@ public class ActivityController {
     }
 
     /** 명언 저장 API**/
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/quote")
     public ResponseDto createQuote(
             @AuthenticationPrincipal int userId){

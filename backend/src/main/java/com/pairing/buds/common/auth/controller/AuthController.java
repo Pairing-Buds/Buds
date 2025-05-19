@@ -12,6 +12,7 @@ import com.pairing.buds.domain.user.service.VerificationService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,12 +49,14 @@ public class AuthController {
     }
 
     /** 중복 없는 닉네임 랜덤 제공 **/
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/random-nickname")
     public ResponseDto getRandomName() {
         return new ResponseDto(StatusCode.OK, authService.getAvailableRandomName());
     }
 
     /** 닉네임/캐릭터 저장 **/
+    @PreAuthorize("hasRole('USER')")
     @PatchMapping("/sign-up/complete")
     public ResponseDto completeSignup(
             @AuthenticationPrincipal Integer userId,
@@ -81,6 +84,7 @@ public class AuthController {
     }
 
     /** (임시) userId 조회 **/
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/userid")
     public ResponseDto getUserId(@AuthenticationPrincipal Integer userId) {
         return new ResponseDto(StatusCode.OK, userId);
