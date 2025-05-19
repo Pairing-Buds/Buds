@@ -8,11 +8,17 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    environment:
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - default
+      - docker-elk_elk
 
   fastapi:
     image: kimkyeongeun/fastapi:latest
@@ -21,9 +27,15 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
     depends_on:
       mysql:
         condition: service_healthy
+    networks:
+      - default
+      - docker-elk_elk
 
   # Emotion API Server 수정
   emotion-api:
@@ -33,6 +45,12 @@ services:
       - "8001:8000"
     env_file:
       - .env
+    environment:
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
+    networks:
+      - default
+      - docker-elk_elk
 
   # MySQL (RDB)
   mysql:
