@@ -54,7 +54,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // 초기화 - 앱 시작 시 호출
-  Future<void> initialize() async {
+  Future<void> initialize(BuildContext context) async {
     try {
       if (kDebugMode) {
         print('AuthProvider 초기화 시작...');
@@ -73,23 +73,27 @@ class AuthProvider extends ChangeNotifier {
         }
       }
 
-      // 저장된 쿠키가 있거나 서버에서 쿠키 유효성 검증이 성공하면 로그인 상태로 처리
-      final cookiesValid =
-          hasStoredCookies || await _authService.checkCookies();
-
-      if (cookiesValid) {
-        _isLoggedIn = true;
+      if (hasStoredCookies) {
         try {
           // 사용자 프로필 정보 로드
           final user = await _authService.getUserProfile();
           _userData = user.toJson();
+          _isLoggedIn = true;
           if (kDebugMode) {
             print('사용자 인증 상태 확인: 로그인됨 (${user.email})');
           }
         } catch (e) {
           if (kDebugMode) {
             print('사용자 프로필 로드 오류: $e');
-            print('쿠키는 유효하지만 사용자 데이터를 가져올 수 없습니다. 로그인 상태는 유지됩니다.');
+          }
+          // 프로필 로드 실패 시 로그아웃 처리
+          _isLoggedIn = false;
+          _userData = null;
+          // 쿠키 삭제
+          await _apiService.clearCookies();
+          // 로그인 화면으로 이동
+          if (context.mounted) {
+            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
           }
         }
       } else {
