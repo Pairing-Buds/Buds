@@ -41,6 +41,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _scrollController.addListener(_onScroll);
   }
 
+  String _getCharacterIcon(String characterName) {
+    switch (characterName) {
+      case '마멋':
+        return 'assets/icons/characters/marmeticon.png';
+      case '여우':
+        return 'assets/icons/characters/foxicon.png';
+      case '개구리':
+        return 'assets/icons/characters/frogicon.png';
+      case '게코':
+        return 'assets/icons/characters/lizardicon.png';
+      case '오리':
+        return 'assets/icons/characters/duckicon.png';
+      case '토끼':
+        return 'assets/icons/characters/rabbiticon.png';
+      default:
+        return 'assets/icons/characters/marmeticon.png';
+    }
+  }
+
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -145,6 +165,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final userCharacter = authProvider.userData?['userCharacter'] ?? '마멋';
+    final characterIconPath = _getCharacterIcon(userCharacter);
 
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
@@ -155,19 +176,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: _hasStarted ? _buildChatView() : _buildStartView(),
+        child: _hasStarted ? _buildChatView() : _buildStartView(characterIconPath),
       ),
     );
   }
 
-  Widget _buildStartView() {
+  Widget _buildStartView(String  characterIconPath) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
         Opacity(
           opacity: 0.5,
-          child: Image.asset('assets/images/marmet_head.png', width: 240),
+          child: Image.asset(characterIconPath, width: 240),
         ),
         const Spacer(),
         Padding(
@@ -371,7 +392,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Image.asset(
-                    'assets/images/marmet_head.png',
+                    _getCharacterIcon(
+                      Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋',
+                    ),
                     width: 28,
                     height: 28,
                   ),
