@@ -58,7 +58,7 @@ public class UserService {
     }
 
     /** 태그 업데이트(신규 저장 포함) **/
-    @Transactional
+    @Transactionalg
     public void updateUserTags(Integer userId, List<String> tagTypes) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
