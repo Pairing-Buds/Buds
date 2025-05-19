@@ -3,6 +3,7 @@ import 'dart:async';
 
 // Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // Package imports:
 import 'package:flutter_tts/flutter_tts.dart';
@@ -11,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:buds/providers/auth_provider.dart';
 
 
 // Project imports:
@@ -46,6 +48,26 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     _initializeSTT();
     _checkMicPermission();
   }
+
+  String _getCharacterIcon(String characterName) {
+    switch (characterName) {
+      case '마멋':
+        return 'assets/icons/characters/marmeticon.png';
+      case '고양이':
+        return 'assets/icons/characters/foxicon.png';
+      case '개구리':
+        return 'assets/icons/characters/frogicon.png';
+      case '게코':
+        return 'assets/icons/characters/lizardicon.png';
+      case '오리':
+        return 'assets/icons/characters/duckicon.png';
+      case '토끼':
+        return 'assets/icons/characters/rabbiticon.png';
+      default:
+        return 'assets/icons/characters/marmeticon.png';
+    }
+  }
+
 
   void _initializeTTS() async {
     await _tts.setLanguage("ko-KR");
@@ -293,6 +315,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final userCharacter = Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋';
+    final characterIconPath = _getCharacterIcon(userCharacter);
 
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
@@ -300,7 +324,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         child: Column(
           children: [
             SizedBox(height: screenHeight * 0.08),
-            Image.asset('assets/images/marmet_head.png', width: screenHeight * 0.25),
+            Image.asset(characterIconPath, width: screenHeight * 0.25),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
