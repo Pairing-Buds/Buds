@@ -1,9 +1,5 @@
 package com.pairing.buds.common.auth.utils;
 
-import com.pairing.buds.domain.user.entity.User;
-import com.pairing.buds.domain.user.entity.UserRole;
-
-import com.pairing.buds.domain.user.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -34,8 +30,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    private final UserRepository userRepository;
-
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -60,13 +54,9 @@ public class JwtTokenProvider {
 
     /** 엑세스 토큰 생성 메서드 **/
     public String createAccessToken(Integer userId, long version, String role) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-        UserRole userRole = user.getRole();
         Date now = new Date();
-
-        // Access Token
         String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
                 .id(jti)
                 .claim("userId", userId)
@@ -80,17 +70,12 @@ public class JwtTokenProvider {
 
     /** 리프레시 토큰 생성 메서드 **/
     public String createRefreshToken(Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-        UserRole userRole = user.getRole();
         Date now = new Date();
-
-        // Refresh Token
         String jti = UUID.randomUUID().toString();
+
         return Jwts.builder()
                 .id(jti)
                 .claim("userId", userId)
-                .claim("role", userRole.name())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + refreshExpiration))
                 .signWith(secretKeyInstance)
