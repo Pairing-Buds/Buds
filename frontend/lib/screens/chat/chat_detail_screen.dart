@@ -41,6 +41,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _scrollController.addListener(_onScroll);
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ModalRoute.of(context)?.addScopedWillPopCallback(() async {
+      return true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshChatHistory(); // 아래 함수 정의
+    });
+  }
+
+  Future<void> _refreshChatHistory() async {
+    _offset = 0;
+    _hasMore = true;
+    _chatHistory.clear();
+    await _loadMoreChat();
+  }
+
   void _onScroll() {
     if (_scrollController.position.pixels <= _scrollController.position.minScrollExtent + 100 && !_isLoading) {
       _loadMoreChat();
@@ -207,57 +226,97 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               reverse: true,
               itemCount: _chatHistory.length,
-              itemBuilder: (context, index) {
-                final chat = _chatHistory[_chatHistory.length - 1 - index];
-                return _buildChatBubble(
-                  chat['message'],
-                  isBot: !(chat['is_user'] ?? false),
-                  createdAt: chat['created_at'],
-                );
-              },
+                itemBuilder: (context, index) {
+                  final reversedIndex = _chatHistory.length - 1 - index;
+                  final chat = _chatHistory[reversedIndex];
+                  final createdAt = DateTime.parse(chat['created_at']).add(const Duration(hours: 9));
+                  final isBot = !(chat['is_user'] ?? false);
+
+                  // 날짜 구분선 판단
+                  bool showDateHeader = false;
+                  final currentDate = DateFormat('yyyy년 M월 d일').format(createdAt);
+
+                  if (reversedIndex == 0) {
+                    showDateHeader = true;
+                  } else {
+                    final prevChat = _chatHistory[reversedIndex - 1];
+                    final prevDate = DateFormat('yyyy년 M월 d일')
+                        .format(DateTime.parse(prevChat['created_at']).add(const Duration(hours: 9)));
+                    if (currentDate != prevDate) {
+                      showDateHeader = true;
+                    }
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showDateHeader)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+                          child: Row(
+                            children: [
+                              const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(currentDate, style: const TextStyle(color: Colors.black54)),
+                              ),
+                              const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+                            ],
+                          ),
+                        ),
+                      _buildChatBubble(chat['message'], isBot: isBot, createdAt: chat['created_at']),
+                    ],
+                  );
+                }
             ),
           ),
         ),
         const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: TextField(
-            controller: _controller,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              hintText: '답장하기',
-              hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
-              filled: true,
-              fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              suffixIcon: GestureDetector(
-                onTap: () {
-                  final input = _controller.text.trim();
-                  if (input.isEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
-                    );
-                  } else {
-                    _handleSend();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Image.asset('assets/icons/chat.png', width: 30),
-                ),
-              ),
-              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        )
+        _buildTextInputField(),
       ],
     );
   }
+
+
+  Widget _buildTextInputField() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: TextField(
+        controller: _controller,
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          hintText: '답장하기',
+          hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
+          filled: true,
+          fillColor: const Color(0xFFF5F5F5),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          suffixIcon: GestureDetector(
+            onTap: () {
+              final input = _controller.text.trim();
+              if (input.isEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
+                );
+              } else {
+                _handleSend();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Image.asset('assets/icons/chat.png', width: 30),
+            ),
+          ),
+          suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildChatBubble(String text, {
     required bool isBot,

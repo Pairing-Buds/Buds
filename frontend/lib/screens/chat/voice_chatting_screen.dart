@@ -83,6 +83,14 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
       // 🔍 재생 상태 먼저 listen() 등록
       player.onPlayerStateChanged.listen((state) {
         print('🎧 현재 상태: $state');
+        if (state == PlayerState.completed) {
+          print("✅ 오디오 재생 완료됨 → STT 시작");
+          _ttsPlaying = false;
+
+          if (!_isMuted) {
+            Future.delayed(const Duration(milliseconds: 300), _startListening);
+          }
+        }
       });
 
       // 🔊 설정
