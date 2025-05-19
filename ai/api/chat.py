@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, HTTPException, Depends, Response, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -259,6 +261,7 @@ async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
 def remove_file(file_path: str):
     """음성 파일 응답 후 파일 삭제"""
     try:
+        time.sleep(10)
         if os.path.exists(file_path):
             os.remove(file_path)
             logging.info(f"음성 파일이 성공적으로 삭제되었습니다: {file_path}")
