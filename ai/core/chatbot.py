@@ -277,40 +277,33 @@ class Chatbot:
         response = self.generate_response(prompt)
         return response
 
-    def generate_animalese_tts(self, text, user_id=None, filename =None):
+    def generate_animalese_tts(self, text, user_id=None):
         """
         텍스트를 동물의 숲 스타일 TTS로 변환합니다.
         성공 시 오디오 파일 경로를 반환하고, 실패 시 None을 반환합니다.
         """
         try:
+            # 임시 디렉토리 생성 또는 사용
             output_dir = tempfile.gettempdir()
-            if filename:
-                output_filename = filename
-            else:
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                user_part = f"_{user_id}" if user_id else ""
-                output_filename = f"animalese{user_part}_{timestamp}.wav"
 
+            # 사용자별 고유 파일명 생성 (충돌 방지)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            user_part = f"_{user_id}" if user_id else ""
+            output_filename = f"animalese{user_part}_{timestamp}.wav"
             output_path = os.path.join(output_dir, output_filename)
 
-            # ✅ 로그 추가
-            logging.info(f"🎤 TTS 생성 요청: text='{text[:30]}...' user_id={user_id}")
-            logging.info(f"📁 예상 저장 위치: {output_path}")
-
+            # 직접 함수 호출
             success = convert_text_to_animalese(text, output_path)
 
-            logging.info(f"✅ 변환 성공 여부: {success}")
-            logging.info(f"📂 파일 실제 존재 여부: {os.path.exists(output_path)}")
-
             if success and os.path.exists(output_path):
-                logging.info(f"✔️ TTS 파일 생성 성공: {output_path}")
+                logging.info(f"PyAnimalese TTS 파일 생성 성공: {output_path}")
                 return output_path
             else:
-                logging.error("❌ TTS 파일 생성 실패 또는 저장 실패")
+                logging.error(f"PyAnimalese TTS 파일 생성 실패")
                 return None
 
         except Exception as e:
-            logging.error(f"❗ PyAnimalese TTS 생성 중 예외 발생: {str(e)}")
+            logging.error(f"PyAnimalese TTS 생성 오류: {str(e)}")
             return None
 
     def generate_response(self, prompt):

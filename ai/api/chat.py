@@ -1,5 +1,3 @@
-import time
-
 from fastapi import APIRouter, HTTPException, Depends, Response, File, UploadFile, BackgroundTasks
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -37,7 +35,6 @@ class ChatHistoryRequest(BaseModel):
 @router.post("/chat/message", response_model=MessageResponse)
 async def send_message(
         request: MessageRequest,
-        background_tasks: BackgroundTasks,
         user_id: int = Depends(get_user_id_from_token)
 ):
     """
@@ -49,6 +46,7 @@ async def send_message(
     """
 
     try:
+        # 사용자 인증 확인
         try:
             mysql_db.get_user_profile(user_id)
         except ValueError as e:
@@ -58,59 +56,69 @@ async def send_message(
         logging.info(f"사용자 {user_id}로부터 메시지 수신: {request.message[:20]}...")
         logging.info(f"음성 입력: {request.is_voice}")
 
+        # 메시지 카운트 가져오기 - ChromaDB 오류 처리 개선
         message_count = 0
         try:
             today = now.strftime('%Y-%m-%d')
             message_count = chroma_db.get_daily_message_count(user_id, today)
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (메시지 카운트): {str(e)}")
+            # 연결 오류 시에도 계속 진행하되, 메시지 카운트는 0으로 설정
         except Exception as e:
             logging.error(f"메시지 카운트 조회 오류: {str(e)}")
+            # 다른 오류도 비슷하게 처리
 
+        # 일일 제한 확인
         if message_count >= 100:
             raise HTTPException(
                 status_code=429,
                 detail="오늘의 메시지 한도(100)에 도달했습니다. 내일 다시 대화해주세요."
             )
 
-        # 🧠 GPT 응답 받기
+        # 텍스트 메시지 처리 - 비동기 방식으로 개인화된 응답 생성
         try:
             response = await chatbot.get_response(
                 user_id,
                 request.message,
                 message_count=message_count,
-                is_voice=request.is_voice
+                is_voice=request.is_voice  # 음성 입력이 들어왔을 때 음성 출력도 생성
             )
         except ConnectionError as e:
+            # ChromaDB 연결 오류 발생 시 컨텍스트 없이 기본 응답 생성
             logging.error(f"ChromaDB 연결 오류 (응답 생성): {str(e)}")
+            # 간단한 응답만 생성 (컨텍스트 없이)
             simple_response = "죄송합니다. 현재 대화 기록 시스템에 연결할 수 없습니다. 기본 응답만 제공해 드립니다."
-            response = {"text": simple_response} if request.is_voice else simple_response
 
-        # ✅ 텍스트 응답 추출
-        if isinstance(response, dict) and "text" in response:
+            # 음성 처리
+            if request.is_voice:
+                try:
+                    audio_path = chatbot.generate_animalese_tts(simple_response, user_id)
+                    response = {
+                        "text": simple_response,
+                        "audio_path": audio_path
+                    }
+                except:
+                    response = simple_response
+            else:
+                response = simple_response
+
+        # 응답 형식 확인 및 처리
+        if isinstance(response, dict) and "text" in response and "audio_path" in response:
+            # TTS 응답이 포함된 경우
             text_response = response["text"]
+            audio_path = response["audio_path"]
+
+            # 오디오 파일 URL 생성
+            audio_url = None
+            if audio_path:
+                audio_filename = os.path.basename(audio_path)
+                audio_url = f"/api/audio/{audio_filename}"
         else:
+            # 일반 텍스트 응답만 있는 경우
             text_response = response
+            audio_url = None
 
-        # ✅ TTS 비동기 생성 예약
-        audio_url = None
-        if request.is_voice:
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            audio_filename = f"animalese_{user_id}_{timestamp}.wav"
-            audio_path = os.path.join(tempfile.gettempdir(), audio_filename)
-
-            # generate_animalese_tts 함수에 정확한 파일명 전달
-            background_tasks.add_task(
-                chatbot.generate_animalese_tts,
-                text_response,
-                user_id,
-                audio_filename
-            )
-
-            # 프론트에서 접근할 수 있도록 URL 반환
-            audio_url = f"/api/audio/{audio_filename}"
-
-        # 대화 저장
+        # 메시지 저장 시도 - 실패해도 응답은 계속 제공
         try:
             chroma_db.save_conversation(
                 user_id,
@@ -120,11 +128,15 @@ async def send_message(
             )
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (대화 저장): {str(e)}")
+            # 저장 실패해도 계속 진행
         except Exception as e:
             logging.error(f"대화 저장 오류: {str(e)}")
+            # 다른 오류도 비슷하게 처리
 
+        # 남은 메시지 수 계산
         remaining_messages = 100 - (message_count + 1)
 
+        # 응답 반환
         return MessageResponse(
             message=text_response,
             created_at=datetime.now(),
@@ -139,7 +151,6 @@ async def send_message(
     except Exception as e:
         logging.error(f"Error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="서버 내부 오류")
-
 
 
 @router.post("/chat/history", response_model=Dict[str, Any])
@@ -236,19 +247,7 @@ async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
         if not os.path.exists(audio_path):
             raise HTTPException(status_code=404, detail="오디오 파일을 찾을 수 없습니다")
 
-        # ✅ 여기서 파일이 완전히 준비됐는지 확인하는 코드 추가
-        for i in range(5):
-            try:
-                with open(audio_path, 'rb') as f:
-                    f.read()
-                break  # 읽기 성공하면 바로 통과
-            except Exception as e:
-                logging.warning(f"파일 준비 안됨, 재시도 중... ({i+1}/5) - {e}")
-                import time
-                time.sleep(1)
-        else:
-            raise HTTPException(status_code=500, detail="오디오 파일이 완전히 저장되지 않았습니다")
-
+        # 백그라운드 작업으로 파일 삭제 예약
         background_tasks.add_task(remove_file, audio_path)
 
         return FileResponse(path=audio_path, media_type="audio/wav", filename=filename)
@@ -261,7 +260,6 @@ async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
 def remove_file(file_path: str):
     """음성 파일 응답 후 파일 삭제"""
     try:
-        time.sleep(10)
         if os.path.exists(file_path):
             os.remove(file_path)
             logging.info(f"음성 파일이 성공적으로 삭제되었습니다: {file_path}")
