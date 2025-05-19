@@ -7,7 +7,7 @@ public enum Message {
 
     USER_NOT_FOUND("해당 사용자를 찾을 수 없습니다."),
     ADMIN_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
-    ANSWER_NOT_FOUND("해당 관리자를 찾을 수 없습니다."),
+    ANSWER_NOT_FOUND("해당 답변을 찾을 수 없습니다."),
     LETTER_FAVORITE_NOT_FOUND("해당 스크랩을 찾을 수 없습니다."),
     LETTER_NOT_FOUND("해당 편지를 찾을 수 없습니다."),
     QUOTE_NOT_FOUND("명언을 찾을 수 없습니다."),
