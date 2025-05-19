@@ -115,24 +115,24 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   children: [
                     // WakeUpSection 위젯 사용
                     const WakeUpSection(),
-                    const SizedBox(height: 20),
-                    const Text(
-                      '우리지역 센터',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      height: 50,
-                      width: double.infinity,
-                    ),
+                    // const SizedBox(height: 20),
+                    // const Text(
+                    //   '우리지역 센터',
+                    //   style: TextStyle(
+                    //     fontSize: 18,
+                    //     fontWeight: FontWeight.bold,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 12),
+                    // Container(
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     border: Border.all(color: Colors.grey.shade300),
+                    //     borderRadius: BorderRadius.circular(12),
+                    //   ),
+                    //   height: 50,
+                    //   width: double.infinity,
+                    // ),
                     const SizedBox(height: 40),
                     Container(
                       padding: const EdgeInsets.all(16),
