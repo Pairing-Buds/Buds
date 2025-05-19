@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 
 // Package imports:
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Project imports:
 import 'package:buds/config/theme.dart';
 import 'package:buds/providers/auth_provider.dart';
 import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/login/password_reset_email_screen.dart';
+import 'package:buds/screens/admin/admin_screen.dart';
 import 'package:buds/widgets/toast_bar.dart';
 
 class LoginForm extends StatefulWidget {
@@ -65,88 +67,124 @@ class _LoginFormState extends State<LoginForm> {
         print('로그인 시도: $email');
       }
 
-      // AuthProvider를 통한 로그인
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider
-          .login(email, password)
-          .then((success) {
-            if (success) {
-              // 로그인 성공
-              Toast(context, '로그인 성공');
-
-              // 내 정보 조회 API 호출
-              if (kDebugMode) {
-                print('내 정보 조회 API 호출 시작');
+      // 관리자 계정 체크
+      if (email == dotenv.env['ADMIN_EMAIL']) {
+        // AuthProvider를 통한 로그인
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider
+            .login(email, password)
+            .then((success) {
+              if (success) {
+                // 로그인 성공
+                Toast(context, '관리자 로그인 성공');
+                // 관리자 페이지로 이동
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const AdminScreen(),
+                  ),
+                );
+              } else {
+                // 로그인 실패
+                Toast(
+                  context,
+                  '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다',
+                  icon: const Icon(Icons.error, color: Colors.red),
+                );
               }
-
-              // DioAuthService 객체를 직접 생성하지 않고 AuthProvider의 내부 구현 활용
-              authProvider
-                  .refreshUserData()
-                  .then((_) {
-                    if (kDebugMode) {
-                      print('내 정보 조회 완료: ${authProvider.userData}');
-                      print('익명 사용자 여부: ${authProvider.isAnonymousUser}');
-                    }
-
-                    // 익명 사용자인지 확인
-                    if (authProvider.isAnonymousUser) {
-                      // 익명 사용자이면 캐릭터 선택 화면으로 이동
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const CharacterSelectScreen(),
-                        ),
-                      );
-                    } else {
-                      // 일반 사용자는 메인 화면으로 이동
-                      Navigator.pushReplacementNamed(context, '/main');
-                    }
-                  })
-                  .catchError((e) {
-                    if (kDebugMode) {
-                      print('내 정보 조회 실패: $e');
-                    }
-                    // 정보 조회 실패해도 일단 메인 화면으로 이동
-                    Navigator.pushReplacementNamed(context, '/main');
-                  });
-            } else {
-              // 로그인 실패
-              Toast(
-                context,
-                '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다',
-                icon: const Icon(Icons.error, color: Colors.red),
-              );
-            }
-          })
-          .catchError((error) {
-            // 오류 처리
-            if (kDebugMode) {
-              print('로그인 폼 오류: $error');
-            }
-
-            // 오류 메시지 추출 및 표시
-            String errorMessage = '로그인 실패: 서버 연결 오류';
-
-            if (error.toString().contains('401')) {
-              errorMessage = '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다';
-            } else if (error.toString().contains('500')) {
-              errorMessage = '로그인 실패: 서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-            } else if (error.toString().contains('인증 쿠키 없음')) {
-              errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
-            }
-
-            Toast(
-              context,
-              errorMessage,
-              icon: const Icon(Icons.error, color: Colors.red),
-            );
-          })
-          .whenComplete(() {
-            // 로딩 상태 해제
-            setState(() {
-              _isLoading = false;
+            })
+            .catchError((error) {
+              _handleLoginError(error);
+            })
+            .whenComplete(() {
+              setState(() {
+                _isLoading = false;
+              });
             });
-          });
+      } else {
+        // 일반 사용자 로그인
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider
+            .login(email, password)
+            .then((success) {
+              if (success) {
+                // 로그인 성공
+                Toast(context, '로그인 성공');
+
+                // 내 정보 조회 API 호출
+                if (kDebugMode) {
+                  print('내 정보 조회 API 호출 시작');
+                }
+
+                authProvider
+                    .refreshUserData()
+                    .then((_) {
+                      if (kDebugMode) {
+                        print('내 정보 조회 완료: ${authProvider.userData}');
+                        print('익명 사용자 여부: ${authProvider.isAnonymousUser}');
+                      }
+
+                      // 익명 사용자인지 확인
+                      if (authProvider.isAnonymousUser) {
+                        // 익명 사용자이면 캐릭터 선택 화면으로 이동
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const CharacterSelectScreen(),
+                          ),
+                        );
+                      } else {
+                        // 일반 사용자는 메인 화면으로 이동
+                        Navigator.pushReplacementNamed(context, '/main');
+                      }
+                    })
+                    .catchError((e) {
+                      if (kDebugMode) {
+                        print('내 정보 조회 실패: $e');
+                      }
+                      // 정보 조회 실패해도 일단 메인 화면으로 이동
+                      Navigator.pushReplacementNamed(context, '/main');
+                    });
+              } else {
+                // 로그인 실패
+                Toast(
+                  context,
+                  '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다',
+                  icon: const Icon(Icons.error, color: Colors.red),
+                );
+              }
+            })
+            .catchError((error) {
+              _handleLoginError(error);
+            })
+            .whenComplete(() {
+              setState(() {
+                _isLoading = false;
+              });
+            });
+      }
     }
+  }
+
+  void _handleLoginError(dynamic error) {
+    if (kDebugMode) {
+      print('로그인 폼 오류: $error');
+    }
+
+    // 오류 메시지 추출 및 표시
+    String errorMessage = '로그인 실패: 서버 연결 오류';
+
+    if (error.toString().contains('401')) {
+      errorMessage = '로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다';
+    } else if (error.toString().contains('500')) {
+      errorMessage = '로그인 실패: 서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    } else if (error.toString().contains('인증 쿠키 없음')) {
+      errorMessage = '로그인 실패: 인증 정보를 저장할 수 없습니다.';
+    }
+
+    Toast(
+      context,
+      errorMessage,
+      icon: const Icon(Icons.error, color: Colors.red),
+    );
   }
 
   @override
