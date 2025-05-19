@@ -146,44 +146,25 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     String nickname,
     String character,
   ) async {
-    // 이제 단일 경로만 있음 - 로그인된 사용자의 캐릭터/닉네임 설정
     try {
       setState(() => _isProcessing = true);
-      final authService = DioAuthService();
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-
+      
       if (kDebugMode) {
-        print('캐릭터/닉네임 설정 시도: nickname=$nickname, character=$character');
+        print('캐릭터/닉네임 선택: nickname=$nickname, character=$character');
       }
 
-      // 1. 캐릭터/닉네임 정보 서버에 전송
-      final completeResult = await authService.completeSignUp(
-        nickname,
-        character,
-      );
-
-      if (kDebugMode) {
-        print('캐릭터/닉네임 설정 결과: $completeResult');
-      }
-
-      // 2. 사용자 정보 새로고침 (업데이트된 정보 가져오기)
-      await authProvider.refreshUserData();
-
-      if (kDebugMode) {
-        print('사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}');
-      }
-
+      // 서버 전송 로직 제거 - SurveyScreen으로 데이터만 전달
       _showSelectionMessage(nickname, character);
-      _navigateToMainScreen();
+      _navigateToSurveyScreen(nickname, character);
     } catch (e) {
       if (kDebugMode) {
-        print('캐릭터/닉네임 설정 오류: $e');
+        print('캐릭터/닉네임 처리 오류: $e');
       }
 
       if (mounted) {
         Toast(
           context,
-          '캐릭터/닉네임 설정 중 오류가 발생했습니다: ${e.toString()}',
+          '처리 중 오류가 발생했습니다: ${e.toString()}',
           icon: const Icon(Icons.error, color: Colors.red, size: 20),
         );
       }
@@ -202,10 +183,15 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     );
   }
 
-  void _navigateToMainScreen() {
+  void _navigateToSurveyScreen(String nickname, String character) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const SurveyScreen()),
+      MaterialPageRoute(
+        builder: (context) => SurveyScreen(
+          selectedNickname: nickname,
+          selectedCharacter: character,
+        ),
+      ),
     );
   }
 }
