@@ -59,33 +59,37 @@ public class UserService {
 
     /** 태그 업데이트(신규 저장 포함) **/
     @Transactional
-    public void updateUserTags(Integer userId, List<Integer> tagTypeIds) {
+    public void updateUserTags(Integer userId, List<String> tagTypes) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(StatusCode.BAD_REQUEST, Message.USER_NOT_FOUND));
 
         // 중복제거 & 개수 검증
-        List<Integer> uniqueIds = tagTypeIds.stream()
+        List<String> streamedTagTypes = tagTypes.stream()
             .distinct()
             .toList();
-        if (uniqueIds.size() > 3) {
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAG_CNT_OUT_OF_BOUND);
-        }
+//        if (streamedTagTypes.size() > 3) {
+//            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAG_CNT_OUT_OF_BOUND);
+//        }
 
         // DB에서 실제 존재하는 TagType 조회
-        List<TagType> tagTypes = tagTypeRepository.findAllById(uniqueIds);
+        List<TagType> tagTypeList = tagTypeRepository.findAllByTagNameIn(streamedTagTypes);
 
         // 요청한 ID 중 유효하지 않은 것이 있는지 확인
-        if (tagTypes.size() != uniqueIds.size()) {
-            List<Integer> invalidIds = uniqueIds.stream()
-                    .filter(id -> tagTypes.stream().noneMatch(tt -> tt.getId().equals(id)))
-                    .toList();
-            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_FOUND);
-        }
+//        if (tagTypes.size() != uniqueIds.size()) {
+//            List<Integer> invalidIds = uniqueIds.stream()
+//                    .filter(id -> tagTypes.stream().noneMatch(tt -> tt.getId().equals(id)))
+//                    .toList();
+//            throw new ApiException(StatusCode.BAD_REQUEST, Message.TAGS_NOT_FOUND);
+//        }
+
+        // 기존 태그를 삭제하는 코드 (임시 주석처리)
+//        userRepository.deleteTagsByUserId(userId);
 
         // 기존 태그 삭제
-        userRepository.deleteTagsByUserId(userId);
+        user.getTags().clear();
 
-        for (TagType tagType : tagTypes) {
+        // 태그 빌드
+        for (TagType tagType : tagTypeList) {
             Tag tag = new Tag();
                 tag.setUser(user);
                 tag.setTagType(tagType);
