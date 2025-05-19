@@ -41,6 +41,45 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     _scrollController.addListener(_onScroll);
   }
 
+  String _getCharacterIcon(String characterName) {
+    switch (characterName) {
+      case '마멋':
+        return 'assets/icons/characters/marmeticon.png';
+      case '고양이':
+        return 'assets/icons/characters/foxicon.png';
+      case '개구리':
+        return 'assets/icons/characters/frogicon.png';
+      case '게코':
+        return 'assets/icons/characters/lizardicon.png';
+      case '오리':
+        return 'assets/icons/characters/duckicon.png';
+      case '토끼':
+        return 'assets/icons/characters/rabbiticon.png';
+      default:
+        return 'assets/icons/characters/marmeticon.png';
+    }
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ModalRoute.of(context)?.addScopedWillPopCallback(() async {
+      return true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshChatHistory(); // 아래 함수 정의
+    });
+  }
+
+  Future<void> _refreshChatHistory() async {
+    _offset = 0;
+    _hasMore = true;
+    _chatHistory.clear();
+    await _loadMoreChat();
+  }
+
   void _onScroll() {
     if (_scrollController.position.pixels <= _scrollController.position.minScrollExtent + 100 && !_isLoading) {
       _loadMoreChat();
@@ -90,10 +129,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     _scrollToBottom();
 
-    final botMessage = await _chatService.sendMessage(
+    final response = await _chatService.sendMessage(
       message: userMessage,
       isVoice: false,
     );
+
+    final botMessage = response is Map ? response['text'] ?? '응답 없음' : response;
 
     setState(() {
       _chatHistory.removeLast();
@@ -126,6 +167,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final userCharacter = authProvider.userData?['userCharacter'] ?? '마멋';
+    final characterIconPath = _getCharacterIcon(userCharacter);
 
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
@@ -136,19 +178,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: _hasStarted ? _buildChatView() : _buildStartView(),
+        child: _hasStarted ? _buildChatView() : _buildStartView(characterIconPath),
       ),
     );
   }
 
-  Widget _buildStartView() {
+  Widget _buildStartView(String characterIconPath) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Spacer(),
         Opacity(
           opacity: 0.5,
-          child: Image.asset('assets/images/marmet_head.png', width: 240),
+          child: Image.asset(characterIconPath, width: 240),
         ),
         const Spacer(),
         Padding(
@@ -207,72 +249,116 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               reverse: true,
               itemCount: _chatHistory.length,
-              itemBuilder: (context, index) {
-                final chat = _chatHistory[_chatHistory.length - 1 - index];
-                return _buildChatBubble(
-                  chat['message'],
-                  isBot: !(chat['is_user'] ?? false),
-                  createdAt: chat['created_at'],
-                );
-              },
+                itemBuilder: (context, index) {
+                  final reversedIndex = _chatHistory.length - 1 - index;
+                  final chat = _chatHistory[reversedIndex];
+                  final createdAt = DateTime.parse(chat['created_at']).add(const Duration(hours: 9));
+                  final isBot = !(chat['is_user'] ?? false);
+
+                  // 날짜 구분선 판단
+                  bool showDateHeader = false;
+                  final currentDate = DateFormat('yyyy년 M월 d일').format(createdAt);
+
+                  if (reversedIndex == 0) {
+                    showDateHeader = true;
+                  } else {
+                    final prevChat = _chatHistory[reversedIndex - 1];
+                    final prevDate = DateFormat('yyyy년 M월 d일')
+                        .format(DateTime.parse(prevChat['created_at']).add(const Duration(hours: 9)));
+                    if (currentDate != prevDate) {
+                      showDateHeader = true;
+                    }
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (showDateHeader)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8),
+                          child: Row(
+                            children: [
+                              const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(currentDate, style: const TextStyle(color: Colors.black54)),
+                              ),
+                              const Expanded(child: Divider(color: Colors.black, thickness: 0.5)),
+                            ],
+                          ),
+                        ),
+                      _buildChatBubble(chat['message'], isBot: isBot, createdAt: chat['created_at']),
+                    ],
+                  );
+                }
             ),
           ),
         ),
         const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: TextField(
-            controller: _controller,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              hintText: '답장하기',
-              hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
-              filled: true,
-              fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              suffixIcon: GestureDetector(
-                onTap: () {
-                  final input = _controller.text.trim();
-                  if (input.isEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
-                    );
-                  } else {
-                    _handleSend();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: Image.asset('assets/icons/chat.png', width: 30),
-                ),
-              ),
-              suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(24),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        )
+        _buildTextInputField(),
       ],
     );
   }
+
+
+  Widget _buildTextInputField() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: TextField(
+        controller: _controller,
+        style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          hintText: '답장하기',
+          hintStyle: TextStyle(color: Colors.black.withOpacity(0.4)),
+          filled: true,
+          fillColor: const Color(0xFFF5F5F5),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          suffixIcon: GestureDetector(
+            onTap: () {
+              final input = _controller.text.trim();
+              if (input.isEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const VoiceChattingScreen()),
+                );
+              } else {
+                _handleSend();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Image.asset('assets/icons/chat.png', width: 30),
+            ),
+          ),
+          suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 20),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildChatBubble(String text, {
     required bool isBot,
     required String createdAt,
   }) {
     if (text == loadingMessage) {
+      final characterIconPath = _getCharacterIcon(
+        Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋',
+      );
+
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.only(right: 8),
-              child: Image(
-                image: AssetImage('assets/images/marmet_head.png'),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Image.asset(
+                characterIconPath,
                 width: 28,
                 height: 28,
               ),
@@ -295,6 +381,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       );
     }
 
+
     final utcTime = DateTime.parse(createdAt);
     final kstTime = utcTime.add(const Duration(hours: 9));
     final timeText = DateFormat('a h:mm', 'ko').format(kstTime);
@@ -312,7 +399,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: Image.asset(
-                    'assets/images/marmet_head.png',
+                    _getCharacterIcon(
+                      Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋',
+                    ),
                     width: 28,
                     height: 28,
                   ),

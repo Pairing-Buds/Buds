@@ -6,12 +6,14 @@ import com.pairing.buds.common.response.StatusCode;
 import com.pairing.buds.domain.calendar.dto.request.DiaryReqDto;
 import com.pairing.buds.domain.calendar.service.DiaryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/diaries")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class DiaryController {
     private final DiaryService diaryService;
 

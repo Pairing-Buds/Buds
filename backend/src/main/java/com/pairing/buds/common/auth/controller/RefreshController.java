@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ import org.springframework.web.util.WebUtils;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/refresh")
+@PreAuthorize("hasRole('ADMIN')")
 public class RefreshController {
 
     private final JwtTokenProvider jwtTokenProvider;

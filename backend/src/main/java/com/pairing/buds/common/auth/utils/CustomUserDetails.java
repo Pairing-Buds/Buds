@@ -16,6 +16,7 @@ import java.util.List;
 @Data
 public class CustomUserDetails implements UserDetails {
     private final Integer id;
+    private final String role;
     private final String username;
     private final String password;
     private final List<GrantedAuthority> authorities;
@@ -24,6 +25,7 @@ public class CustomUserDetails implements UserDetails {
     // User 기반 생성자
     public CustomUserDetails(User user) {
         this.id         = user.getId();
+        this.role       = "USER";
         this.username   = user.getUserEmail();
         this.password   = user.getPassword();
         this.isActive   = user.getIsActive();
@@ -35,6 +37,7 @@ public class CustomUserDetails implements UserDetails {
     // Admin 기반 생성자
     public CustomUserDetails(Admin admin) {
         this.id         = admin.getId();
+        this.role       = "ADMIN";
         this.username   = admin.getEmail();
         this.password   = admin.getPassword();
         this.isActive   = true;  // Admin 엔티티에 isActive 필드가 없다면 항상 활성화로 처리
@@ -47,7 +50,7 @@ public class CustomUserDetails implements UserDetails {
     /** 사용자가 하나의 권한만 가지는 경우 **/
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     /** getUserId() 메서드 추가: 사용자 ID 반환 **/
