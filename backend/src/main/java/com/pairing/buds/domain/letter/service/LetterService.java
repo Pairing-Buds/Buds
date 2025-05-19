@@ -253,7 +253,11 @@ public class LetterService {
         Letter answeredLetter = AnswerLetterReqDto.toLetter(letter, content);
         answeredLetter.setIsTagBased(false);
 
+        // isAnswered 에 true 할당
+        letter.setIsAnswered(true);
+
         // 저장
+        letterRepository.save(letter);
         letterRepository.save(answeredLetter);
     }
 
