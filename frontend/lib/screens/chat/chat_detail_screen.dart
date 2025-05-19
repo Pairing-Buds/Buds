@@ -45,7 +45,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     switch (characterName) {
       case '마멋':
         return 'assets/icons/characters/marmeticon.png';
-      case '여우':
+      case '고양이':
         return 'assets/icons/characters/foxicon.png';
       case '개구리':
         return 'assets/icons/characters/frogicon.png';
