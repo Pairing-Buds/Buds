@@ -5,10 +5,12 @@ import com.pairing.buds.common.auth.utils.JwtTokenProvider;
 import com.pairing.buds.common.exception.ApiException;
 import com.pairing.buds.common.response.Message;
 import com.pairing.buds.common.response.StatusCode;
+import com.pairing.buds.domain.admin.repository.AdminRepository;
 import com.pairing.buds.domain.user.dto.request.SaveReSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.request.SaveSurveyResultReqDto;
 import com.pairing.buds.domain.user.dto.request.UpdateUserInfoReqDto;
 import com.pairing.buds.domain.user.dto.request.WithdrawUserReqDto;
+import com.pairing.buds.domain.user.dto.response.GetAllUsersResDto;
 import com.pairing.buds.domain.user.dto.response.MyInfoResDto;
 import com.pairing.buds.domain.user.dto.response.TagResDto;
 import com.pairing.buds.domain.user.dto.response.TagTypeResDto;
@@ -45,6 +47,7 @@ public class UserService {
     private final TagRepository tagRepository;
     private final RandomNameRepository randomNameRepository;
     private final TagTypeRepository tagTypeRepository;
+    private final AdminRepository adminRepository;
 
     /** 사용자 태그 조회 **/
     @Transactional
@@ -219,5 +222,12 @@ public class UserService {
             user.setLetterCnt(5);
         }
     }
-
+    
+    /** 유저 전체 리스트 **/
+    public Object getAllUsers(int adminId) {
+        if(!adminRepository.existsById(adminId)){
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
+        }
+        return userRepository.findAll().stream().map(GetAllUsersResDto::toDto).collect(Collectors.toList());
+    }
 }
