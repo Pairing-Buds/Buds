@@ -82,14 +82,17 @@ public class AdminService {
         User user = userRepository.findById(userId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.USER_NOT_FOUND));
         Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND));
         Question question = questionRepository.findById(questionId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.LETTER_NOT_FOUND));
+
         // 답변 생성
         Answer answerToCreate = CreateAnswerReqDto.toAnswer(admin, user, content);
+
         // 기존 답변이 있다면 삭제 후 갱신
         if(question.getAnswer() != null){
             answerRepository.delete(question.getAnswer());
         }
         question.setAnswer(answerToCreate);
         question.setStatus(QuestionStatus.ANSWERED);
+
         // 저장
         answerRepository.save(answerToCreate);
         questionRepository.save(question);
@@ -135,10 +138,16 @@ public class AdminService {
     public void deleteAnswer(int adminId, @Valid DeleteAnswerReqDto dto) {
 
         int answerId = dto.getAnswerId();
+        int questionId = dto.getQuestionId();
 
         if(!adminRepository.existsById(adminId)) throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
         Answer answerToDelete = answerRepository.findById(answerId).orElseThrow(() -> new ApiException(StatusCode.NOT_FOUND, Message.ANSWER_NOT_FOUND));
-        answerRepository.delete(answerToDelete); // 에러 시 OptimisticLockingFailureException 발생
+        Question question = questionRepository.findById(questionId).orElseThrow( () -> new ApiException(StatusCode.NOT_FOUND, Message.QUESTION_NOT_FOUND));
+        question.setStatus(QuestionStatus.UNANSWERED);
+        answerToDelete.setContent("문의를 확인 중입니다..");
+        questionRepository.save(question);
+        answerRepository.save(answerToDelete);
+
     }
 
 }
