@@ -16,4 +16,8 @@ public class DeleteAnswerReqDto {
     @NotNull
     @Positive
     private int answerId;
+
+    @NotNull
+    @Positive
+    private int questionId;
 }
