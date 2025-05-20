@@ -16,11 +16,8 @@ class SurveyScreen extends StatefulWidget {
   final String? selectedNickname;
   final String? selectedCharacter;
 
-  const SurveyScreen({
-    Key? key, 
-    this.selectedNickname, 
-    this.selectedCharacter
-  }) : super(key: key);
+  const SurveyScreen({Key? key, this.selectedNickname, this.selectedCharacter})
+    : super(key: key);
 
   @override
   State<SurveyScreen> createState() => _SurveyScreenState();
@@ -48,7 +45,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
     '생각이나 감정을 글이나 그림으로 표현하는 것을 좋아한다.',
   ];
 
-  // 태그 한글 - 영어 매핑
   List<String> surveyTags = [
     '취업',
     '자격증',
@@ -73,13 +69,15 @@ class _SurveyScreenState extends State<SurveyScreen> {
   void initState() {
     super.initState();
     // 전달받은 닉네임과 캐릭터 정보가 있으면 우선 사용
-    if (widget.selectedNickname != null && widget.selectedNickname!.isNotEmpty) {
+    if (widget.selectedNickname != null &&
+        widget.selectedNickname!.isNotEmpty) {
       nickname = widget.selectedNickname!;
     }
-    if (widget.selectedCharacter != null && widget.selectedCharacter!.isNotEmpty) {
+    if (widget.selectedCharacter != null &&
+        widget.selectedCharacter!.isNotEmpty) {
       selectedCharacter = widget.selectedCharacter!;
     }
-    
+
     // 없을 경우 사용자 데이터에서 로드
     if (nickname.isEmpty || selectedCharacter.isEmpty) {
       _loadUserData();
@@ -146,11 +144,16 @@ class _SurveyScreenState extends State<SurveyScreen> {
           }
 
           // 사용자 정보 새로고침
-          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+          final authProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
           await authProvider.refreshUserData();
 
           if (kDebugMode) {
-            print('사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}');
+            print(
+              '사용자 정보 새로고침 완료: ${authProvider.userData?['name'] ?? '정보 없음'}',
+            );
           }
         } catch (e) {
           if (kDebugMode) {
@@ -180,7 +183,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
         );
         return;
       }
-
       Toast(
         context,
         '설문조사 결과가 제출되었습니다.',
@@ -194,7 +196,6 @@ class _SurveyScreenState extends State<SurveyScreen> {
       if (kDebugMode) {
         print('설문조사 제출 중 오류 발생: $e');
       }
-      
       Toast(
         context,
         '제출에 실패했습니다. 다시 시도해주세요.',
@@ -366,14 +367,18 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                 setState(() {
                                   if (isSelected) {
                                     selectedTags.remove(tag);
-                                  } else if (selectedTags.length < 3) { // 최대 3개까지만 선택 가능
-                                      selectedTags.add(tag);
-                                    } else {
-                                      // 3개 이상 선택하려고 할 때 알림
-                                      Toast(context, '관심 분야는 최대 3개까지 선택할 수 있습니다.');
-                                    }
-                                  });
-                                },
+                                  } else if (selectedTags.length < 3) {
+                                    // 최대 3개까지만 선택 가능
+                                    selectedTags.add(tag);
+                                  } else {
+                                    // 3개 이상 선택하려고 할 때 알림
+                                    Toast(
+                                      context,
+                                      '관심 분야는 최대 3개까지 선택할 수 있습니다.',
+                                    );
+                                  }
+                                });
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -414,11 +419,17 @@ class _SurveyScreenState extends State<SurveyScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
                     child: ElevatedButton(
-                      onPressed: selectedTags.isEmpty ? null : () {
-                        submitSurvey(); // 설문 제출 함수 호출
-                      },
+                      onPressed:
+                          selectedTags.isEmpty
+                              ? null
+                              : () {
+                                submitSurvey(); // 설문 제출 함수 호출
+                              },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedTags.isEmpty ? Colors.grey.shade300 : AppColors.primary,
+                        backgroundColor:
+                            selectedTags.isEmpty
+                                ? Colors.grey.shade300
+                                : AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),

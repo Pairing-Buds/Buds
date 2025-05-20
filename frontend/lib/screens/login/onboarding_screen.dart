@@ -41,10 +41,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('completed_onboarding', true);
 
-      // if (mounted) {
-      //   Navigator.pushReplacementNamed(context, '/');
-      // }
-
       if (mounted) {
         // 로그인 화면으로 교체 (이전 화면으로 돌아갈 수 없음)
         // 네비게이션 스택을 완전히 초기화하고 새로운 스택 시작
@@ -84,17 +80,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: Stack(
         children: [
           // 페이지 뷰 (온보딩 이미지)
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) => setState(() => _currentPage = index),
-            children: List.generate(
-              4,
-              (index) => Image.asset(
-                'assets/onboarding/onboarding_${index + 1}.png',
-                fit: BoxFit.cover,
-              ),
+          GestureDetector(
+            // ⭐ 전체 PageView 오른쪽 클릭 감지
+            onTap: () {
+              if (_currentPage == 3)
+                _completeOnboarding(); // ⭐ 마지막 페이지에서 오른쪽 클릭으로 온보딩 완료
+            },
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) => setState(() => _currentPage = index),
+              itemCount: 4,
+              itemBuilder:
+                  (context, index) => Image.asset(
+                    'assets/onboarding/onboarding_${index + 1}.png',
+                    fit: BoxFit.cover,
+                  ),
             ),
           ),
+          // PageView(
+          //   controller: _pageController,
+          //   onPageChanged: (index) => setState(() => _currentPage = index),
+          //   children: List.generate(
+          //     4,
+          //     (index) => Image.asset(
+          //       'assets/onboarding/onboarding_${index + 1}.png',
+          //       fit: BoxFit.cover,
+          //     ),
+          //   ),
+          // ),
 
           // 다음 페이지로 이동하는 버튼
           Positioned(
