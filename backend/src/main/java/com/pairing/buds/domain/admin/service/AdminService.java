@@ -18,6 +18,7 @@ import com.pairing.buds.domain.cs.entity.Question;
 import com.pairing.buds.domain.cs.entity.QuestionStatus;
 import com.pairing.buds.domain.cs.repository.AnswerRepository;
 import com.pairing.buds.domain.cs.repository.QuestionRepository;
+import com.pairing.buds.domain.user.dto.response.GetAllUsersResDto;
 import com.pairing.buds.domain.user.entity.User;
 import com.pairing.buds.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +71,13 @@ public class AdminService {
         List<Question> questions = questionRepository.findByUser_id(userId);
         // 응답
         return GetQuestionsResDto.toGetQuestionsResDto(questions);
+    }
+    /** 유저 전체 리스트 **/
+    public Object getAllUsers(int adminId) {
+        if(!adminRepository.existsById(adminId)){
+            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
+        }
+        return userRepository.findAll().stream().map(GetAllUsersResDto::toDto).collect(Collectors.toList());
     }
 
     /** 답변 작성 **/

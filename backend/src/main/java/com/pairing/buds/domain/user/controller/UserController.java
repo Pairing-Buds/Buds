@@ -34,10 +34,7 @@ public class UserController {
         return new ResponseDto(StatusCode.OK, userService.getAllTags(userId));
     }
 
-    @GetMapping("/all-users")
-    public ResponseDto getAllUsers(@AuthenticationPrincipal int adminId) {
-        return new ResponseDto(StatusCode.OK, userService.getAllUsers(adminId));
-    }
+
 
     /** 태그 업데이트(신규 저장 포함) **/
     @PostMapping("/tags")
