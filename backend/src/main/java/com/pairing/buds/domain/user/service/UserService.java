@@ -223,11 +223,5 @@ public class UserService {
         }
     }
     
-    /** 유저 전체 리스트 **/
-    public Object getAllUsers(int adminId) {
-        if(!adminRepository.existsById(adminId)){
-            throw new ApiException(StatusCode.NOT_FOUND, Message.ADMIN_NOT_FOUND);
-        }
-        return userRepository.findAll().stream().map(GetAllUsersResDto::toDto).collect(Collectors.toList());
-    }
+
 }

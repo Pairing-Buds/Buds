@@ -54,6 +54,11 @@ public class AdminController {
     ){
         return new ResponseDto(StatusCode.OK, adminService.getQuestionOfUser(adminId, userId));
     }
+    /** 유저 전체 리스트 조회 **/
+    @GetMapping("/all-users")
+    public ResponseDto getAllUsers(@AuthenticationPrincipal int adminId) {
+        return new ResponseDto(StatusCode.OK, adminService.getAllUsers(adminId));
+    }
 
     /** 답변 작성 **/
     @PostMapping("/cs")
