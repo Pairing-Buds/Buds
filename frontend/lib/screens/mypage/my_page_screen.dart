@@ -13,6 +13,7 @@ import 'package:buds/screens/character/character_select_screen.dart';
 import 'package:buds/screens/character/models/character_data.dart';
 import 'package:buds/screens/customercenter/customer_center_screen.dart';
 import 'package:buds/screens/mypage/widgets/character_section.dart';
+import 'package:buds/screens/mypage/widgets/resubmit_section.dart';
 import 'package:buds/screens/mypage/withdraw_screen.dart';
 import 'package:buds/screens/step/step_detail_screen.dart';
 import 'package:buds/widgets/toast_bar.dart';
@@ -115,6 +116,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   children: [
                     // WakeUpSection 위젯 사용
                     const WakeUpSection(),
+                    const SizedBox(height: 20),
+                    const ResubmitSection(),
                     // const SizedBox(height: 20),
                     // const Text(
                     //   '우리지역 센터',
