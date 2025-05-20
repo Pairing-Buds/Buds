@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Project imports:
-import 'package:buds/models/inquiry.dart';
+import 'package:buds/models/inquiry_model.dart';
 import 'package:buds/services/inquiry_service.dart';
 import 'package:buds/widgets/toast_bar.dart';
 

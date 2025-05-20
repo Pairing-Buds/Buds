@@ -19,6 +19,8 @@ import 'package:buds/screens/login/onboarding_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/screens/map/map_screen.dart';
+import 'package:buds/screens/survey/survey_resurvey_screen.dart';
+import 'package:buds/screens/survey/survey_retag_screen.dart';
 import 'package:buds/services/api_service.dart';
 import 'package:buds/services/notification_service.dart';
 import 'package:buds/services/step_counter_manager.dart';
@@ -29,6 +31,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/login/login_main.dart';
 import 'screens/splash_screen.dart';
 import 'providers/letter_provider.dart';
+import 'package:buds/providers/admin_cs_provider.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -250,6 +253,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => AgreementProvider()),
         ChangeNotifierProvider(create: (_) => LetterProvider()),
+        ChangeNotifierProvider(create: (_) => AdminCSProvider()),
       ],
       child: const MyApp(),
     ),
@@ -346,6 +350,8 @@ class _MyAppState extends State<MyApp> {
         '/onboarding': (context) => const OnboardingScreen(),
         '/map': (context) => const MapScreen(),
         '/letter': (context) => const LetterScreen(),
+        '/resurvey': (context) => const SurveyResurveyScreen(),
+        '/retag': (context) => const SurveyRetagScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',
