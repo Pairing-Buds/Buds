@@ -101,21 +101,8 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // .env 파일 로드 시도 (오류 발생해도 앱이 종료되지 않도록 try-catch로 감싸기)
-  try {
-    await dotenv.load(fileName: '.env');
-    debugPrint('API URL: ${dotenv.env['API_URL']}');
-  } catch (e) {
-    debugPrint('환경 변수 로드 오류: $e');
-
-    // 개발 환경인지 확인하고 처리
-    const bool isDevelopment = bool.fromEnvironment('dart.vm.product') == false;
-    if (isDevelopment) {
-      debugPrint('개발 환경에서 실행 중입니다. 환경 변수 파일을 생성해주세요.');
-    } else {
-      debugPrint('프로덕션 환경에서 실행 중입니다. 환경 변수가 설정되지 않았습니다.');
-    }
-  }
+  // .env 파일 로드
+  await dotenv.load(fileName: ".env");
 
   // API 서비스 초기화 확인
   try {
