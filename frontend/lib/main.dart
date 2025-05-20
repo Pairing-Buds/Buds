@@ -19,6 +19,8 @@ import 'package:buds/screens/login/onboarding_screen.dart';
 import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/main_screen.dart';
 import 'package:buds/screens/map/map_screen.dart';
+import 'package:buds/screens/survey/survey_resurvey_screen.dart';
+import 'package:buds/screens/survey/survey_retag_screen.dart';
 import 'package:buds/services/api_service.dart';
 import 'package:buds/services/notification_service.dart';
 import 'package:buds/services/step_counter_manager.dart';
@@ -346,6 +348,8 @@ class _MyAppState extends State<MyApp> {
         '/onboarding': (context) => const OnboardingScreen(),
         '/map': (context) => const MapScreen(),
         '/letter': (context) => const LetterScreen(),
+        '/resurvey': (context) => const SurveyResurveyScreen(),
+        '/retag': (context) => const SurveyRetagScreen(),
         '/alarm':
             (context) => const AlarmScreen(
               title: '기상 시간입니다',

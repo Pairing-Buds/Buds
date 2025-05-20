@@ -81,6 +81,9 @@ class ApiConstants {
   // 설문조사 관련 엔드포인트
   static String get surveyUrl => '$baseUrl/users/survey-result'; // 설문조사 제출
   static String get userTagUrl => '$baseUrl/users/tags'; // 유저 태그 조회
+  static String get submitRetagUrl => '$baseUrl/users/tags'; // 유저 태그 업데이트
+  static String get resurveyUrl =>
+      '$baseUrl/users/re-survey-result'; // 재설문조사 결과 제출
 
   // 활동관련 엔드포인트
   // 1. 활동 - STT
