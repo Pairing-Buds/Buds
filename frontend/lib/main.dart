@@ -29,6 +29,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/login/login_main.dart';
 import 'screens/splash_screen.dart';
 import 'providers/letter_provider.dart';
+import 'package:buds/providers/admin_cs_provider.dart';
 
 // 네비게이션 키 (전역에서 네비게이션 처리를 위함)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -250,6 +251,7 @@ void main() async {
         ),
         ChangeNotifierProvider(create: (_) => AgreementProvider()),
         ChangeNotifierProvider(create: (_) => LetterProvider()),
+        ChangeNotifierProvider(create: (_) => AdminCSProvider()),
       ],
       child: const MyApp(),
     ),

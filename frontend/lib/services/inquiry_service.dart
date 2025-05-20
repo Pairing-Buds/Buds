@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 
 // Project imports:
 import '../constants/api_constants.dart';
-import '../models/inquiry.dart';
+import '../models/inquiry_model.dart';
 import 'api_service.dart';
 
 class DioInquiryService {
