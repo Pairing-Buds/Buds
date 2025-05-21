@@ -1,8 +1,16 @@
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 import chromadb
 from chromadb.config import Settings
+
+# 한국 시간대(KST) 정의 - UTC+9
+KST = timezone(timedelta(hours=9))
+
+
+def get_kst_now():
+    """현재 시간을 한국 표준시(KST)로 반환"""
+    return datetime.now(KST)
 
 
 class ChromaDB:
@@ -70,32 +78,43 @@ class ChromaDB:
             logging.error(f"컬렉션 생성 오류: {str(e)}")
             raise ValueError(f"컬렉션 생성 실패: {str(e)}")
 
-    def save_conversation(self, user_id, user_message, ai_response, is_voice=False):
-        """사용자와 AI의 대화 내용을 저장합니다."""
+    def save_conversation(self, user_id, user_message, ai_response, is_voice=False, timestamp=None):
+        """
+        사용자와 AI의 대화 내용을 저장합니다.
+        timestamp 매개변수를 통해 명시적인 시간 지정 가능 (KST 기준)
+        """
         # 입력값 검증
         if not user_message or not isinstance(user_message, str):
             user_message = ""
         if not ai_response or not isinstance(ai_response, str):
             ai_response = ""
 
+        # 시간 설정 (timestamp가 None이면 현재 KST 시간 사용)
+        if timestamp is None:
+            timestamp = get_kst_now()
+        elif timestamp.tzinfo is None:
+            # 시간대 정보가 없으면 KST로 가정
+            timestamp = timestamp.replace(tzinfo=KST)
+
         # 컬렉션 가져오기
         collection = self.get_or_create_collection(user_id)
 
         # 타임스탬프 생성 (ISO 8601 형식으로 통일)
-        timestamp = datetime.now().isoformat(timespec='milliseconds')
-        date_str = timestamp.split('T')[0]  # YYYY-MM-DD
+        timestamp_iso = timestamp.isoformat(timespec='milliseconds')
+        date_str = timestamp.strftime('%Y-%m-%d')  # YYYY-MM-DD
 
         # 고유 ID 생성
-        current_time_ms = int(datetime.now().timestamp() * 1000)
-        user_id_str = f"user_{timestamp}_{current_time_ms}"
-        ai_id_str = f"ai_{timestamp}_{current_time_ms + 1}"  # 1ms 차이
+        current_time_ms = int(timestamp.timestamp() * 1000)
+        user_id_str = f"user_{timestamp_iso}_{current_time_ms}"
+        ai_id_str = f"ai_{timestamp_iso}_{current_time_ms + 1}"  # 1ms 차이
 
         # 사용자 메시지 저장
         user_metadata = {
             "type": "user",
-            "timestamp": timestamp,
+            "timestamp": timestamp_iso,
             "is_voice": is_voice,
-            "date": date_str
+            "date": date_str,
+            "timezone": "KST",  # 명시적인 시간대 정보 추가
         }
 
         collection.add(
@@ -107,9 +126,10 @@ class ChromaDB:
         # AI 응답 저장
         ai_metadata = {
             "type": "ai",
-            "timestamp": timestamp,
+            "timestamp": timestamp_iso,
             "is_voice": False,
-            "date": date_str
+            "date": date_str,
+            "timezone": "KST",  # 명시적인 시간대 정보 추가
         }
 
         collection.add(
@@ -168,9 +188,16 @@ class ChromaDB:
             logging.error(f"유사 대화 검색 오류: {str(e)}")
             return ""
 
-    def get_recent_conversation_history(self, user_id, limit=15):
-        """사용자의 최근 대화 기록을 시간순으로 가져옵니다."""
+    def get_recent_conversation_history(self, user_id, limit=15, timezone=None):
+        """
+        사용자의 최근 대화 기록을 시간순으로 가져옵니다.
+        timezone 매개변수를 통해 결과의 시간대 지정 가능
+        """
         try:
+            # 기본 시간대는 KST
+            if timezone is None:
+                timezone = KST
+
             collection = self.get_or_create_collection(user_id)
             if collection is None:
                 return []
@@ -196,7 +223,29 @@ class ChromaDB:
             messages = []
             for i, doc in enumerate(results["documents"]):
                 metadata = results["metadatas"][i]
+
+                # 타임스탬프 처리 (시간대 정보 추가)
                 created_at = metadata.get("timestamp", "")
+
+                # 시간 문자열을 datetime 객체로 변환하고 시간대 적용
+                try:
+                    if created_at:
+                        dt = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        if dt.tzinfo is None:
+                            # ISO 형식이지만 시간대 정보가 없는 경우
+                            stored_timezone = metadata.get("timezone")
+                            if stored_timezone == "KST":
+                                dt = dt.replace(tzinfo=KST)
+                            else:
+                                # 기본적으로 UTC 가정
+                                dt = dt.replace(tzinfo=timezone.utc)
+
+                        # 지정된 시간대로 변환
+                        dt = dt.astimezone(timezone)
+                        created_at = dt.isoformat()
+                except (ValueError, TypeError):
+                    # 파싱 오류 시 원래 문자열 사용
+                    pass
 
                 message_data = {
                     "message": doc,
@@ -209,7 +258,16 @@ class ChromaDB:
 
             # 시간순 정렬
             try:
-                messages.sort(key=lambda x: x["created_at"])
+                # 안정적인 정렬을 위한 함수
+                def get_timestamp_for_sorting(msg):
+                    try:
+                        # ISO 형식 타임스탬프 처리
+                        return datetime.fromisoformat(msg["created_at"].replace('Z', '+00:00'))
+                    except (ValueError, TypeError, AttributeError):
+                        # 다른 형식이거나 오류 발생 시 기본값 반환
+                        return datetime.min
+
+                messages.sort(key=get_timestamp_for_sorting)
             except Exception as sort_err:
                 logging.error(f"메시지 정렬 오류: {str(sort_err)}")
                 # 정렬 실패 시 원본 순서 유지
@@ -256,6 +314,9 @@ class ChromaDB:
             if summary_collection is None:
                 return False
 
+            # 현재 KST 시간
+            now = get_kst_now()
+
             # 기존 요약 삭제 시도
             try:
                 existing_results = summary_collection.get()
@@ -264,15 +325,16 @@ class ChromaDB:
             except Exception as del_err:
                 logging.warning(f"기존 요약 삭제 중 오류(무시됨): {str(del_err)}")
 
-            # 새 요약 저장
+            # 새 요약 저장 (KST 시간 사용)
             summary_collection.add(
                 documents=[summary],
                 metadatas=[{
                     "type": "summary",
-                    "timestamp": datetime.now().isoformat(),
-                    "date": datetime.now().strftime('%Y-%m-%d')
+                    "timestamp": now.isoformat(),
+                    "date": now.strftime('%Y-%m-%d'),
+                    "timezone": "KST"
                 }],
-                ids=[f"summary_{datetime.now().timestamp()}"]
+                ids=[f"summary_{now.timestamp()}"]
             )
 
             return True
@@ -335,7 +397,10 @@ class ChromaDB:
             count = 0
             for metadata in all_results["metadatas"]:
                 try:
-                    msg_date = metadata.get("timestamp", "").split("T")[0]
+                    msg_date = metadata.get("date", "")
+                    if not msg_date and "timestamp" in metadata:
+                        # timestamp에서 날짜 부분 추출
+                        msg_date = metadata.get("timestamp", "").split("T")[0]
                     if msg_date == date_str:
                         count += 1
                 except:
@@ -347,13 +412,17 @@ class ChromaDB:
             logging.error(f"일일 메시지 수 조회 오류: {str(e)}")
             return 0
 
-
-    def get_conversation_history_with_offset(self, user_id, limit=20, offset=0):
+    def get_conversation_history_with_offset(self, user_id, limit=20, offset=0, timezone=None):
         """
         오프셋 기반으로 사용자의 대화 기록을 가져옵니다.
+        timezone 매개변수를 통해 결과의 시간대 지정 가능
         반환값: (메시지 목록, 전체 메시지 수)
         """
         try:
+            # 기본 시간대는 KST
+            if timezone is None:
+                timezone = KST
+
             collection = self.get_or_create_collection(user_id)
             if collection is None:
                 return [], 0
@@ -379,11 +448,31 @@ class ChromaDB:
                 metadata = results["metadatas"][i]
                 message_id = results["ids"][i]
 
-                # 타임스탬프 처리 (일관성 보장)
-                timestamp = metadata.get("timestamp", "")
+                # 타임스탬프 처리 (시간대 정보 추가)
+                timestamp_str = metadata.get("timestamp", "")
 
-                # 타임스탬프가 없거나 유효하지 않은 경우 대체 방법 시도
-                if not timestamp or not isinstance(timestamp, str):
+                # 시간 문자열을 datetime 객체로 변환하고 시간대 적용
+                try:
+                    if timestamp_str:
+                        dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                        if dt.tzinfo is None:
+                            # ISO 형식이지만 시간대 정보가 없는 경우
+                            stored_timezone = metadata.get("timezone")
+                            if stored_timezone == "KST":
+                                dt = dt.replace(tzinfo=KST)
+                            else:
+                                # 기본적으로 UTC 가정
+                                dt = dt.replace(tzinfo=timezone.utc)
+
+                        # 지정된 시간대로 변환
+                        dt = dt.astimezone(timezone)
+                        timestamp_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+                except (ValueError, TypeError):
+                    # 파싱 오류 시 원래 문자열 사용
+                    pass
+
+                # 타임스탬프가 없거나 유효하지 않은 경우 ID에서 추출 시도
+                if not timestamp_str or not isinstance(timestamp_str, str):
                     try:
                         # ID에서 타임스탬프 추출 시도 (user_2023-01-01T12:34:56 형식)
                         if "_" in message_id:
@@ -391,38 +480,40 @@ class ChromaDB:
                             if len(parts) > 1:
                                 # ISO 형식 타임스탬프 추출 시도
                                 timestamp_candidate = parts[1]
-                                # 타임스탬프 유효성 검증
                                 try:
-                                    datetime.fromisoformat(timestamp_candidate.replace('Z', '+00:00'))
-                                    timestamp = timestamp_candidate
+                                    dt = datetime.fromisoformat(timestamp_candidate.replace('Z', '+00:00'))
+                                    if dt.tzinfo is None:
+                                        dt = dt.replace(tzinfo=timezone.utc)
+                                    dt = dt.astimezone(timezone)
+                                    timestamp_str = dt.strftime('%Y-%m-%d %H:%M:%S')
                                 except ValueError:
                                     # 유닉스 타임스탬프일 수도 있음
                                     if timestamp_candidate.replace('.', '').isdigit():
                                         try:
-                                            dt = datetime.fromtimestamp(float(timestamp_candidate))
-                                            timestamp = dt.isoformat()
+                                            dt = datetime.fromtimestamp(float(timestamp_candidate), tz=timezone)
+                                            timestamp_str = dt.strftime('%Y-%m-%d %H:%M:%S')
                                         except (ValueError, OverflowError):
-                                            # 변환 실패 시 현재 시간 사용
-                                            timestamp = datetime.now().isoformat()
+                                            # 변환 실패 시 현재 KST 시간 사용
+                                            timestamp_str = get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
                                     else:
-                                        # 추출 실패 시 현재 시간 사용
-                                        timestamp = datetime.now().isoformat()
+                                        # 추출 실패 시 현재 KST 시간 사용
+                                        timestamp_str = get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
                             else:
-                                # 분리 실패 시 현재 시간 사용
-                                timestamp = datetime.now().isoformat()
+                                # 분리 실패 시 현재 KST 시간 사용
+                                timestamp_str = get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
                         else:
-                            # ID 분리 불가 시 현재 시간 사용
-                            timestamp = datetime.now().isoformat()
+                            # ID 분리 불가 시 현재 KST 시간 사용
+                            timestamp_str = get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
                     except Exception as ts_err:
                         logging.error(f"타임스탬프 추출 오류: {str(ts_err)}")
-                        timestamp = datetime.now().isoformat()
+                        timestamp_str = get_kst_now().strftime('%Y-%m-%d %H:%M:%S')
 
                 message = {
                     "message_id": message_id,
                     "message": doc,
                     "is_user": metadata.get("type", "") == "user",
                     "is_voice": metadata.get("is_voice", False),
-                    "created_at": timestamp
+                    "created_at": timestamp_str
                 }
                 messages.append(message)
 
@@ -431,8 +522,15 @@ class ChromaDB:
                 # 안정적인 정렬을 위한 함수
                 def get_timestamp_for_sorting(msg):
                     try:
-                        # ISO 형식 타임스탬프 처리
-                        return datetime.fromisoformat(msg["created_at"].replace('Z', '+00:00'))
+                        # 문자열 형식 타임스탬프 처리 (YYYY-MM-DD HH:MM:SS)
+                        created_at = msg["created_at"]
+                        if 'T' in created_at:
+                            # ISO 형식
+                            return datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        else:
+                            # YYYY-MM-DD HH:MM:SS 형식
+                            dt = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
+                            return dt.replace(tzinfo=timezone)
                     except (ValueError, TypeError, AttributeError):
                         # 다른 형식이거나 오류 발생 시 기본값 반환
                         return datetime.min
@@ -456,6 +554,7 @@ class ChromaDB:
         except Exception as e:
             logging.error(f"대화 기록 조회 오류: {str(e)}")
             return [], 0
+
 
 # 전역 ChromaDB 인스턴스
 chroma_db = ChromaDB()
