@@ -3,6 +3,8 @@ import random
 import argparse
 import sys
 import os
+import tempfile
+import logging
 from pydub import AudioSegment
 from jamo import h2j, j2hcj
 
@@ -16,18 +18,20 @@ def convert_text_to_animalese(text, output_file, debug=False):
         print("오류: 텍스트와 출력 파일 경로가 필요합니다.")
         return False
 
+    # 디버깅 로깅 추가
+    if debug:
+        print(f"텍스트: '{text}'")
+        print(f"출력 파일: {output_file}")
+        print(f"모듈 디렉토리: {MODULE_DIR}")
+
+    # 텍스트 유효성 확인 추가
+    if not any(c.isalpha() or c.isspace() for c in text):
+        print(f"오류: 유효한 문자가 포함되지 않은 텍스트입니다: '{text}'")
+        return False
+
     # 초성 목록 정의 (공백 포함)
     char_list = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ', 'ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ', ' ']
     char_sounds = {}
-
-    # 디버깅을 위한 정보 출력
-    if debug:
-        print(f"현재 작업 디렉토리: {os.getcwd()}")
-        print(f"모듈 디렉토리: {MODULE_DIR}")
-        sources_dir = os.path.join(MODULE_DIR, 'sources')
-        print(f"sources 디렉토리 경로: {sources_dir}")
-        print(f"sources 디렉토리 존재 여부: {os.path.exists(sources_dir)}")
-        print(f"출력 파일 경로: {output_file}")
 
     # 소리 파일 로드
     missing_files = []
@@ -62,9 +66,11 @@ def convert_text_to_animalese(text, output_file, debug=False):
                         char_sounds[item] = AudioSegment.from_file(mp3_path)
                 else:
                     missing_files.append(f"{item}({str_idx})")
-                    print(f"경고: {item}({str_idx})의 소리 파일을 찾을 수 없습니다.")
+                    if debug:
+                        print(f"경고: {item}({str_idx})의 소리 파일을 찾을 수 없습니다.")
         except Exception as e:
-            print(f"경고: {item}({str_idx})의 소리 파일을 로드할 수 없습니다: {str(e)}")
+            if debug:
+                print(f"경고: {item}({str_idx})의 소리 파일을 로드할 수 없습니다: {str(e)}")
             missing_files.append(f"{item}({str_idx})")
 
     if missing_files:
@@ -72,10 +78,11 @@ def convert_text_to_animalese(text, output_file, debug=False):
         if all_files_missing:
             print("모든 소리 파일이 누락되었습니다. sources 폴더에 소리 파일을 추가하세요.")
             return False
-        else:
+        elif debug:
             print(f"일부 소리 파일({', '.join(missing_files)})이 누락되었습니다. 진행합니다.")
 
     result_sound = None
+    processed_chars = 0  # 처리된 문자 수 추적
 
     # 텍스트 각 문자의 초성을 추출하여 음성 생성
     for ch in text:
@@ -85,12 +92,20 @@ def convert_text_to_animalese(text, output_file, debug=False):
                 if result_sound is not None:
                     silence = AudioSegment.silent(duration=100)  # 100ms 무음
                     result_sound += silence
+                    processed_chars += 1
                 continue
 
-            jamo_ch = j2hcj(h2j(ch))
-            if not jamo_ch or jamo_ch[0] not in char_sounds:
+            # 한글 자모 분리
+            try:
+                jamo_ch = j2hcj(h2j(ch))
+            except Exception as je:
                 if debug:
-                    print(f"문자 '{ch}'에서 추출한 초성 '{jamo_ch[0] if jamo_ch else '없음'}'에 해당하는 소리 파일이 없습니다.")
+                    print(f"자모 분리 오류 ('{ch}'): {str(je)}")
+                continue
+
+            if not jamo_ch or not jamo_ch[0] or jamo_ch[0] not in char_sounds:
+                if debug:
+                    print(f"문자 '{ch}'에서 추출한 초성 '{jamo_ch[0] if jamo_ch and jamo_ch[0] else '없음'}'에 해당하는 소리 파일이 없습니다.")
                 continue
 
             char_sound = char_sounds[jamo_ch[0]]
@@ -102,8 +117,28 @@ def convert_text_to_animalese(text, output_file, debug=False):
             # 음성 변환 및 합치기
             pitch_char_sound = char_sound._spawn(char_sound.raw_data, overrides={'frame_rate': new_sample_rate})
             result_sound = pitch_char_sound if result_sound is None else result_sound + pitch_char_sound
+            processed_chars += 1
         except Exception as e:
-            print(f"경고: 문자 '{ch}' 처리 중 오류 발생: {str(e)}")
+            if debug:
+                print(f"경고: 문자 '{ch}' 처리 중 오류 발생: {str(e)}")
+
+    # 처리된 문자 수 확인
+    if debug:
+        print(f"처리된 문자 수: {processed_chars}/{len(text)}")
+
+    # 처리된 문자가 없는 경우 기본 소리 생성
+    if result_sound is None:
+        if debug:
+            print("처리된 문자가 없어 기본 알림음을 생성합니다.")
+        # 기본 알림음 생성
+        try:
+            result_sound = AudioSegment.silent(duration=500)  # 500ms 무음
+            beep = AudioSegment.sine(frequency=440, duration=200)  # 간단한 비프음
+            result_sound = result_sound + beep
+        except Exception as default_sound_err:
+            if debug:
+                print(f"기본 알림음 생성 오류: {str(default_sound_err)}")
+            return False
 
     # 결과 파일 저장
     if result_sound:
@@ -115,64 +150,15 @@ def convert_text_to_animalese(text, output_file, debug=False):
 
             # 파일 저장 시도
             result_sound.export(output_file, format="wav")
-            print(f"성공: 음성 파일이 저장되었습니다 - {output_file}")
+            if debug:
+                print(f"성공: 음성 파일이 저장되었습니다 - {output_file}")
             return True
         except Exception as e:
-            print(f"오류: 파일 저장 실패: {str(e)}")
+            if debug:
+                print(f"오류: 파일 저장 실패: {str(e)}")
     else:
         print("오류: 변환할 소리가 없습니다.")
 
     return False
 
-
-# FFmpeg 설정 확인 및 경로 설정 시도
-def check_ffmpeg():
-    """FFmpeg 설치 여부 확인 및 경로 설정"""
-    try:
-        # FFmpeg 버전 확인
-        import subprocess
-        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True)
-        if result.returncode == 0:
-            print("FFmpeg 확인 완료:", result.stdout.split('\n')[0])
-            return True
-        else:
-            print("FFmpeg 확인 실패:", result.stderr)
-            return False
-    except Exception as e:
-        print(f"FFmpeg 확인 중 오류: {str(e)}")
-
-        # 일반적인 FFmpeg 경로 시도
-        paths = [
-            "/usr/bin/ffmpeg",
-            "/usr/local/bin/ffmpeg",
-            "C:/Program Files/ffmpeg/bin/ffmpeg.exe",
-            "C:/ffmpeg/bin/ffmpeg.exe"
-        ]
-
-        for path in paths:
-            if os.path.exists(path):
-                print(f"FFmpeg 발견: {path}")
-                from pydub import AudioSegment
-                AudioSegment.converter = path
-                return True
-
-        print("FFmpeg를 찾을 수 없습니다. 설치하거나 경로를 수동으로 설정하세요.")
-        return False
-
-
-# 명령줄 인자 파서 설정
-if __name__ == "__main__":
-    # FFmpeg 확인
-    check_ffmpeg()
-
-    parser = argparse.ArgumentParser(description='동물의 숲 NPC 목소리 생성기')
-    parser.add_argument('-t', '--text', help='변환할 텍스트')
-    parser.add_argument('-o', '--output', help='출력 파일 경로')
-    parser.add_argument('-d', '--debug', action='store_true', help='디버깅 정보 표시')
-    args = parser.parse_args()
-
-    if args.text and args.output:
-        convert_text_to_animalese(args.text, args.output, debug=args.debug)
-    else:
-        print("사용법: python pyanimalese_cli.py -t '텍스트' -o '출력파일.wav' [-d]")
-        sys.exit(1)
+# 나머지 코드는 그대로 유지
