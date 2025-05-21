@@ -27,6 +27,8 @@ class ChatService {
         return {
           'text': data['message'] ?? data['text'] ?? '응답 없음',
           'audioPath': data['audio_path'] ?? null,
+          'created_at': DateTime.parse(data['created_at']).toLocal().toIso8601String(),
+
         };
       } else {
         throw Exception('서버 응답 형식 오류: $data');

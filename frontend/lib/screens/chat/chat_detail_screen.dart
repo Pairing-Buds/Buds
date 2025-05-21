@@ -136,15 +136,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     final botMessage = response is Map ? response['text'] ?? '응답 없음' : response;
 
+    final createdAtUtc = response['created_at'] != null
+        ? DateTime.parse(response['created_at'])
+        : DateTime.now();
+
     setState(() {
       _chatHistory.removeLast();
       _chatHistory.add({
         'message': botMessage,
         'is_user': false,
-        'created_at': DateTime.now().toIso8601String(),
+        'created_at': createdAtUtc.toIso8601String(),
       });
       _isWaitingForBot = false;
     });
+
 
     _scrollToBottom();
   }
@@ -252,7 +257,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 itemBuilder: (context, index) {
                   final reversedIndex = _chatHistory.length - 1 - index;
                   final chat = _chatHistory[reversedIndex];
-                  final createdAt = DateTime.parse(chat['created_at']).add(const Duration(hours: 9));
+                  final createdAt = DateTime.parse(chat['created_at']);
                   final isBot = !(chat['is_user'] ?? false);
 
                   // 날짜 구분선 판단
@@ -264,7 +269,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   } else {
                     final prevChat = _chatHistory[reversedIndex - 1];
                     final prevDate = DateFormat('yyyy년 M월 d일')
-                        .format(DateTime.parse(prevChat['created_at']).add(const Duration(hours: 9)));
+                        .format(DateTime.parse(prevChat['created_at']));
                     if (currentDate != prevDate) {
                       showDateHeader = true;
                     }
@@ -383,8 +388,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
 
     final utcTime = DateTime.parse(createdAt);
-    final kstTime = utcTime.add(const Duration(hours: 9));
-    final timeText = DateFormat('a h:mm', 'ko').format(kstTime);
+    final timeText = DateFormat('a h:mm', 'ko').format(utcTime);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
