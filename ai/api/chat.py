@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Response, File, UploadFile, BackgroundTasks
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from db.chroma import chroma_db
@@ -8,6 +8,7 @@ from core.chatbot import chatbot
 import logging
 import os
 import tempfile
+import asyncio
 from datetime import datetime, timezone, timedelta
 
 from core.jwt_auth import get_user_id_from_token
@@ -15,6 +16,7 @@ from core.jwt_auth import get_user_id_from_token
 router = APIRouter()
 
 KST = timezone(timedelta(hours=9))
+
 
 class MessageRequest(BaseModel):
     message: str
@@ -61,7 +63,12 @@ async def send_message(
         message_count = 0
         try:
             today = datetime.now(KST).date().strftime('%Y-%m-%d')
-            message_count = chroma_db.get_daily_message_count(user_id, today)
+            # 비동기 방식으로 메시지 수 가져오기
+            loop = asyncio.get_event_loop()
+            message_count = await loop.run_in_executor(
+                None,
+                lambda: chroma_db.get_daily_message_count(user_id, today)
+            )
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (메시지 카운트): {str(e)}")
             # 연결 오류 시에도 계속 진행하되, 메시지 카운트는 0으로 설정
@@ -78,6 +85,7 @@ async def send_message(
 
         # 텍스트 메시지 처리 - 비동기 방식으로 개인화된 응답 생성
         try:
+            # 최적화된 get_response 메서드 사용
             response = await chatbot.get_response(
                 user_id,
                 request.message,
@@ -93,7 +101,14 @@ async def send_message(
             # 음성 처리
             if request.is_voice:
                 try:
-                    audio_path = chatbot.generate_animalese_tts(simple_response, user_id)
+                    # 최적화된 TTS 함수 사용
+                    loop = asyncio.get_event_loop()
+                    audio_path = await loop.run_in_executor(
+                        None,
+                        chatbot.generate_animalese_tts_optimized,
+                        simple_response,
+                        user_id
+                    )
                     response = {
                         "text": simple_response,
                         "audio_path": audio_path
@@ -113,7 +128,7 @@ async def send_message(
             audio_url = None
             if audio_path:
                 audio_filename = os.path.basename(audio_path)
-                audio_url = f"/api/audio/{audio_filename}"
+                audio_url = f"/audio/{audio_filename}"  # 경로 단순화
         else:
             # 일반 텍스트 응답만 있는 경우
             text_response = response
@@ -121,11 +136,16 @@ async def send_message(
 
         # 메시지 저장 시도 - 실패해도 응답은 계속 제공
         try:
-            chroma_db.save_conversation(
-                user_id,
-                request.message,
-                text_response,
-                is_voice=request.is_voice
+            # 비동기 방식으로 대화 저장
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                lambda: chroma_db.save_conversation(
+                    user_id,
+                    request.message,
+                    text_response,
+                    is_voice=request.is_voice
+                )
             )
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (대화 저장): {str(e)}")
@@ -161,6 +181,7 @@ async def get_chat_history(
 ):
     """
     사용자의 채팅 기록을 가져오는 API (오프셋 기반 무한 스크롤)
+    비동기 처리로 최적화
     """
     try:
         # 사용자 인증 확인
@@ -169,12 +190,16 @@ async def get_chat_history(
         except ValueError as e:
             raise HTTPException(status_code=401, detail=f"인증 오류: {str(e)}")
 
-        # 메시지와 전체 개수 가져오기
+        # 메시지와 전체 개수 가져오기 (비동기 처리)
         try:
-            messages, total_count = chroma_db.get_conversation_history_with_offset(
-                user_id=user_id,
-                limit=request.limit,
-                offset=request.offset
+            loop = asyncio.get_event_loop()
+            messages, total_count = await loop.run_in_executor(
+                None,
+                lambda: chroma_db.get_conversation_history_with_offset(
+                    user_id=user_id,
+                    limit=request.limit,
+                    offset=request.offset
+                )
             )
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (대화 기록 조회): {str(e)}")
@@ -219,8 +244,12 @@ async def get_chat_history(
 async def test_chroma_connection():
     """ChromaDB 연결 테스트 엔드포인트"""
     try:
-        # 연결 상태 확인
-        collections = chroma_db.client.list_collections()
+        # 연결 상태 확인 (비동기 처리)
+        loop = asyncio.get_event_loop()
+        collections = await loop.run_in_executor(
+            None,
+            lambda: chroma_db.client.list_collections()
+        )
 
         return {
             "status": "success",
@@ -240,18 +269,43 @@ async def test_chroma_connection():
         }
 
 
-@router.get("/api/audio/{filename}")
+@router.get("/audio/{filename}")
 async def get_audio_file(filename: str, background_tasks: BackgroundTasks):
+    """
+    오디오 파일 스트리밍 제공 - 최적화된 버전
+    점진적 전송을 위한 청크 단위 스트리밍 구현
+    """
     try:
         audio_path = os.path.join(tempfile.gettempdir(), filename)
 
         if not os.path.exists(audio_path):
             raise HTTPException(status_code=404, detail="오디오 파일을 찾을 수 없습니다")
 
-        # 백그라운드 작업으로 파일 삭제 예약
-        background_tasks.add_task(remove_file, audio_path)
+        # 파일 크기 확인
+        file_size = os.path.getsize(audio_path)
 
-        return FileResponse(path=audio_path, media_type="audio/wav", filename=filename)
+        # 청크 크기 설정 (64KB)
+        chunk_size = 65536
+
+        async def file_streamer():
+            """비동기 파일 스트리밍 제너레이터"""
+            with open(audio_path, "rb") as f:
+                while chunk := f.read(chunk_size):
+                    yield chunk
+
+            # 마지막 청크 전송 후 파일 삭제
+            background_tasks.add_task(remove_file, audio_path)
+
+        # 스트리밍 응답 반환
+        return StreamingResponse(
+            file_streamer(),
+            media_type="audio/wav",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Length": str(file_size),
+                "Accept-Ranges": "bytes"
+            }
+        )
     except Exception as e:
         logging.error(f"오디오 파일 제공 중 오류: {str(e)}")
         raise HTTPException(status_code=500, detail=f"오디오 파일 처리 중 오류: {str(e)}")
