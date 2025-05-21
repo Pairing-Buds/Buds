@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from db.mysql import mysql_db
 from db.chroma import chroma_db
@@ -8,6 +8,7 @@ from core.chatbot import chatbot
 import aiohttp
 from dotenv import load_dotenv
 import os
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
@@ -15,15 +16,15 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+KST = timezone(timedelta(hours=9))
 
 class DiaryScheduler:
     def __init__(self):
         """일기 생성 스케줄러 초기화"""
-        self.scheduler = BackgroundScheduler()
-        # 오후 10시(22:00)에 실행되도록 설정
+        self.scheduler = AsyncIOScheduler()
         self.scheduler.add_job(
             self.generate_and_save_diaries,
-            trigger=CronTrigger(hour=22, minute=0),
+            trigger=CronTrigger(hour=10, minute=0),
             id='daily_diary_generation',
             replace_existing=True
         )
@@ -52,7 +53,7 @@ class DiaryScheduler:
                 return
 
             # 오늘 날짜
-            today = datetime.now().date().strftime('%Y-%m-%d')
+            today = datetime.now(KST).date().strftime('%Y-%m-%d')
 
             # 각 사용자에 대해 일기 생성
             for user in active_users:
