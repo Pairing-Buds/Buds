@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from db.mysql import mysql_db
 from db.chroma import chroma_db
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class DiaryScheduler:
     def __init__(self):
         """일기 생성 스케줄러 초기화"""
-        self.scheduler = BackgroundScheduler()
+        self.scheduler = AsyncIOScheduler()
         # 오후 10시(22:00)에 실행되도록 설정
         self.scheduler.add_job(
             self.generate_and_save_diaries,
