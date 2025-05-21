@@ -140,7 +140,7 @@ async def send_message(
         # 응답 반환
         return MessageResponse(
             message=text_response,
-            created_at=datetime.now(),
+            created_at=datetime.now(KST),
             remaining_messages=remaining_messages,
             audio_path=audio_url
         )
