@@ -14,10 +14,13 @@ public class GetAllUsersResDto {
 
     private String username;
 
+    private boolean isActive;
+
     public static GetAllUsersResDto toDto(User user){
         return GetAllUsersResDto.builder()
                 .userId(user.getId())
                 .username(user.getUserName())
+                .isActive(user.getIsActive())
                 .build();
     }
 }
