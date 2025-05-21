@@ -172,14 +172,45 @@ void main() async {
         notificationId == 100;
 
     if (isAlarmRelated) {
-      startedFromNotification = true;
-      initialRoute = '/alarm';
-      debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었습니다. 알람 화면으로 이동합니다.');
-
-      // 알람 상태를 SharedPreferences에 저장
+      // 알람 시간이 유효한지 먼저 확인
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('started_from_notification', true);
-      await prefs.setString('initial_route', '/alarm');
+      final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
+      bool isValidAlarmTime = false;
+
+      if (alarmScheduledDate != null) {
+        final scheduledDate = DateTime.parse(alarmScheduledDate);
+        final now = DateTime.now();
+
+        // 알람 시간으로부터 5분 이내인지 확인
+        final timeWindow = Duration(minutes: 5);
+        final alarmTimeStart = scheduledDate;
+        final alarmTimeEnd = scheduledDate.add(timeWindow);
+
+        // 현재 시간이 알람 시간과 같거나 이후이고, 알람 시간 + 5분 이내인 경우에만 유효
+        isValidAlarmTime =
+            (now.isAtSameMomentAs(alarmTimeStart) ||
+                now.isAfter(alarmTimeStart)) &&
+            now.isBefore(alarmTimeEnd);
+
+        debugPrint(
+          '인텐트 알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
+        );
+      }
+
+      // 알람 시간이 유효할 때만 알람 화면으로 이동
+      if (isValidAlarmTime) {
+        startedFromNotification = true;
+        initialRoute = '/alarm';
+        debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었습니다. 알람 화면으로 이동합니다.');
+
+        // 알람 상태를 SharedPreferences에 저장
+        await prefs.setBool('started_from_notification', true);
+        await prefs.setString('initial_route', '/alarm');
+      } else {
+        debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었지만, 알람 시간이 유효하지 않아 홈 화면으로 이동합니다.');
+        startedFromNotification = false;
+        initialRoute = '/';
+      }
     }
   } catch (e) {
     debugPrint('인텐트 확인 중 오류 발생: $e');
@@ -192,16 +223,46 @@ void main() async {
       final notificationFlag =
           prefs.getBool('started_from_notification') ?? false;
       final savedRoute = prefs.getString('initial_route') ?? '/';
+      final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
 
       debugPrint(
-        'SharedPreferences에서 알림 상태 확인: notificationFlag=$notificationFlag, savedRoute=$savedRoute',
+        'SharedPreferences에서 알림 상태 확인: notificationFlag=$notificationFlag, savedRoute=$savedRoute, alarmScheduledDate=$alarmScheduledDate',
       );
 
+      // 저장된 알람 시간이 있는지 확인하고, 현재 시간과 비교
+      bool isValidAlarmTime = false;
+      if (alarmScheduledDate != null) {
+        final scheduledDate = DateTime.parse(alarmScheduledDate);
+        final now = DateTime.now();
+
+        // 알람 시간으로부터 5분 이내인지 확인
+        final timeWindow = Duration(minutes: 5);
+        final alarmTimeStart = scheduledDate;
+        final alarmTimeEnd = scheduledDate.add(timeWindow);
+
+        // 현재 시간이 알람 시간과 같거나 이후이고, 알람 시간 + 5분 이내인 경우에만 유효
+        isValidAlarmTime =
+            (now.isAtSameMomentAs(alarmTimeStart) ||
+                now.isAfter(alarmTimeStart)) &&
+            now.isBefore(alarmTimeEnd);
+
+        debugPrint(
+          '알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
+        );
+      }
+
       // 알림을 통해 시작되었고, 라우트가 알람인 경우에만 알람 화면으로 이동
-      if (notificationFlag && savedRoute == '/alarm') {
+      if (notificationFlag && savedRoute == '/alarm' && isValidAlarmTime) {
         debugPrint('SharedPreferences: 알림을 통해 시작된 것으로 확인됨');
         startedFromNotification = true;
         initialRoute = '/alarm';
+      } else {
+        // 유효하지 않은 알람이면 홈 화면으로 이동하도록 설정
+        if (notificationFlag && savedRoute == '/alarm' && !isValidAlarmTime) {
+          debugPrint('알람 시간이 지났거나 유효하지 않아 홈 화면으로 이동합니다');
+          startedFromNotification = false;
+          initialRoute = '/';
+        }
       }
 
       // 상태 확인 후 초기화 (중복 알람 화면 전환 방지)

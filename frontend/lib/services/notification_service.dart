@@ -250,49 +250,149 @@ class NotificationService {
 
   /// 알람 화면으로 이동
   void navigateToAlarmScreen() {
-    // 전역 상태 설정 (메인.dart에서 참조)
-    startedFromNotification = true;
-    initialRoute = '/alarm';
+    // 알람 시간이 유효한지 먼저 확인
+    _checkAlarmTimeValidity().then((isValid) {
+      if (!isValid) {
+        debugPrint('알람 시간이 유효하지 않아 알람 화면으로 이동하지 않습니다.');
 
-    debugPrint(
-      '알람 화면 이동 준비: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
-    );
-
-    // 메인 스레드에서 실행하여 UI 업데이트 보장
-    Future.microtask(() {
-      if (navigatorKey.currentState != null) {
-        try {
-          // 기존 라우트 체크 (이미 알람 화면이 있으면 스택에서 제거 후 새로 추가)
-          final currentRoute =
-              ModalRoute.of(navigatorKey.currentState!.context)?.settings.name;
-          debugPrint('현재 라우트: $currentRoute');
-
-          if (currentRoute == '/alarm') {
-            // 이미 알람 화면에 있으면 새로 고침
-            navigatorKey.currentState!.pushReplacementNamed('/alarm');
-          } else {
-            // 알람 화면으로 이동
-            navigatorKey.currentState!.pushNamed('/alarm');
-          }
-          debugPrint('알람 화면 이동 성공');
-        } catch (e) {
-          debugPrint('알람 화면 이동 오류: $e');
-          // 오류 발생 시 1초 후 다시 시도
-          Future.delayed(const Duration(seconds: 1), () {
+        // 홈 화면으로 리다이렉션
+        Future.microtask(() {
+          if (navigatorKey.currentState != null) {
             try {
-              if (navigatorKey.currentState != null) {
-                navigatorKey.currentState!.pushNamed('/alarm');
-                debugPrint('알람 화면 이동 재시도 성공');
+              // 현재 알람 화면이면 홈으로 돌아가기
+              final currentRoute =
+                  ModalRoute.of(
+                    navigatorKey.currentState!.context,
+                  )?.settings.name;
+              if (currentRoute == '/alarm') {
+                debugPrint('알람 화면에서 홈으로 자동 이동합니다.');
+                navigatorKey.currentState!.pushReplacementNamed('/');
               }
             } catch (e) {
-              debugPrint('알람 화면 이동 재시도 실패: $e');
+              debugPrint('홈 화면 리다이렉션 중 오류 발생: $e');
             }
-          });
-        }
-      } else {
-        debugPrint('알람 화면 이동 실패: NavigatorState가 null입니다');
+          }
+        });
+
+        return;
       }
+
+      // 전역 상태 설정 (메인.dart에서 참조)
+      startedFromNotification = true;
+      initialRoute = '/alarm';
+
+      debugPrint(
+        '알람 화면 이동 준비: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
+      );
+
+      // 메인 스레드에서 실행하여 UI 업데이트 보장
+      Future.microtask(() {
+        if (navigatorKey.currentState != null) {
+          try {
+            // 기존 라우트 체크 (이미 알람 화면이 있으면 스택에서 제거 후 새로 추가)
+            final currentRoute =
+                ModalRoute.of(
+                  navigatorKey.currentState!.context,
+                )?.settings.name;
+            debugPrint('현재 라우트: $currentRoute');
+
+            if (currentRoute == '/alarm') {
+              // 이미 알람 화면에 있으면 새로 고침
+              navigatorKey.currentState!.pushReplacementNamed('/alarm');
+            } else {
+              // 알람 화면으로 이동
+              navigatorKey.currentState!.pushNamed('/alarm');
+            }
+            debugPrint('알람 화면 이동 성공');
+          } catch (e) {
+            debugPrint('알람 화면 이동 오류: $e');
+            // 오류 발생 시 1초 후 다시 시도
+            Future.delayed(const Duration(seconds: 1), () {
+              try {
+                if (navigatorKey.currentState != null) {
+                  navigatorKey.currentState!.pushNamed('/alarm');
+                  debugPrint('알람 화면 이동 재시도 성공');
+                }
+              } catch (e) {
+                debugPrint('알람 화면 이동 재시도 실패: $e');
+              }
+            });
+          }
+        } else {
+          debugPrint('알람 화면 이동 실패: NavigatorState가 null입니다');
+        }
+      });
     });
+  }
+
+  /// 알람 시간이 유효한지 확인
+  Future<bool> _checkAlarmTimeValidity() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
+
+      if (alarmScheduledDate == null) {
+        debugPrint('저장된 알람 시간이 없습니다.');
+        return false;
+      }
+
+      final scheduledDate = DateTime.parse(alarmScheduledDate);
+      final now = DateTime.now();
+
+      // 알람 시간으로부터 5분 이내인지 확인
+      final timeWindow = Duration(minutes: 5);
+      final alarmTimeStart = scheduledDate;
+      final alarmTimeEnd = scheduledDate.add(timeWindow);
+
+      // 현재 시간이 알람 시간과 같거나 이후이고, 알람 시간 + 5분 이내인 경우에만 유효
+      final isValidAlarmTime =
+          (now.isAtSameMomentAs(alarmTimeStart) ||
+              now.isAfter(alarmTimeStart)) &&
+          now.isBefore(alarmTimeEnd);
+
+      debugPrint(
+        '알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
+      );
+
+      // 알람 시간이 유효하지 않은 경우(5분 이상 지난 경우) 알람 데이터 삭제
+      if (!isValidAlarmTime && now.isAfter(alarmTimeEnd)) {
+        debugPrint('알람 시간이 5분 이상 지나 만료되었습니다. 알람 데이터를 초기화합니다.');
+        await _clearExpiredAlarmData();
+      }
+
+      return isValidAlarmTime;
+    } catch (e) {
+      debugPrint('알람 시간 유효성 검사 중 오류 발생: $e');
+      return false;
+    }
+  }
+
+  /// 만료된 알람 데이터 초기화
+  Future<void> _clearExpiredAlarmData() async {
+    try {
+      // 알람 관련 데이터 삭제
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('alarm_hour');
+      await prefs.remove('alarm_minute');
+      await prefs.remove('alarm_scheduled_date');
+      await prefs.remove('alarm_scheduled_at');
+
+      // 알림 상태 초기화
+      await prefs.setBool('started_from_notification', false);
+      await prefs.remove('initial_route');
+
+      // 진행 중인 알림 취소
+      await _flutterLocalNotificationsPlugin.cancel(0); // 기본 알람 ID
+      await _flutterLocalNotificationsPlugin.cancel(1); // 스누즈 알람 ID
+
+      // 전역 상태 초기화
+      startedFromNotification = false;
+      initialRoute = '/';
+
+      debugPrint('만료된 알람 데이터가 성공적으로 초기화되었습니다.');
+    } catch (e) {
+      debugPrint('만료된 알람 데이터 초기화 중 오류 발생: $e');
+    }
   }
 
   /// 알람 상태 활성화
