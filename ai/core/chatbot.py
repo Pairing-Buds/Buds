@@ -11,10 +11,18 @@ import base64
 import re
 import subprocess
 import sys
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from PyAnimalese.pyanimalese_cli import convert_text_to_animalese
+from pydub import AudioSegment
+from jamo import h2j, j2hcj
 
 KST = timezone(timedelta(hours=9))
+
+# 전역 스레드 풀 생성 (병렬 처리용)
+thread_pool = ThreadPoolExecutor(max_workers=4)
+
 
 class Chatbot:
     def __init__(self):
@@ -30,11 +38,10 @@ class Chatbot:
         # OpenAI 직접 API 키 설정
         openai.api_key = api_key
 
-        # 사용자별 일일 메시지 카운트 저장 딕셔너리
         self.daily_message_count = {}
-
-        # PyAnimalese 사용 가능 여부 확인
         self._check_pyanimalese_setup()
+        self.char_sounds = {}
+        self._preload_animalese_sounds()
 
         logging.info("Chatbot 인스턴스가 초기화되었습니다.")
 
@@ -59,6 +66,40 @@ class Chatbot:
         except Exception as e:
             logging.error(f"PyAnimalese 설정 확인 중 오류: {str(e)}")
             logging.warning("TTS 기능이 제한될 수 있습니다.")
+
+    def _preload_animalese_sounds(self):
+        """
+        자주 사용되는 소리 파일을 미리 로드하여 성능 향상
+        """
+        try:
+            # 초성 목록 (가장 많이 사용되는 초성 우선)
+            common_chars = ['ㄱ', 'ㄴ', 'ㄷ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅎ']
+
+            # 모듈 디렉토리 경로
+            MODULE_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, "..", "PyAnimalese")))
+
+            # 소리 파일 로드
+            for idx, item in enumerate(common_chars):
+                char_idx = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ', 'ㄲ', 'ㄸ', 'ㅃ', 'ㅆ',
+                            'ㅉ'].index(item) + 1
+                str_idx = str(char_idx).zfill(2)
+
+                # 파일 경로
+                source_path = os.path.join(MODULE_DIR, 'sources', f'{str_idx}.padata')
+                mp3_path = os.path.join(MODULE_DIR, 'sources', f'{str_idx}.mp3')
+
+                # 파일 로드 시도
+                try:
+                    if os.path.exists(source_path):
+                        self.char_sounds[item] = AudioSegment.from_file(source_path)
+                    elif os.path.exists(mp3_path):
+                        self.char_sounds[item] = AudioSegment.from_mp3(mp3_path)
+                except Exception as e:
+                    logging.warning(f"소리 파일 로드 실패: {item} - {e}")
+
+            logging.info(f"Animalese 소리 파일 {len(self.char_sounds)}/{len(common_chars)}개 프리로딩 완료")
+        except Exception as e:
+            logging.error(f"소리 파일 프리로딩 오류: {str(e)}")
 
     def _sanitize_input(self, text):
         """
@@ -110,6 +151,7 @@ class Chatbot:
         """
         사용자 메시지에 대한 응답을 생성합니다.
         is_voice가 True인 경우 음성 응답도 생성합니다.
+        비동기 처리로 최적화되었습니다.
         """
         try:
             # 0. 메시지 정제
@@ -121,17 +163,13 @@ class Chatbot:
             if not self._check_daily_limit(user_id):
                 return "죄송합니다. 오늘의 대화 제한(100회)에 도달했습니다. 내일 다시 대화해주세요."
 
-            # 1. 사용자 프로필 가져오기
-            user_profile = mysql_db.get_user_profile(user_id)
-
-            # 2. 최근 대화 기록 가져오기 (최적화된 방식)
-            recent_history = chroma_db.get_recent_conversation_history(user_id, limit=15)
-
-            # 3. 대화 요약본 가져오기 (이전 대화의 맥락)
-            conversation_summary = chroma_db.get_conversation_summary(user_id)
-
-            # 4. 유사한 대화 컨텍스트도 활용
-            similar_context = chroma_db.get_similar_conversations(user_id, sanitized_message)
+            # 1-4. 모든 컨텍스트 정보 비동기 수집
+            user_profile, recent_history, conversation_summary, similar_context = await asyncio.gather(
+                self._get_user_profile_async(user_id),
+                self._get_recent_history_async(user_id),
+                self._get_conversation_summary_async(user_id),
+                self._get_similar_context_async(user_id, sanitized_message)
+            )
 
             # 5. 시스템 프롬프트 생성
             context_combined = f"""
@@ -168,14 +206,29 @@ class Chatbot:
             response = await self.chat.ainvoke(messages)
             text_response = response.content
 
-            # 8. 새로운 대화가 20개 이상 쌓였을 때 자동 요약 생성 및 저장
-            message_total = chroma_db.get_message_count(user_id)
+            # 8. 새로운 대화가 20개 이상 쌓였을 때 자동 요약 생성 및 저장 (백그라운드로 처리)
+            message_total = await self._get_message_count_async(user_id)
             if message_total % 20 == 0:  # 20개 메시지마다 요약 생성
-                await self._update_conversation_summary(user_id)
+                # 백그라운드로 요약 처리 (응답 지연 방지)
+                asyncio.create_task(self._update_conversation_summary(user_id))
 
-            # 9. 음성 응답이 필요한 경우 TTS 생성
+            # 9. 음성 응답이 필요한 경우 TTS 생성 (병렬 처리)
             if is_voice:
-                audio_path = self.generate_animalese_tts(text_response, user_id)
+                # 음성 변환에 최적화된 텍스트 준비 (길이 제한)
+                voice_text = self._prepare_text_for_voice(text_response)
+
+                # 스레드 풀에서 음성 생성 (병렬 처리)
+                loop = asyncio.get_event_loop()
+                audio_path_future = loop.run_in_executor(
+                    thread_pool,
+                    self.generate_animalese_tts_optimized,
+                    voice_text,
+                    user_id
+                )
+
+                # 음성 생성 완료 대기
+                audio_path = await audio_path_future
+
                 return {
                     "text": text_response,
                     "audio_path": audio_path
@@ -191,6 +244,32 @@ class Chatbot:
         except Exception as e:
             logging.error(f"챗봇 응답 생성 중 오류: {str(e)}")
             raise ValueError(f"서비스 오류: {str(e)}")
+
+    # 비동기 헬퍼 메서드들
+    async def _get_user_profile_async(self, user_id):
+        """사용자 프로필 비동기 조회"""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, mysql_db.get_user_profile, user_id)
+
+    async def _get_recent_history_async(self, user_id):
+        """최근 대화 이력 비동기 조회"""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, chroma_db.get_recent_conversation_history, user_id, 15)
+
+    async def _get_conversation_summary_async(self, user_id):
+        """대화 요약 비동기 조회"""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, chroma_db.get_conversation_summary, user_id)
+
+    async def _get_similar_context_async(self, user_id, message):
+        """유사 컨텍스트 비동기 조회"""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, chroma_db.get_similar_conversations, user_id, message)
+
+    async def _get_message_count_async(self, user_id):
+        """메시지 수 비동기 조회"""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, chroma_db.get_message_count, user_id)
 
     def _format_messages(self, messages):
         """메시지 리스트를 텍스트 포맷으로 변환합니다."""
@@ -208,7 +287,7 @@ class Chatbot:
         """최근 대화를 요약하여 저장합니다."""
         try:
             # 최근 20개 대화 가져오기
-            recent_messages = chroma_db.get_recent_conversation_history(user_id, limit=20)
+            recent_messages = await self._get_recent_history_async(user_id, 20)
 
             if not recent_messages:
                 return
@@ -230,8 +309,14 @@ class Chatbot:
                 HumanMessage(content=summary_prompt)
             ])
 
-            # 요약본 저장
-            chroma_db.save_conversation_summary(user_id, response.content)
+            # 요약본 저장 (비동기적으로)
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                chroma_db.save_conversation_summary,
+                user_id,
+                response.content
+            )
 
             return response.content
 
@@ -239,6 +324,98 @@ class Chatbot:
             logging.error(f"대화 요약 생성 오류: {str(e)}")
             return None
 
+    def _prepare_text_for_voice(self, text):
+        """
+        음성 변환에 적합하도록 텍스트 준비
+        (너무 긴 텍스트는 처리 시간이 오래 걸리므로 적절히 축소)
+        """
+        # 최대 150자로 제한 (필요에 따라 조정)
+        if len(text) <= 150:
+            return text
+
+        # 문장 단위로 분리하여 적절한 지점까지만 사용
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        result = ""
+
+        for sentence in sentences:
+            if len(result) + len(sentence) <= 150:
+                result += sentence + " "
+            else:
+                break
+
+        return result.strip()
+
+    def generate_animalese_tts_optimized(self, text, user_id=None):
+        """
+        최적화된 동물의 숲 스타일 TTS 생성 함수
+        강화된 오류 처리 추가
+        """
+        try:
+            # 입력 텍스트 확인 및 로깅
+            if not text or not isinstance(text, str) or len(text) == 0:
+                logging.error(f"유효하지 않은 TTS 입력 텍스트: '{text}'")
+                # 기본 무음 파일 생성
+                return self._generate_fallback_audio(user_id)
+
+            # 타임스탬프 생성 (파일명용)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            user_part = f"_{user_id}" if user_id else ""
+            output_filename = f"animalese{user_part}_{timestamp}.wav"
+            output_path = os.path.join(tempfile.gettempdir(), output_filename)
+
+            # 디버그 정보 로깅
+            logging.debug(f"TTS 변환 시작: 텍스트 길이={len(text)}, 출력 경로={output_path}")
+
+            # 원본 변환 함수 호출 (최적화 없이)
+            MODULE_DIR = os.path.dirname(os.path.abspath(os.path.join(__file__, "..", "PyAnimalese")))
+            success = convert_text_to_animalese(text, output_path, debug=False)
+
+            # 성공 여부 확인
+            if success and os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+                logging.info(f"TTS 파일 생성 성공: {output_path}")
+                return output_path
+            else:
+                logging.error(f"TTS 파일 생성 실패: {output_path}")
+                # 기본 무음 파일 생성
+                return self._generate_fallback_audio(user_id)
+
+        except Exception as e:
+            logging.error(f"TTS 생성 중 예외 발생: {str(e)}")
+            return self._generate_fallback_audio(user_id)
+
+    def _generate_fallback_audio(self, user_id=None):
+        """
+        TTS 생성 실패 시 폴백 오디오 생성
+        """
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            user_part = f"_{user_id}" if user_id else ""
+            output_filename = f"fallback{user_part}_{timestamp}.wav"
+            output_path = os.path.join(tempfile.gettempdir(), output_filename)
+
+            # 기본 오디오 생성 (무음 + 비프음)
+            silence = AudioSegment.silent(duration=300)
+            beep = AudioSegment.sine(frequency=440, duration=200)
+            audio = silence + beep + silence
+
+            # 파일 저장
+            output_dir = os.path.dirname(output_path)
+            if output_dir and not os.path.exists(output_dir):
+                os.makedirs(output_dir, exist_ok=True)
+
+            audio.export(output_path, format="wav")
+            logging.info(f"폴백 오디오 파일 생성: {output_path}")
+            return output_path
+        except Exception as e:
+            logging.error(f"폴백 오디오 생성 실패: {str(e)}")
+            return None
+
+    def generate_animalese_tts(self, text, user_id=None):
+        """
+        원래 동물의 숲 TTS 함수 (하위 호환성 유지)
+        이제 최적화된 버전을 사용합니다.
+        """
+        return self.generate_animalese_tts_optimized(text, user_id)
 
     def generate_emotion_diary(self, chat_history):
         """
@@ -278,35 +455,6 @@ class Chatbot:
         response = self.generate_response(prompt)
         return response
 
-    def generate_animalese_tts(self, text, user_id=None):
-        """
-        텍스트를 동물의 숲 스타일 TTS로 변환합니다.
-        성공 시 오디오 파일 경로를 반환하고, 실패 시 None을 반환합니다.
-        """
-        try:
-            # 임시 디렉토리 생성 또는 사용
-            output_dir = tempfile.gettempdir()
-
-            # 사용자별 고유 파일명 생성 (충돌 방지)
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            user_part = f"_{user_id}" if user_id else ""
-            output_filename = f"animalese{user_part}_{timestamp}.wav"
-            output_path = os.path.join(output_dir, output_filename)
-
-            # 직접 함수 호출
-            success = convert_text_to_animalese(text, output_path)
-
-            if success and os.path.exists(output_path):
-                logging.info(f"PyAnimalese TTS 파일 생성 성공: {output_path}")
-                return output_path
-            else:
-                logging.error(f"PyAnimalese TTS 파일 생성 실패")
-                return None
-
-        except Exception as e:
-            logging.error(f"PyAnimalese TTS 생성 오류: {str(e)}")
-            return None
-
     def generate_response(self, prompt):
         """
         주어진 프롬프트에 대한 응답을 생성합니다.
@@ -320,6 +468,7 @@ class Chatbot:
         except Exception as e:
             logging.error(f"응답 생성 중 오류: {str(e)}")
             return "일기 생성 중 오류가 발생했습니다."
+
 
 # 전역 Chatbot 인스턴스
 chatbot = Chatbot()
