@@ -20,10 +20,9 @@ class DiaryScheduler:
     def __init__(self):
         """일기 생성 스케줄러 초기화"""
         self.scheduler = AsyncIOScheduler()
-        # 오후 10시(22:00)에 실행되도록 설정
         self.scheduler.add_job(
             self.generate_and_save_diaries,
-            trigger=CronTrigger(hour=22, minute=0),
+            trigger=CronTrigger(hour=10, minute=0),
             id='daily_diary_generation',
             replace_existing=True
         )
