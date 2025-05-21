@@ -33,15 +33,7 @@ class AuthProvider extends ChangeNotifier {
   // 추가: 사용자가 익명인지 확인하는 getter
   bool get isAnonymousUser {
     if (_userData == null) {
-      if (kDebugMode) {
-        print('isAnonymousUser: userData가 null입니다.');
-      }
       return false;
-    }
-
-    if (kDebugMode) {
-      print('isAnonymousUser 확인 중: ${_userData}');
-      print('사용자 이름: ${_userData!['name']}');
     }
 
     return _userData!['name'] == '익명';
@@ -56,22 +48,11 @@ class AuthProvider extends ChangeNotifier {
   // 초기화 - 앱 시작 시 호출
   Future<void> initialize(BuildContext context) async {
     try {
-      if (kDebugMode) {
-        print('AuthProvider 초기화 시작...');
-      }
-
       // 먼저 저장된 쿠키가 있는지 확인
       bool hasStoredCookies = false;
       try {
         hasStoredCookies = await _apiService.checkSavedCookies();
-        if (kDebugMode) {
-          print('저장된 쿠키 확인 결과: $hasStoredCookies');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('저장된 쿠키 확인 중 오류: $e');
-        }
-      }
+      } catch (e) {}
 
       if (hasStoredCookies) {
         try {
@@ -79,13 +60,7 @@ class AuthProvider extends ChangeNotifier {
           final user = await _authService.getUserProfile();
           _userData = user.toJson();
           _isLoggedIn = true;
-          if (kDebugMode) {
-            print('사용자 인증 상태 확인: 로그인됨 (${user.email})');
-          }
         } catch (e) {
-          if (kDebugMode) {
-            print('사용자 프로필 로드 오류: $e');
-          }
           // 프로필 로드 실패 시 로그아웃 처리
           _isLoggedIn = false;
           _userData = null;
@@ -93,21 +68,17 @@ class AuthProvider extends ChangeNotifier {
           await _apiService.clearCookies();
           // 로그인 화면으로 이동
           if (context.mounted) {
-            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/', (route) => false);
           }
         }
       } else {
         _isLoggedIn = false;
-        if (kDebugMode) {
-          print('사용자 인증 상태 확인: 로그아웃됨 (쿠키 없음)');
-        }
       }
 
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {
-        print('인증 상태 초기화 오류: $e');
-      }
       _isLoggedIn = false;
       notifyListeners();
     }
@@ -117,24 +88,14 @@ class AuthProvider extends ChangeNotifier {
   Future<void> refreshUserData() async {
     try {
       if (!_isLoggedIn) {
-        if (kDebugMode) {
-          print('사용자가 로그인되어 있지 않습니다. 정보를 가져올 수 없습니다.');
-        }
         return;
       }
 
       final user = await _authService.getUserProfile();
       _userData = user.toJson();
 
-      if (kDebugMode) {
-        print('사용자 정보 새로고침 완료: ${user.email}, 이름: ${user.name}');
-      }
-
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {
-        print('사용자 정보 새로고침 오류: $e');
-      }
       throw e; // 오류를 다시 던져서 호출자가 처리할 수 있게 함
     }
   }
@@ -144,10 +105,6 @@ class AuthProvider extends ChangeNotifier {
     setLoading(true);
 
     try {
-      if (kDebugMode) {
-        print('로그인 시도: $email');
-      }
-
       // Dio를 사용한 로그인 처리
       final user = await _authService.login(email, password);
 
@@ -159,9 +116,6 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isLoggedIn = false;
-      if (kDebugMode) {
-        print('로그인 오류: $e');
-      }
       return false;
     } finally {
       setLoading(false);
@@ -176,9 +130,6 @@ class AuthProvider extends ChangeNotifier {
       // 서버에 로그아웃 요청
       await _authService.logout();
     } catch (e) {
-      if (kDebugMode) {
-        print('로그아웃 요청 오류: $e');
-      }
     } finally {
       // 로컬 상태 초기화
       _isLoggedIn = false;
@@ -191,15 +142,8 @@ class AuthProvider extends ChangeNotifier {
   // 비밀번호 재설정 이메일 요청 - 기존 메소드
   Future<bool> requestPasswordReset(String email) async {
     try {
-      if (kDebugMode) {
-        print('비밀번호 재설정 이메일 요청 시작: $email');
-      }
-
       return await _authService.requestPasswordReset(email);
     } catch (e) {
-      if (kDebugMode) {
-        print('비밀번호 재설정 이메일 요청 오류: $e');
-      }
       return false;
     }
   }
@@ -207,15 +151,8 @@ class AuthProvider extends ChangeNotifier {
   // 비밀번호 재설정 - 기존 메소드
   Future<bool> resetPassword(String token, String newPassword) async {
     try {
-      if (kDebugMode) {
-        print('비밀번호 재설정 시작');
-      }
-
       return await _authService.resetPassword(token, newPassword);
     } catch (e) {
-      if (kDebugMode) {
-        print('비밀번호 재설정 오류: $e');
-      }
       return false;
     }
   }
@@ -242,9 +179,6 @@ class AuthProvider extends ChangeNotifier {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('사용자 캐릭터 업데이트 오류: $e');
-      }
       return false;
     } finally {
       setLoading(false);

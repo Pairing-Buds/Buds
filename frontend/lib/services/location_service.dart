@@ -52,7 +52,7 @@ class LocationService {
 
       return await Geolocator.getCurrentPosition();
     } catch (e) {
-      debugPrint('LocationService: 현재 위치 가져오기 오류 - $e');
+   
       return null;
     }
   }
@@ -78,7 +78,7 @@ class LocationService {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('LocationService: Places API 응답 - ${data['status']}');
+      
 
         if (data['status'] == 'OK') {
           final results = List<Map<String, dynamic>>.from(data['results']);
@@ -117,19 +117,17 @@ class LocationService {
 
             // 디버그 출력
             if (type == 'library') {
-              debugPrint(
-                'LocationService - 장소: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
-              );
+            
             }
 
             return isCorrectType;
           }).toList();
         }
       }
-      debugPrint('LocationService: Places API 오류 - ${response.statusCode}');
+   
       return _getTestPlaces(latitude, longitude);
     } catch (e) {
-      debugPrint('LocationService: 주변 장소 검색 오류 - $e');
+ 
       return _getTestPlaces(latitude, longitude);
     }
   }
@@ -207,16 +205,16 @@ class LocationService {
       );
 
       if (result.points.isNotEmpty) {
-        debugPrint('LocationService: 경로 포인트 수 - ${result.points.length}');
+      
         return result.points
             .map((point) => LatLng(point.latitude, point.longitude))
             .toList();
       }
 
-      debugPrint('LocationService: 경로 결과 없음 - ${result.errorMessage}');
+     
       return _getTestRoute(startLat, startLng, endLat, endLng);
     } catch (e) {
-      debugPrint('LocationService: 경로 가져오기 오류 - $e');
+     
       return _getTestRoute(startLat, startLng, endLat, endLng);
     }
   }

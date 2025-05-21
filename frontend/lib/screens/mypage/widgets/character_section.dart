@@ -19,15 +19,15 @@ class CharacterSection extends StatelessWidget {
     if (serverCharacterName == null || serverCharacterName.isEmpty) {
       return 0; // 기본값
     }
-    
+
     // 서버 캐릭터 이름 대소문자 처리
     String normalizedName = serverCharacterName.toUpperCase();
-    
+
     // 서버에서 받은 캐릭터 이름과 앱 내 캐릭터 매핑
     Map<String, int> characterMap = {
       '오리': 0,
       'DUCK': 0,
-      '고양이': 1, 
+      '고양이': 1,
       'FOX': 1,
       'CAT': 1,
       '개구리': 2,
@@ -43,7 +43,7 @@ class CharacterSection extends StatelessWidget {
       'RABIT': 5,
       'BUDDY': 4, // 기본 캐릭터는 마멋으로 설정
     };
-    
+
     return characterMap[normalizedName] ?? 4; // 기본값으로 마멋(4) 반환
   }
 
@@ -59,27 +59,18 @@ class CharacterSection extends StatelessWidget {
             final userCharacter = authProvider.userData?['userCharacter'];
             final userName = authProvider.userData?['name'] ?? '사용자';
 
-            if (kDebugMode) {
-              print('마이페이지: 현재 캐릭터: $userCharacter');
-              print('마이페이지: 사용자 데이터: ${authProvider.userData}');
-            }
-
             // 캐릭터 인덱스 찾기 (새로운 메서드 사용)
             int characterIndex = getCharacterIndex(userCharacter);
-            
-            if (kDebugMode) {
-              print('마이페이지: 결정된 캐릭터 인덱스: $characterIndex');
-              print('마이페이지: 캐릭터 이미지 경로: ${CharacterData.getMyPageImage(characterIndex)}');
-            }
 
             return Column(
               children: [
                 GestureDetector(
-                  onTap: () => showCharacterSelectBottomSheet(
-                    context,
-                    authProvider,
-                    characterIndex,
-                  ),
+                  onTap:
+                      () => showCharacterSelectBottomSheet(
+                        context,
+                        authProvider,
+                        characterIndex,
+                      ),
                   child: Image.asset(
                     CharacterData.getMyPageImage(characterIndex),
                     width: 100,

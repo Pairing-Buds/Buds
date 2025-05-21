@@ -20,11 +20,6 @@ class User {
 
   // JSON 변환 메서드 - 더 유연하게 만들기
   factory User.fromJson(Map<String, dynamic> json) {
-    // 디버그 로그 출력
-    if (kDebugMode) {
-      print('User JSON 파싱 시작: $json');
-    }
-
     try {
       int userId = json['id'] ?? json['userId'] ?? 0;
       String userEmail = json['email'] ?? json['userEmail'] ?? '';
@@ -37,9 +32,6 @@ class User {
         try {
           createdDate = DateTime.parse(createdAtStr);
         } catch (e) {
-          if (kDebugMode) {
-            print('날짜 파싱 오류: $e, 현재 시간으로 기본 설정');
-          }
           createdDate = DateTime.now();
         }
       } else {
@@ -54,10 +46,6 @@ class User {
         userCharacter: userCharacter ?? '',
       );
     } catch (e) {
-      if (kDebugMode) {
-        print('User 모델 파싱 오류: $e');
-        print('원본 JSON: $json');
-      }
       // 파싱 실패 시 기본값으로 생성
       return User(
         id: 0,

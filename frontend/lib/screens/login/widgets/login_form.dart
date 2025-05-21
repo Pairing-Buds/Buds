@@ -62,11 +62,6 @@ class _LoginFormState extends State<LoginForm> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
-      // 디버그 로그 추가
-      if (kDebugMode) {
-        print('로그인 시도: $email');
-      }
-
       // 관리자 계정 체크
       if (email == dotenv.env['ADMIN_EMAIL']) {
         // AuthProvider를 통한 로그인
@@ -79,9 +74,7 @@ class _LoginFormState extends State<LoginForm> {
                 Toast(context, '관리자 로그인 성공');
                 // 관리자 페이지로 이동
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const AdminScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const AdminScreen()),
                 );
               } else {
                 // 로그인 실패
@@ -111,18 +104,9 @@ class _LoginFormState extends State<LoginForm> {
                 Toast(context, '로그인 성공');
 
                 // 내 정보 조회 API 호출
-                if (kDebugMode) {
-                  print('내 정보 조회 API 호출 시작');
-                }
-
                 authProvider
                     .refreshUserData()
                     .then((_) {
-                      if (kDebugMode) {
-                        print('내 정보 조회 완료: ${authProvider.userData}');
-                        print('익명 사용자 여부: ${authProvider.isAnonymousUser}');
-                      }
-
                       // 익명 사용자인지 확인
                       if (authProvider.isAnonymousUser) {
                         // 익명 사용자이면 캐릭터 선택 화면으로 이동
@@ -137,9 +121,6 @@ class _LoginFormState extends State<LoginForm> {
                       }
                     })
                     .catchError((e) {
-                      if (kDebugMode) {
-                        print('내 정보 조회 실패: $e');
-                      }
                       // 정보 조회 실패해도 일단 메인 화면으로 이동
                       Navigator.pushReplacementNamed(context, '/main');
                     });
@@ -165,10 +146,6 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _handleLoginError(dynamic error) {
-    if (kDebugMode) {
-      print('로그인 폼 오류: $error');
-    }
-
     // 오류 메시지 추출 및 표시
     String errorMessage = '로그인 실패: 서버 연결 오류';
 

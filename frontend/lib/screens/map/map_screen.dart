@@ -137,7 +137,7 @@ class _MapScreenState extends State<MapScreen> {
         _searchNearbyPlaces();
       }
     } catch (e) {
-      debugPrint('위치 가져오기 오류: $e');
+     
       _showErrorDialog('위치 정보를 가져오는 중 오류가 발생했습니다.');
       setState(() {
         _isLoading = false;
@@ -172,9 +172,9 @@ class _MapScreenState extends State<MapScreen> {
           }
         ]
       ''');
-      debugPrint('맵 스타일 적용 성공');
+     
     } catch (e) {
-      debugPrint('맵 스타일 적용 오류: $e');
+      
     }
   }
 
@@ -226,7 +226,7 @@ class _MapScreenState extends State<MapScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('Places API 응답: $data');
+      
 
         if (data['status'] == 'OK') {
           places =
@@ -280,9 +280,7 @@ class _MapScreenState extends State<MapScreen> {
 
                     // 디버그 출력 추가
                     if (_currentPlaceType == 'library') {
-                      debugPrint(
-                        '장소 확인: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
-                      );
+                     
                     }
 
                     // 올바른 타입인 경우에만 목록에 추가
@@ -356,7 +354,7 @@ class _MapScreenState extends State<MapScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('주변 장소 검색 오류: $e');
+     
       _showErrorDialog('주변 장소를 검색하는 중 오류가 발생했습니다.');
 
       // 오류 발생 시 테스트 데이터 사용
@@ -524,15 +522,15 @@ class _MapScreenState extends State<MapScreen> {
           for (var point in result.points) {
             polylineCoordinates.add(LatLng(point.latitude, point.longitude));
           }
-          debugPrint('경로 포인트 ${result.points.length}개 찾음');
+         
         } else {
           // API 결과가 없는 경우 직선 경로 사용
-          debugPrint('길찾기 결과 없음: ${result.errorMessage}');
+         
           polylineCoordinates = _getDirectLine(place);
         }
       } catch (e) {
         // 예외 발생시 직선 경로 사용
-        debugPrint('길찾기 API 오류: $e');
+       
         polylineCoordinates = _getDirectLine(place);
         // 사용자에게 알림
         Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
@@ -558,7 +556,7 @@ class _MapScreenState extends State<MapScreen> {
         _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
       }
     } catch (e) {
-      debugPrint('길찾기 오류: $e');
+     
 
       // 오류 발생 시 직선 경로 대신 표시
       final polylineCoordinates = _getDirectLine(place);
@@ -754,7 +752,7 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Arguments 처리 오류: $e');
+    
     }
   }
 
@@ -811,7 +809,7 @@ class _MapScreenState extends State<MapScreen> {
                 );
               }
               _setMapStyle();
-              debugPrint('Google 지도 생성 완료');
+             
             },
           ),
 

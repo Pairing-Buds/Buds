@@ -148,19 +148,11 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
   ) async {
     try {
       setState(() => _isProcessing = true);
-      
-      if (kDebugMode) {
-        print('캐릭터/닉네임 선택: nickname=$nickname, character=$character');
-      }
 
       // 서버 전송 로직 제거 - SurveyScreen으로 데이터만 전달
       _showSelectionMessage(nickname, character);
       _navigateToSurveyScreen(nickname, character);
     } catch (e) {
-      if (kDebugMode) {
-        print('캐릭터/닉네임 처리 오류: $e');
-      }
-
       if (mounted) {
         Toast(
           context,
@@ -187,10 +179,11 @@ class _CharacterSelectScreenState extends State<CharacterSelectScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => SurveyScreen(
-          selectedNickname: nickname,
-          selectedCharacter: character,
-        ),
+        builder:
+            (context) => SurveyScreen(
+              selectedNickname: nickname,
+              selectedCharacter: character,
+            ),
       ),
     );
   }

@@ -136,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen>
         _controller.forward();
       }
     } catch (e) {
-      debugPrint('앱 초기화 오류: $e');
+      
       // 오류가 발생해도 스플래시 화면 완료 후 앱으로 진행
       if (!mounted) return;
       if (!_controller.isCompleted) {

@@ -18,10 +18,10 @@ class LockScreenManager {
       final bool result = await platform.invokeMethod(
         'disableLockScreenBypass',
       );
-      debugPrint('잠금화면 바이패스 비활성화: $result');
+     
       return result;
     } catch (e) {
-      debugPrint('잠금화면 바이패스 비활성화 오류: $e');
+     
       return false;
     }
   }
@@ -30,10 +30,10 @@ class LockScreenManager {
   Future<bool> enableLockScreenBypass() async {
     try {
       final bool result = await platform.invokeMethod('enableLockScreenBypass');
-      debugPrint('잠금화면 바이패스 활성화: $result');
+     
       return result;
     } catch (e) {
-      debugPrint('잠금화면 바이패스 활성화 오류: $e');
+     
       return false;
     }
   }
@@ -44,10 +44,8 @@ class LockScreenManager {
       final bool result = await platform.invokeMethod(
         'getLockScreenBypassStatus',
       );
-      debugPrint('잠금화면 바이패스 상태: $result');
       return result;
     } catch (e) {
-      debugPrint('잠금화면 바이패스 상태 확인 오류: $e');
       return false;
     }
   }

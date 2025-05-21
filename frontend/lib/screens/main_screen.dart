@@ -55,32 +55,21 @@ class _MainScreenState extends State<MainScreen> {
   void _setupUnauthorizedListener() {
     try {
       // 401 에러 이벤트 구독
-      unauthorizedController.stream.listen(
-        (event) {
-          // 401 에러 발생 시 중복 로그인 다이얼로그 표시
-          if (event && mounted) {
-            final apiService = DioApiService();
-            apiService.showDuplicateLoginDialog(context);
+      unauthorizedController.stream.listen((event) {
+        // 401 에러 발생 시 중복 로그인 다이얼로그 표시
+        if (event && mounted) {
+          final apiService = DioApiService();
+          apiService.showDuplicateLoginDialog(context);
 
-            // 로그아웃 처리
-            final authProvider = Provider.of<AuthProvider>(
-              context,
-              listen: false,
-            );
-            authProvider.logout();
-          }
-        },
-        onError: (e) {
-          if (kDebugMode) {
-            print('401 에러 이벤트 구독 오류: $e');
-          }
-        },
-      );
+          // 로그아웃 처리
+          final authProvider = Provider.of<AuthProvider>(
+            context,
+            listen: false,
+          );
+          authProvider.logout();
+        }
+      }, onError: (e) {});
     } catch (e) {
-      if (kDebugMode) {
-        print('401 에러 이벤트 구독 설정 오류: $e');
-      }
-
       // 컨트롤러가 닫혔거나 에러가 발생한 경우에도 중복 로그인 처리
       if (DioApiService.isUnauthorizedControllerClosed && mounted) {
         final apiService = DioApiService();
@@ -126,11 +115,6 @@ class _MainScreenState extends State<MainScreen> {
     authProvider
         .refreshUserData()
         .then((_) {
-          if (kDebugMode) {
-            print('메인 화면: 내 정보 조회 완료');
-            print('메인 화면: 익명 사용자 여부: ${authProvider.isAnonymousUser}');
-          }
-
           // 사용자가 익명인 경우 캐릭터 선택 화면으로 이동
           if (authProvider.isAnonymousUser) {
             Navigator.of(context).pushReplacement(
@@ -141,9 +125,6 @@ class _MainScreenState extends State<MainScreen> {
           }
         })
         .catchError((e) {
-          if (kDebugMode) {
-            print('메인 화면: 내 정보 조회 실패: $e');
-          }
           // 실패하더라도 계속 진행
         });
   }
