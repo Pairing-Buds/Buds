@@ -62,12 +62,16 @@ class LocationService {
     double latitude,
     double longitude, {
     String type = 'park',
-    int radius = 1500,
+    int radius = 10000,
   }) async {
     // Places API 호출
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/nearbysearch/json?'
-      'location=$latitude,$longitude&radius=$radius&type=$type&key=$_apiKey',
+      'location=$latitude,$longitude&radius=$radius&type=$type'
+      '&strictbounds=true'
+      '&keyword=${type == 'library' ? '도서관' : '공원'}'
+      '&language=ko'
+      '&key=$_apiKey',
     );
 
     try {
@@ -77,7 +81,49 @@ class LocationService {
         debugPrint('LocationService: Places API 응답 - ${data['status']}');
 
         if (data['status'] == 'OK') {
-          return List<Map<String, dynamic>>.from(data['results']);
+          final results = List<Map<String, dynamic>>.from(data['results']);
+
+          // 타입 필터링 수행
+          return results.where((place) {
+            final types = place['types'] as List?;
+            final name = place['name'] as String? ?? '';
+
+            // 회사 제외 로직 - 완화된 버전
+            final bool isCompany =
+                name.contains('(주)') ||
+                name.contains('주식회사') ||
+                name.contains('Inc') ||
+                name.contains('회사');
+
+            // 도서관인지 확인하는 로직 수정 및 완화
+            final bool isLibrary =
+                type == 'library' &&
+                ((types != null && types.contains('library')) ||
+                    name.contains('도서관') ||
+                    name.contains('책방') ||
+                    name.contains('북카페') ||
+                    name.toLowerCase().contains('library'));
+
+            // 공원인지 확인 로직 완화
+            final bool isPark =
+                type == 'park' &&
+                ((types != null && types.contains('park')) ||
+                    name.contains('공원'));
+
+            // 올바른 타입이고 회사가 아닌 경우에만 목록에 추가 (도서관인 경우 더 관대하게)
+            final bool isCorrectType =
+                (type == 'library' ? isLibrary : isPark) &&
+                (type == 'library' ? !isCompany || name.contains('도서관') : true);
+
+            // 디버그 출력
+            if (type == 'library') {
+              debugPrint(
+                'LocationService - 장소: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
+              );
+            }
+
+            return isCorrectType;
+          }).toList();
         }
       }
       debugPrint('LocationService: Places API 오류 - ${response.statusCode}');

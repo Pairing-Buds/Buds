@@ -54,7 +54,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // 화면이 그려진 직후 arguments 처리를 먼저 하고 위치 가져오기
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _processArguments();
@@ -131,7 +131,7 @@ class _MapScreenState extends State<MapScreen> {
 
       // 테스트 - 맵 스타일 설정
       _setMapStyle();
-      
+
       // 위치를 가져온 후 인자를 다시 확인하고, 필요하면 장소 검색 시작
       if (_isPlacesVisible) {
         _searchNearbyPlaces();
@@ -216,7 +216,9 @@ class _MapScreenState extends State<MapScreen> {
         Uri.parse(
           'https://maps.googleapis.com/maps/api/place/nearbysearch/json?'
           'location=${_currentPosition!.latitude},${_currentPosition!.longitude}'
-          '&radius=1500&type=$_currentPlaceType&key=${ApiConstants.googleMapsApiKey}',
+          '&radius=3000&type=$_currentPlaceType&strictbounds=true'
+          '&keyword=${_currentPlaceType == 'library' ? '도서관|시립도서관|구립도서관|공공도서관|학교도서관' : '공원'}'
+          '&language=ko&key=${ApiConstants.googleMapsApiKey}',
         ),
       );
 
@@ -228,29 +230,88 @@ class _MapScreenState extends State<MapScreen> {
 
         if (data['status'] == 'OK') {
           places =
-              (data['results'] as List).map((place) {
-                final lat = place['geometry']['location']['lat'];
-                final lng = place['geometry']['location']['lng'];
-                final distance = _calculateDistance(
-                  _currentPosition!.latitude,
-                  _currentPosition!.longitude,
-                  lat,
-                  lng,
-                );
+              (data['results'] as List)
+                  .map((place) {
+                    final lat = place['geometry']['location']['lat'];
+                    final lng = place['geometry']['location']['lng'];
+                    final distance = _calculateDistance(
+                      _currentPosition!.latitude,
+                      _currentPosition!.longitude,
+                      lat,
+                      lng,
+                    );
 
-                return Place(
-                  id: place['place_id'],
-                  name: place['name'],
-                  location: LatLng(lat, lng),
-                  distance: distance,
-                );
-              }).toList();
+                    // 장소 타입 확인
+                    final types = place['types'] as List?;
+                    final name = place['name'] as String;
+
+                    // 회사 제외 로직 - 회사 필터링 조건 완화 (센터는 제외, 일부 조건만 체크)
+                    final bool isCompany =
+                        name.contains('(주)') ||
+                        name.contains('주식회사') ||
+                        name.contains('Inc') ||
+                        name.contains('회사') ||
+                        name.contains('기술') ||
+                        name.contains('센터') ||
+                        name.contains('산업') ||
+                        name.contains('스터디');
+
+                    // 도서관인지 확인하는 로직 수정 및 완화 - 괄호 수정 및 도서관 조건 완화
+                    final bool isLibrary =
+                        _currentPlaceType == 'library' &&
+                        ((types != null && types.contains('library')) ||
+                            name.contains('도서관') ||
+                            name.contains('책방') ||
+                            name.contains('북카페') ||
+                            name.toLowerCase().contains('library'));
+
+                    // 공원인지 확인
+                    final bool isPark =
+                        _currentPlaceType == 'park' &&
+                        ((types != null && types.contains('park')) ||
+                            name.contains('공원'));
+
+                    // 올바른 타입이고 회사가 아닌 경우에만 목록에 추가
+                    final bool isCorrectType =
+                        (_currentPlaceType == 'library' ? isLibrary : isPark) &&
+                        (_currentPlaceType == 'library'
+                            ? !isCompany || name.contains('도서관')
+                            : true);
+
+                    // 디버그 출력 추가
+                    if (_currentPlaceType == 'library') {
+                      debugPrint(
+                        '장소 확인: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
+                      );
+                    }
+
+                    // 올바른 타입인 경우에만 목록에 추가
+                    if (isCorrectType) {
+                      return Place(
+                        id: place['place_id'],
+                        name: place['name'],
+                        location: LatLng(lat, lng),
+                        distance: distance,
+                      );
+                    }
+                    // 올바른 타입이 아니면 null 반환
+                    return null;
+                  })
+                  .where((place) => place != null) // null이 아닌 항목만 필터링
+                  .cast<Place>() // 타입 안전하게 캐스팅
+                  .toList();
+
+          // 거리 순으로 정렬
+          places.sort((a, b) => a.distance.compareTo(b.distance));
         } else {
           // API 오류 처리
           _showErrorDialog('주변 장소 검색 API 오류: ${data['status']}');
 
           // 백업: 테스트 데이터 사용
           places = _getTestPlaces();
+
+          // 테스트 데이터도 거리 순으로 정렬
+          places.sort((a, b) => a.distance.compareTo(b.distance));
         }
       } else {
         // 네트워크 오류 처리
@@ -258,6 +319,9 @@ class _MapScreenState extends State<MapScreen> {
 
         // 백업: 테스트 데이터 사용
         places = _getTestPlaces();
+
+        // 테스트 데이터도 거리 순으로 정렬
+        places.sort((a, b) => a.distance.compareTo(b.distance));
       }
 
       setState(() {
@@ -297,6 +361,9 @@ class _MapScreenState extends State<MapScreen> {
 
       // 오류 발생 시 테스트 데이터 사용
       final places = _getTestPlaces();
+
+      // 테스트 데이터도 거리 순으로 정렬
+      places.sort((a, b) => a.distance.compareTo(b.distance));
 
       setState(() {
         _nearbyPlaces = places;
@@ -435,7 +502,7 @@ class _MapScreenState extends State<MapScreen> {
     try {
       PolylinePoints polylinePoints = PolylinePoints();
       List<LatLng> polylineCoordinates = [];
-      
+
       try {
         // Directions API 사용
         PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
@@ -492,10 +559,10 @@ class _MapScreenState extends State<MapScreen> {
       }
     } catch (e) {
       debugPrint('길찾기 오류: $e');
-      
+
       // 오류 발생 시 직선 경로 대신 표시
       final polylineCoordinates = _getDirectLine(place);
-      
+
       PolylineId id = const PolylineId('route');
       Polyline polyline = Polyline(
         polylineId: id,
@@ -512,7 +579,7 @@ class _MapScreenState extends State<MapScreen> {
       // 지도 카메라를 경로가 모두 보이도록 조정
       LatLngBounds bounds = _boundsFromLatLngList(polylineCoordinates);
       _controller?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
-      
+
       // 사용자에게 알림
       Toast(context, '경로를 찾을 수 없어 직선 경로로 표시합니다.');
     }
@@ -522,30 +589,36 @@ class _MapScreenState extends State<MapScreen> {
   List<LatLng> _getDirectLine(Place place) {
     if (_currentPosition == null) return [];
 
-    final start = LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
+    final start = LatLng(
+      _currentPosition!.latitude,
+      _currentPosition!.longitude,
+    );
     final end = LatLng(place.location.latitude, place.location.longitude);
-    
+
     // 중간 지점을 더 많이 생성하여 자연스러운 경로 생성
     List<LatLng> points = [];
     points.add(start);
-    
+
     // 중간 포인트 개수 (거리에 따라 조정)
     final distance = _calculateDistance(
-      start.latitude, start.longitude, 
-      end.latitude, end.longitude
+      start.latitude,
+      start.longitude,
+      end.latitude,
+      end.longitude,
     );
-    
+
     // 거리에 비례하여 중간 지점 개수 설정
     int segments = (distance / 200).round();
     segments = segments.clamp(3, 15);
-    
+
     for (int i = 1; i < segments; i++) {
       double fraction = i / segments;
-      
+
       // 시작점과 끝점 사이의 중간점 계산
       double lat = start.latitude + (end.latitude - start.latitude) * fraction;
-      double lng = start.longitude + (end.longitude - start.longitude) * fraction;
-      
+      double lng =
+          start.longitude + (end.longitude - start.longitude) * fraction;
+
       // 자연스러운 곡선을 위한 약간의 랜덤 편차 추가
       if (i > 1 && i < segments - 1) {
         final rnd = Random();
@@ -553,10 +626,10 @@ class _MapScreenState extends State<MapScreen> {
         lat += (rnd.nextDouble() - 0.5) * offsetFactor;
         lng += (rnd.nextDouble() - 0.5) * offsetFactor;
       }
-      
+
       points.add(LatLng(lat, lng));
     }
-    
+
     points.add(end);
     return points;
   }
@@ -616,7 +689,7 @@ class _MapScreenState extends State<MapScreen> {
         final showList = args['showList'] as bool? ?? false;
 
         if (placeType != null &&
-          (placeType == 'park' || placeType == 'library')) {
+            (placeType == 'park' || placeType == 'library')) {
           setState(() {
             _currentPlaceType = placeType;
             _isPlacesVisible = showList; // 목록 자동 표시 여부 설정

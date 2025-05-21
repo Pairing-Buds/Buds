@@ -134,6 +134,10 @@ class _StepActionButtonsState extends State<StepActionButtons> {
                   ),
                 )
                 .toList();
+
+        // 거리 순으로 정렬
+        _nearbyLibraries.sort((a, b) => a.distance.compareTo(b.distance));
+
         _isLoading = false;
       });
     } catch (e) {
@@ -145,6 +149,9 @@ class _StepActionButtonsState extends State<StepActionButtons> {
 
       // 오류 발생 시 예비 더미 데이터 사용
       _nearbyLibraries = _getMockLibraries();
+
+      // 더미 데이터도 거리 순으로 정렬
+      _nearbyLibraries.sort((a, b) => a.distance.compareTo(b.distance));
     }
   }
 
@@ -188,6 +195,10 @@ class _StepActionButtonsState extends State<StepActionButtons> {
                   ),
                 )
                 .toList();
+
+        // 거리 순으로 정렬
+        _nearbyParks.sort((a, b) => a.distance.compareTo(b.distance));
+
         _isLoading = false;
       });
     } catch (e) {
@@ -199,6 +210,9 @@ class _StepActionButtonsState extends State<StepActionButtons> {
 
       // 오류 발생 시 예비 더미 데이터 사용
       _nearbyParks = _getMockParks();
+
+      // 더미 데이터도 거리 순으로 정렬
+      _nearbyParks.sort((a, b) => a.distance.compareTo(b.distance));
     }
   }
 
@@ -217,6 +231,9 @@ class _StepActionButtonsState extends State<StepActionButtons> {
         '?location=${_currentLocation!.latitude},${_currentLocation!.longitude}'
         '&radius=1500'
         '&type=$type'
+        '&strictbounds=true'
+        '&keyword=${type == 'library' ? '도서관|시립도서관|구립도서관|공공도서관|학교도서관' : '공원'}'
+        '&language=ko'
         '&key=$apiKey',
       );
 
@@ -226,7 +243,53 @@ class _StepActionButtonsState extends State<StepActionButtons> {
         debugPrint('Places API 응답: ${data['status']}');
 
         if (data['status'] == 'OK') {
-          return List<Map<String, dynamic>>.from(data['results']);
+          final results = List<Map<String, dynamic>>.from(data['results']);
+
+          // 타입 필터링 수행
+          return results.where((place) {
+            final types = place['types'] as List?;
+            final name = place['name'] as String? ?? '';
+
+            // 회사 제외 로직 - 완화된 버전
+            final bool isCompany =
+                name.contains('(주)') ||
+                name.contains('주식회사') ||
+                name.contains('Inc') ||
+                name.contains('회사') ||
+                name.contains('기술') ||
+                name.contains('센터') ||
+                name.contains('산업') ||
+                name.contains('스터디');
+
+            // 도서관인지 확인하는 로직 수정 및 완화
+            final bool isLibrary =
+                type == 'library' &&
+                ((types != null && types.contains('library')) ||
+                    name.contains('도서관') ||
+                    name.contains('책방') ||
+                    name.contains('북카페') ||
+                    name.toLowerCase().contains('library'));
+
+            // 공원인지 확인 로직 완화
+            final bool isPark =
+                type == 'park' &&
+                ((types != null && types.contains('park')) ||
+                    name.contains('공원'));
+
+            // 올바른 타입이고 회사가 아닌 경우에만 목록에 추가 (도서관인 경우 더 관대하게)
+            final bool isCorrectType =
+                (type == 'library' ? isLibrary : isPark) &&
+                (type == 'library' ? !isCompany || name.contains('도서관') : true);
+
+            // 디버그 출력
+            if (type == 'library') {
+              debugPrint(
+                'StepAction - 장소: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
+              );
+            }
+
+            return isCorrectType;
+          }).toList();
         }
         throw Exception('API 응답 오류: ${data['status']}');
       }
@@ -347,13 +410,8 @@ class _StepActionButtonsState extends State<StepActionButtons> {
 
   // 에러 메시지 표시
   void _showErrorSnackBar(String message) {
-    Toast(
-      context,
-      message,
-      icon: const Icon(Icons.error, color: Colors.red),
-    );
+    Toast(context, message, icon: const Icon(Icons.error, color: Colors.red));
   }
-
 
   // 도서관 목록 토글
   void _toggleLibraryList() async {
