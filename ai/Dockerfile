@@ -20,6 +20,10 @@ COPY . .
 RUN mkdir -p ./chroma_data && \
     chmod -R 777 ./chroma_data
 
+# 로그 디렉토리 생성 (추가)
+RUN mkdir -p ./logs && \
+    chmod -R 777 ./logs
+
 EXPOSE 8000
 
 # 상태 확인 추가

@@ -1,23 +1,42 @@
-fastapi>=0.95.0
-uvicorn[standard]>=0.21.1
+# 웹 프레임워크
+fastapi>=0.103.1
+uvicorn[standard]>=0.23.2
 pydantic>=2.0.0
 python-dotenv>=1.0.0
+
+# 머신러닝 및 AI
 langchain>=0.0.267
 langchain-openai>=0.0.1
 chromadb>=0.4.6
+openai>=1.0.0
+
+# 데이터베이스
 mysql-connector-python>=8.0.33
+
+# 비동기 및 웹소켓
 asyncio>=3.4.3
 websockets>=11.0.3
-openai>=0.27.0
-prometheus-fastapi-instrumentator
+aiohttp>=3.8.5
+
+# 모니터링 및 계측
+prometheus-fastapi-instrumentator>=0.1.5
+
+# 인증
 PyJWT>=2.6.0
 python-multipart>=0.0.5
-apscheduler
-pytz
+
+# 스케줄링
+apscheduler>=3.10.1
+pytz>=2023.3
+
+# 한국어 처리
 jamo==0.4.1
+
+# 유틸리티
 pipwin==0.5.2
 pydub==0.25.1
-ffmpeg
-aiohttp
+ffmpeg-python>=0.2.0
+
+# 로깅
 loguru==0.7.2
 python-json-logger==2.0.7
