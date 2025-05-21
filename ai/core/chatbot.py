@@ -11,9 +11,10 @@ import base64
 import re
 import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from PyAnimalese.pyanimalese_cli import convert_text_to_animalese
 
+KST = timezone(timedelta(hours=9))
 
 class Chatbot:
     def __init__(self):
@@ -81,7 +82,7 @@ class Chatbot:
         """
         사용자의 일일 메시지 수를 확인하고 제한을 초과했는지 검사합니다.
         """
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = datetime.now(KST).date().strftime('%Y-%m-%d')
         user_key = f"{user_id}_{today}"
 
         # 오늘 첫 메시지인 경우 초기화

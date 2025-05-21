@@ -8,6 +8,7 @@ from core.chatbot import chatbot
 import aiohttp
 from dotenv import load_dotenv
 import os
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
@@ -15,6 +16,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+KST = timezone(timedelta(hours=9))
 
 class DiaryScheduler:
     def __init__(self):
@@ -51,7 +53,7 @@ class DiaryScheduler:
                 return
 
             # 오늘 날짜
-            today = datetime.now().date().strftime('%Y-%m-%d')
+            today = datetime.now(KST).date().strftime('%Y-%m-%d')
 
             # 각 사용자에 대해 일기 생성
             for user in active_users:
