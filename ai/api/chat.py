@@ -2,18 +2,19 @@ from fastapi import APIRouter, HTTPException, Depends, Response, File, UploadFil
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
-from datetime import datetime
 from db.chroma import chroma_db
 from db.mysql import mysql_db
 from core.chatbot import chatbot
 import logging
 import os
 import tempfile
+from datetime import datetime, timezone, timedelta
 
 from core.jwt_auth import get_user_id_from_token
 
 router = APIRouter()
 
+KST = timezone(timedelta(hours=9))
 
 class MessageRequest(BaseModel):
     message: str
@@ -59,7 +60,7 @@ async def send_message(
         # 메시지 카운트 가져오기 - ChromaDB 오류 처리 개선
         message_count = 0
         try:
-            today = now.strftime('%Y-%m-%d')
+            today = datetime.now(KST).date().strftime('%Y-%m-%d')
             message_count = chroma_db.get_daily_message_count(user_id, today)
         except ConnectionError as e:
             logging.error(f"ChromaDB 연결 오류 (메시지 카운트): {str(e)}")
