@@ -24,7 +24,7 @@ class DiaryScheduler:
         self.scheduler = AsyncIOScheduler()
         self.scheduler.add_job(
             self.generate_and_save_diaries,
-            trigger=CronTrigger(hour=10, minute=0),
+            trigger=CronTrigger(hour=22, minute=0),
             id='daily_diary_generation',
             replace_existing=True
         )
