@@ -85,11 +85,11 @@ class HomeScreen extends StatelessWidget {
               builder: (context, authProvider, child) {
                 final userCharacter = authProvider.userData?['userCharacter'];
                 int characterIndex = getCharacterIndex(userCharacter);
-                
+
                 if (kDebugMode) {
                   print('홈화면: 사용자 캐릭터: $userCharacter, 인덱스: $characterIndex');
                 }
-                
+
                 return Image.asset(
                   CharacterData.getImage(characterIndex),
                   width: 150,
@@ -151,89 +151,8 @@ class HomeScreen extends StatelessWidget {
 
   // 기상 시간 설정 바텀시트 표시 메서드
   void _showTimePickerBottomSheet(BuildContext context) {
-    final myPageProvider = Provider.of<MyPageProvider>(context, listen: false);
-    TimeOfDay selectedTime = myPageProvider.wakeUpTime; // 현재 저장된 시간 가져오기
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              height: MediaQuery.of(context).size.height * 0.4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Image.asset(
-                        'assets/icons/sun.png',
-                        width: 30,
-                        height: 30,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '기상 시간 설정',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: TimePickerSpinner(
-                      time: selectedTime,
-                      onTimeChange: (time) {
-                        setState(() {
-                          selectedTime = time;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // 선택한 시간을 프로바이더에 저장
-                        myPageProvider.wakeUpTime = selectedTime;
-
-                        // 바텀 시트 닫기
-                        Navigator.pop(context);
-
-                        // WakeUpSection의 static 알람 설정 함수 호출
-                        WakeUpSection.setWakeUpAlarm(context, selectedTime);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        '확인',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+    // WakeUpSection의 static 메서드를 사용하여 바텀시트 표시
+    WakeUpSection.showTimePickerBottomSheet(context);
   }
 
   // 서버 캐릭터 이름을 인덱스로 변환 (Character 섹션과 동일한 로직)
@@ -241,15 +160,15 @@ class HomeScreen extends StatelessWidget {
     if (serverCharacterName == null || serverCharacterName.isEmpty) {
       return 0; // 기본값
     }
-    
+
     // 서버 캐릭터 이름 대소문자 처리
     String normalizedName = serverCharacterName.toUpperCase();
-    
+
     // 서버에서 받은 캐릭터 이름과 앱 내 캐릭터 매핑
     Map<String, int> characterMap = {
       '오리': 0,
       'DUCK': 0,
-      '고양이': 1, 
+      '고양이': 1,
       'FOX': 1,
       'CAT': 1,
       '개구리': 2,
@@ -265,7 +184,7 @@ class HomeScreen extends StatelessWidget {
       'RABIT': 5,
       'BUDDY': 4, // 기본 캐릭터는 마멋으로 설정
     };
-    
+
     return characterMap[normalizedName] ?? 4; // 기본값으로 마멋(4) 반환
   }
 }
