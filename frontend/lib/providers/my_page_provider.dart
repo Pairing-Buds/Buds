@@ -66,10 +66,10 @@ class MyPageProvider extends ChangeNotifier {
       // 저장 시간 함께 기록 (데이터 무결성 확인용)
       await prefs.setString('wake_up_saved_at', DateTime.now().toString());
 
-      debugPrint('기상 시간 저장됨: ${_wakeUpTime.hour}:${_wakeUpTime.minute}');
+     
       _isWakeUpTimeLoaded = true;
     } catch (e) {
-      debugPrint('기상 시간 저장 실패: $e');
+     
     }
   }
 
@@ -84,18 +84,16 @@ class MyPageProvider extends ChangeNotifier {
       if (hour != null && minute != null) {
         _wakeUpTime = TimeOfDay(hour: hour, minute: minute);
         _isWakeUpTimeLoaded = true;
-        debugPrint(
-          '기상 시간 로드됨: ${_wakeUpTime.hour}:${_wakeUpTime.minute} (저장 시간: $savedAt)',
-        );
+        
         notifyListeners();
       } else {
         // 저장된 시간이 없는 경우 기본값으로 저장
-        debugPrint('저장된 기상 시간이 없어 기본값(오전 7:00)을 사용합니다');
+      
         _wakeUpTime = const TimeOfDay(hour: 7, minute: 0);
         _saveWakeUpTime(); // 기본값 저장
       }
     } catch (e) {
-      debugPrint('기상 시간 로드 실패: $e');
+    
       // 오류 발생 시 기본값 사용
       _wakeUpTime = const TimeOfDay(hour: 7, minute: 0);
       // 에러 발생 시 저장 시도
@@ -128,19 +126,17 @@ class MyPageProvider extends ChangeNotifier {
 
       if (savedSteps != null && savedSteps > 0) {
         _currentSteps = savedSteps;
-        debugPrint(
-          'MyPageProvider: 저장된 걸음 수 로드됨 - $_currentSteps (마지막 업데이트: $lastUpdateStr)',
-        );
+       
       }
 
       if (savedTarget != null) {
         _targetSteps = savedTarget;
-        debugPrint('MyPageProvider: 저장된 목표 걸음 수 로드됨 - $_targetSteps');
+       
       }
 
       notifyListeners();
     } catch (e) {
-      debugPrint('MyPageProvider: 저장된 걸음 수 로드 오류 - $e');
+     
     }
   }
 
@@ -156,7 +152,7 @@ class MyPageProvider extends ChangeNotifier {
         hasPermission = await _stepCounterManager.requestPermission();
         if (!hasPermission) {
           // 권한 거부 처리
-          debugPrint('Permission denied for step counter');
+         
           return;
         }
       }
@@ -167,7 +163,7 @@ class MyPageProvider extends ChangeNotifier {
           updateSteps(steps);
         },
         onError: (error) {
-          debugPrint('MyPageProvider: 걸음 수 스트림 오류 - $error');
+         
         },
       );
 
@@ -177,10 +173,10 @@ class MyPageProvider extends ChangeNotifier {
             (isRunning) {
               _isServiceRunning = isRunning;
               notifyListeners();
-              debugPrint('MyPageProvider: 서비스 상태 변경 - $isRunning');
+           
             },
             onError: (error) {
-              debugPrint('MyPageProvider: 서비스 상태 스트림 오류 - $error');
+           
             },
           );
 
@@ -198,8 +194,7 @@ class MyPageProvider extends ChangeNotifier {
       _isServiceRunning = _stepCounterManager.isServiceRunning;
       notifyListeners();
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 측정 서비스 초기화 오류 - $e');
-      // 오류 발생 시 1초 후 재시도
+     
       Future.delayed(const Duration(seconds: 1), () {
         _retryInitializeStepCounter();
       });
@@ -209,23 +204,21 @@ class MyPageProvider extends ChangeNotifier {
   // 걸음 수 초기화 재시도
   Future<void> _retryInitializeStepCounter() async {
     try {
-      debugPrint('MyPageProvider: 걸음 수 측정 서비스 초기화 재시도...');
+     
       await _stepCounterManager.getCurrentSteps();
       _currentSteps = _stepCounterManager.currentSteps;
       await _stepCounterManager.startService();
       _isServiceRunning = _stepCounterManager.isServiceRunning;
       notifyListeners();
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 측정 서비스 초기화 재시도 실패 - $e');
+     
     }
   }
 
   void updateSteps(int steps) {
     // 유효하지 않은 값(0이나 음수) 필터링
     if (steps <= 0 && _currentSteps > 0) {
-      debugPrint(
-        'MyPageProvider: 유효하지 않은 걸음 수 값($steps) 무시, 기존 값($_currentSteps) 유지',
-      );
+      
       return;
     }
 
@@ -241,9 +234,7 @@ class MyPageProvider extends ChangeNotifier {
       _saveCurrentSteps(steps);
 
       notifyListeners();
-      debugPrint(
-        'MyPageProvider: 걸음 수 업데이트 - $_currentSteps (시간: ${now.toIso8601String()})',
-      );
+     
     }
   }
 
@@ -253,9 +244,9 @@ class MyPageProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('user_current_steps', steps);
       await prefs.setString('user_steps_updated_at', DateTime.now().toString());
-      debugPrint('MyPageProvider: 걸음 수 저장됨 - $steps');
+     
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 저장 오류 - $e');
+    
     }
   }
 
@@ -266,7 +257,7 @@ class MyPageProvider extends ChangeNotifier {
       // 목표 걸음 수 저장
       _saveTargetSteps(target);
       notifyListeners();
-      debugPrint('MyPageProvider: 목표 걸음 수 업데이트 - $_targetSteps');
+     
     }
   }
 
@@ -276,7 +267,7 @@ class MyPageProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('user_target_steps', target);
     } catch (e) {
-      debugPrint('MyPageProvider: 목표 걸음 수 저장 오류 - $e');
+     
     }
   }
 
@@ -299,7 +290,7 @@ class MyPageProvider extends ChangeNotifier {
         updateSteps(steps);
       }
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 서비스 시작 실패 - $e');
+     
     }
   }
 
@@ -312,7 +303,7 @@ class MyPageProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 서비스 중지 실패 - $e');
+      
     }
   }
 
@@ -321,9 +312,8 @@ class MyPageProvider extends ChangeNotifier {
     try {
       final steps = await _stepCounterManager.getCurrentSteps();
       updateSteps(steps);
-      debugPrint('MyPageProvider: 걸음 수 강제 갱신 - $steps');
     } catch (e) {
-      debugPrint('MyPageProvider: 걸음 수 강제 갱신 실패 - $e');
+      
     }
   }
 
@@ -332,7 +322,7 @@ class MyPageProvider extends ChangeNotifier {
     if (_isServiceRunning != isRunning) {
       _isServiceRunning = isRunning;
       notifyListeners();
-      debugPrint('MyPageProvider: 서비스 상태 업데이트 - $isRunning');
+     
     }
   }
 

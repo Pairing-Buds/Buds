@@ -20,26 +20,16 @@ class DioInquiryService {
         ApiConstants.inquiryListUrl.replaceFirst(ApiConstants.baseUrl, ''),
       );
 
-      if (kDebugMode) {
-        print('문의 조회 응답: \\${response.data}');
-      }
-
       if (response is Response && response.data != null) {
         final data = response.data as Map<String, dynamic>;
         if (data['statusCode'] == 'OK') {
           return InquiryResponse.fromJson(data);
         } else {
-          if (kDebugMode) {
-            print('문의 조회 실패: \\${data['resMsg']}');
-          }
           return null;
         }
       }
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('문의 조회 오류: \\${e}');
-      }
       return null;
     }
   }
@@ -49,15 +39,8 @@ class DioInquiryService {
     try {
       final response = await _apiService.post(
         ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        data: {
-          'subject': subject,
-          'content': content,
-        },
+        data: {'subject': subject, 'content': content},
       );
-
-      if (kDebugMode) {
-        print('문의 생성 응답: ${response.data}');
-      }
 
       if (response is Response && response.data != null) {
         final data = response.data as Map<String, dynamic>;
@@ -65,15 +48,16 @@ class DioInquiryService {
       }
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('문의 생성 오류: $e');
-      }
       return false;
     }
   }
 
-  // 문의 수정 
-  Future<bool> updateInquiry(int questionId, String subject, String content) async {
+  // 문의 수정
+  Future<bool> updateInquiry(
+    int questionId,
+    String subject,
+    String content,
+  ) async {
     try {
       final response = await _apiService.patch(
         ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
@@ -84,19 +68,12 @@ class DioInquiryService {
         },
       );
 
-      if (kDebugMode) {
-        print('문의 수정 응답: ${response.data}');
-      }
-
       if (response is Response && response.data != null) {
         final data = response.data as Map<String, dynamic>;
         return data['statusCode'] == 'OK';
       }
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('문의 수정 오류: $e');
-      }
       return false;
     }
   }
@@ -106,14 +83,8 @@ class DioInquiryService {
     try {
       final response = await _apiService.delete(
         ApiConstants.inquiryCreateUrl.replaceFirst(ApiConstants.baseUrl, ''),
-        data: {
-          'questionId': questionId,
-        },
+        data: {'questionId': questionId},
       );
-
-      if (kDebugMode) {
-        print('문의 삭제 응답: ${response.data}');
-      }
 
       if (response is Response && response.data != null) {
         final data = response.data as Map<String, dynamic>;
@@ -121,9 +92,6 @@ class DioInquiryService {
       }
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('문의 삭제 오류: $e');
-      }
       return false;
     }
   }

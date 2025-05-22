@@ -47,7 +47,7 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
         }
       },
       onError: (error) {
-        debugPrint('StepDetailScreen: 걸음 수 이벤트 오류 - $error');
+   
       },
     );
 
@@ -64,7 +64,7 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
         }
       },
       onError: (error) {
-        debugPrint('StepDetailScreen: 서비스 상태 이벤트 오류 - $error');
+  
       },
     );
 
@@ -95,7 +95,7 @@ class _StepDetailScreenState extends State<StepDetailScreen> {
         myPageProvider.updateSteps(steps);
       }
     } catch (e) {
-      debugPrint('StepDetailScreen: 걸음 수 새로고침 오류 - $e');
+   
     }
   }
 

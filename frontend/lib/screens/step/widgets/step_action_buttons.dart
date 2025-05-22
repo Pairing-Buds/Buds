@@ -93,7 +93,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
         _isLocationLoading = false;
       });
       _showErrorSnackBar('위치 정보를 가져오는 중 오류가 발생했습니다.');
-      debugPrint('위치 가져오기 오류: $e');
+
       return false;
     }
   }
@@ -145,7 +145,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
         _isLoading = false;
       });
       _showErrorSnackBar('주변 도서관을 검색하는 중 오류가 발생했습니다.');
-      debugPrint('도서관 검색 오류: $e');
+   
 
       // 오류 발생 시 예비 더미 데이터 사용
       _nearbyLibraries = _getMockLibraries();
@@ -206,7 +206,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
         _isLoading = false;
       });
       _showErrorSnackBar('주변 공원을 검색하는 중 오류가 발생했습니다.');
-      debugPrint('공원 검색 오류: $e');
+ 
 
       // 오류 발생 시 예비 더미 데이터 사용
       _nearbyParks = _getMockParks();
@@ -240,7 +240,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('Places API 응답: ${data['status']}');
+     
 
         if (data['status'] == 'OK') {
           final results = List<Map<String, dynamic>>.from(data['results']);
@@ -283,9 +283,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
 
             // 디버그 출력
             if (type == 'library') {
-              debugPrint(
-                'StepAction - 장소: $name - 도서관? $isLibrary - 회사? $isCompany - 포함? $isCorrectType',
-              );
+           
             }
 
             return isCorrectType;
@@ -295,7 +293,7 @@ class _StepActionButtonsState extends State<StepActionButtons> {
       }
       throw Exception('네트워크 오류: ${response.statusCode}');
     } catch (e) {
-      debugPrint('Places API 호출 오류: $e');
+ 
       throw e;
     }
   }

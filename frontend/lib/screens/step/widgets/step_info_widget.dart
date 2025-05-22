@@ -37,7 +37,7 @@ class _StepInfoWidgetState extends State<StepInfoWidget> {
         myPageProvider.updateSteps(steps);
       }
     } catch (e) {
-      debugPrint('StepInfoWidget: 걸음 수 새로고침 오류 - $e');
+
     }
   }
 

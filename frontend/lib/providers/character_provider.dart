@@ -68,10 +68,8 @@ class CharacterProvider extends ChangeNotifier {
       }
       return null;
     } on DioException catch (e) {
-      print('랜덤 닉네임 요청 오류: ${e.message}');
       return null;
     } catch (e) {
-      print('랜덤 닉네임 요청 중 예상치 못한 오류: $e');
       return null;
     }
   }

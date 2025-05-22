@@ -48,7 +48,7 @@ class _StepSectionState extends State<StepSection> {
   void initState() {
     super.initState();
 
-    debugPrint('StepSection: 초기화 중...');
+    
 
     // 초기 데이터 즉시 로딩 시도 (delay 없이)
     _refreshStepCount();
@@ -71,12 +71,12 @@ class _StepSectionState extends State<StepSection> {
             // 목표 달성 시 리워드 버튼 표시
             _checkGoalAchievement();
 
-            debugPrint('StepSection: 걸음 수 이벤트 수신 - $steps');
+           
           });
         }
       },
       onError: (error) {
-        debugPrint('StepSection: 걸음 수 이벤트 오류 - $error');
+       
       },
     );
 
@@ -86,12 +86,12 @@ class _StepSectionState extends State<StepSection> {
         if (mounted) {
           setState(() {
             _isServiceRunning = isRunning;
-            debugPrint('StepSection: 서비스 상태 변경 - $isRunning');
+           
           });
         }
       },
       onError: (error) {
-        debugPrint('StepSection: 서비스 상태 이벤트 오류 - $error');
+        
       },
     );
 
@@ -104,7 +104,7 @@ class _StepSectionState extends State<StepSection> {
         }
       },
       onError: (error) {
-        debugPrint('StepSection: 리워드 상태 이벤트 오류 - $error');
+        
       },
     );
 
@@ -122,7 +122,7 @@ class _StepSectionState extends State<StepSection> {
     _stepCountSubscription?.cancel();
     _serviceStatusSubscription?.cancel();
     _rewardStatusSubscription?.cancel();
-    debugPrint('StepSection: 자원 해제됨');
+   
     super.dispose();
   }
 
@@ -137,9 +137,7 @@ class _StepSectionState extends State<StepSection> {
 
       // 유효하지 않은 값(0이나 음수) 필터링
       if (steps <= 0 && _currentSteps > 0) {
-        debugPrint(
-          'StepSection: 유효하지 않은 걸음 수 값($steps) 무시, 기존 값($_currentSteps) 유지',
-        );
+       
         return;
       }
 
@@ -153,13 +151,13 @@ class _StepSectionState extends State<StepSection> {
           listen: false,
         );
         myPageProvider.updateSteps(steps);
-        debugPrint('StepSection: 걸음 수 새로고침 - $_currentSteps');
+       
         
         // 목표 달성 확인
         _checkGoalAchievement();
       }
     } catch (e) {
-      debugPrint('StepSection: 걸음 수 새로고침 오류 - $e');
+      
     }
   }
 
@@ -186,9 +184,9 @@ class _StepSectionState extends State<StepSection> {
   Future<void> _requestReward() async {
     try {
       final result = await _stepCounterManager.requestStepReward();
-      debugPrint('StepSection: 리워드 요청 결과 - $result');
+     
     } catch (e) {
-      debugPrint('StepSection: 리워드 요청 오류 - $e');
+     
     }
   }
 
@@ -229,7 +227,7 @@ class _StepSectionState extends State<StepSection> {
         icon: const Icon(Icons.refresh, color: Colors.red),
       );
     } catch (e) {
-      debugPrint('리워드 상태 초기화 오류: $e');
+     
       Toast(
         context,
         '리워드 상태 초기화 실패: $e',
@@ -249,22 +247,22 @@ class _StepSectionState extends State<StepSection> {
         });
       }
     } catch (e) {
-      debugPrint('StepSection: 서비스 상태 확인 오류 - $e');
+     
     }
   }
 
   // 걸음 수 서비스 시작
   Future<void> _startStepCounterService() async {
     try {
-      debugPrint('StepSection: 서비스 시작 시도...');
+     
       
       // 활동 인식 및 알림 권한 함께 요청 (걸음수 측정 및 상태 알림 기능을 위함)
       final permissions = await _stepCounterManager.requestPermissions();
       final activityGranted = permissions['activity'] ?? false;
       final notificationGranted = permissions['notification'] ?? false;
       
-      // 권한 결과 로그
-      debugPrint('StepSection: 권한 요청 결과 - 활동 인식: $activityGranted, 알림: $notificationGranted');
+  
+      
       
       // 활동 인식 권한이 없으면 서비스를 시작할 수 없음 (필수 권한)
       if (!activityGranted) {
@@ -291,7 +289,7 @@ class _StepSectionState extends State<StepSection> {
       final success = await _stepCounterManager.startService();
 
       if (success) {
-        debugPrint('StepSection: 서비스 시작 성공');
+      
         // 서비스 시작 후 즉시 걸음 수 갱신
         await _refreshStepCount();
         
@@ -300,7 +298,7 @@ class _StepSectionState extends State<StepSection> {
           Toast(context, '걸음 수 측정이 시작되었습니다.');
         }
       } else {
-        debugPrint('StepSection: 서비스 시작 실패');
+      
         if (mounted) {
           Toast(
             context,
@@ -310,7 +308,7 @@ class _StepSectionState extends State<StepSection> {
         }
       }
     } catch (e) {
-      debugPrint('StepSection: 서비스 시작 오류 - $e');
+ 
       if (mounted) {
         Toast(
           context,
@@ -324,21 +322,21 @@ class _StepSectionState extends State<StepSection> {
   // 걸음 수 서비스 중지
   Future<void> _stopStepCounterService() async {
     try {
-      debugPrint('StepSection: 서비스 중지 시도...');
+ 
       final success = await _stepCounterManager.stopService();
 
       if (success) {
-        debugPrint('StepSection: 서비스 중지 성공');
+   
         // 서비스 상태 즉시 반영
         _checkServiceRunning();
       } else {
-        debugPrint('StepSection: 서비스 중지 실패');
+  
         if (mounted) {
           Toast(context, '걸음 수 측정 서비스를 중지할 수 없습니다.');
         }
       }
     } catch (e) {
-      debugPrint('StepSection: 서비스 중지 오류 - $e');
+
       if (mounted) {
         Toast(
           context,

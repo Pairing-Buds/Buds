@@ -45,11 +45,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
     authProvider
         .refreshUserData()
         .then((_) {
-          if (kDebugMode) {
-            print('마이페이지: 내 정보 조회 완료');
-            print('마이페이지: 익명 사용자 여부: ${authProvider.isAnonymousUser}');
-          }
-
           // 사용자가 익명인 경우 캐릭터 선택 화면으로 이동
           if (authProvider.isAnonymousUser) {
             Navigator.of(context).pushReplacement(
@@ -60,9 +55,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
           }
         })
         .catchError((e) {
-          if (kDebugMode) {
-            print('마이페이지: 내 정보 조회 실패: $e');
-          }
           // 실패하더라도 계속 진행
         });
   }
