@@ -70,9 +70,6 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
           });
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('비밀번호 재설정 실패: $e');
-        }
         setState(() {
           _errorMessage = '오류가 발생했습니다. 다시 시도해주세요.';
         });

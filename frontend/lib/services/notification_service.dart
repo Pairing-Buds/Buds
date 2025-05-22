@@ -54,11 +54,8 @@ class NotificationService {
       final bool isAlarm = intentData['is_alarm'] == true;
       final int notificationId = intentData['notification_id'] as int? ?? -1;
 
-      debugPrint('시작 인텐트 확인: isAlarm=$isAlarm, notificationId=$notificationId');
-
       return intentData;
     } catch (e) {
-      debugPrint('시작 인텐트 확인 오류: $e');
       return {'is_alarm': false, 'notification_id': -1};
     }
   }
@@ -72,10 +69,7 @@ class NotificationService {
       // 한국 시간대 설정
       tz.setLocalLocation(tz.getLocation('Asia/Seoul'));
 
-      debugPrint('NotificationService: 시간대 초기화 완료');
-
       // 앱 시작 시 알림 상태 확인
-      debugPrint('NotificationService: 알림을 통한 시작 여부: $startedFromNotification');
 
       // Android 설정 - 기본 Android 아이콘 사용
       const AndroidInitializationSettings initializationSettingsAndroid =
@@ -92,8 +86,6 @@ class NotificationService {
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
 
-      debugPrint('NotificationService: 초기화 완료');
-
       // 알림 채널 설정
       await _setupAlarmNotificationChannel();
 
@@ -108,17 +100,10 @@ class NotificationService {
                 .map((notification) => notification.id)
                 .toList();
 
-        debugPrint('예약된 알림 ID 목록: $pendingNotificationIds');
-
         if (pendingNotificationIds.contains(999)) {
           await _flutterLocalNotificationsPlugin.cancel(999);
-          debugPrint('NotificationService: 테스트 알림(ID: 999) 취소 완료');
-        } else {
-          debugPrint('NotificationService: 취소할 테스트 알림(ID: 999) 없음');
         }
-      } catch (e) {
-        debugPrint('NotificationService: 테스트 알림 취소 실패: $e');
-      }
+      } catch (e) {}
 
       // 보류 중인 알림(미래에 예약된 알림)을 확인하여 처리
       await _checkPendingNotifications();
@@ -128,9 +113,7 @@ class NotificationService {
 
       // 앱이 알림을 통해 시작되었는지 확인 (알림을 탭했을 때만 알람 화면으로 이동)
       // 이 로직은 현재 구현되어 있지 않고, 알림을 통해 앱이 시작되면 notificationTapBackground에서 처리됨
-    } catch (e) {
-      debugPrint('NotificationService 초기화 오류: $e');
-    }
+    } catch (e) {}
   }
 
   /// 보류 중인 알림 확인 및 처리
@@ -141,21 +124,11 @@ class NotificationService {
       final List<PendingNotificationRequest> pendingNotificationRequests =
           await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
-      debugPrint('대기 중인 알림 수: ${pendingNotificationRequests.length}');
-
       // 활성화된 알림 확인 (Android에서만 작동)
       try {
         final activeNotifications = await getActiveNotifications();
-        debugPrint('활성화된 알림 수: ${activeNotifications.length}');
 
         if (activeNotifications.isNotEmpty) {
-          debugPrint('활성화된 알림 세부 정보:');
-          for (var notification in activeNotifications) {
-            debugPrint(
-              '알림 ID: ${notification.id}, 제목: ${notification.title}, 채널: ${notification.channelId}',
-            );
-          }
-
           // 알람 관련 알림이 있는지 확인 (ID 0 또는 1)
           bool hasAlarmNotification = activeNotifications.any(
             (notification) =>
@@ -164,61 +137,34 @@ class NotificationService {
                 notification.id == 100,
           );
 
-          debugPrint('알람 관련 알림 존재: $hasAlarmNotification');
-
           // 알람 관련 알림이 있는 경우에만 알람 화면으로 이동
           if (hasAlarmNotification) {
-            debugPrint('알람 관련 알림이 발견되어 알람 화면으로 이동합니다.');
-
             // 알림 상태를 저장 (앱이 꺼져있다가 재시작될 때를 대비)
             await _saveNotificationStateForRestart();
 
             Future.delayed(const Duration(seconds: 1), () {
               navigateToAlarmScreen();
             });
-          } else {
-            debugPrint('알람 관련 알림이 없어 알람 화면으로 이동하지 않습니다.');
           }
-        } else {
-          debugPrint('활성화된 알림이 없어 알람 화면으로 이동하지 않습니다.');
         }
-      } catch (e) {
-        debugPrint('활성화된 알림 확인 중 오류 발생: $e');
-      }
-    } catch (e) {
-      debugPrint('보류 중인 알림 확인 중 오류 발생: $e');
-    }
+      } catch (e) {}
+    } catch (e) {}
   }
 
   /// 알림 응답 처리
   void _onNotificationResponse(NotificationResponse response) {
-    debugPrint('======================================');
-    debugPrint(
-      '알림 응답 수신: ID=${response.id}, actionId=${response.actionId}, payload=${response.payload}',
-    );
-    debugPrint('알림 응답 시간: ${DateTime.now().toString()}');
-
     // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
     if (_isAlarmNotification(response.id ?? 0, response.payload ?? '')) {
-      debugPrint('알람 관련 알림이 탭되었습니다. 알람 화면으로 이동합니다.');
-
       // 알림 상태를 SharedPreferences에 저장 (재시작 시 사용)
       _saveNotificationStateForRestart().then((_) {
         // 전역 변수에도 직접 설정
         startedFromNotification = true;
         initialRoute = '/alarm';
 
-        debugPrint(
-          '상태 확인: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
-        );
-
         // 알람 화면으로 즉시 이동
         navigateToAlarmScreen();
       });
-    } else {
-      debugPrint('알람 관련 알림이 아닌 일반 알림이 탭되었습니다.');
     }
-    debugPrint('======================================');
   }
 
   /// 알람 관련 알림인지 확인
@@ -240,10 +186,8 @@ class NotificationService {
 
       // 저장 시간도 함께 기록
       await prefs.setString('notification_saved_at', DateTime.now().toString());
-      debugPrint('재시작용 알림 상태 저장 완료');
       return Future.value();
     } catch (e) {
-      debugPrint('재시작용 알림 상태 저장 실패: $e');
       return Future.value();
     }
   }
@@ -253,8 +197,6 @@ class NotificationService {
     // 알람 시간이 유효한지 먼저 확인
     _checkAlarmTimeValidity().then((isValid) {
       if (!isValid) {
-        debugPrint('알람 시간이 유효하지 않아 알람 화면으로 이동하지 않습니다.');
-
         // 홈 화면으로 리다이렉션
         Future.microtask(() {
           if (navigatorKey.currentState != null) {
@@ -265,12 +207,9 @@ class NotificationService {
                     navigatorKey.currentState!.context,
                   )?.settings.name;
               if (currentRoute == '/alarm') {
-                debugPrint('알람 화면에서 홈으로 자동 이동합니다.');
                 navigatorKey.currentState!.pushReplacementNamed('/');
               }
-            } catch (e) {
-              debugPrint('홈 화면 리다이렉션 중 오류 발생: $e');
-            }
+            } catch (e) {}
           }
         });
 
@@ -281,10 +220,6 @@ class NotificationService {
       startedFromNotification = true;
       initialRoute = '/alarm';
 
-      debugPrint(
-        '알람 화면 이동 준비: startedFromNotification=$startedFromNotification, initialRoute=$initialRoute',
-      );
-
       // 메인 스레드에서 실행하여 UI 업데이트 보장
       Future.microtask(() {
         if (navigatorKey.currentState != null) {
@@ -294,7 +229,6 @@ class NotificationService {
                 ModalRoute.of(
                   navigatorKey.currentState!.context,
                 )?.settings.name;
-            debugPrint('현재 라우트: $currentRoute');
 
             if (currentRoute == '/alarm') {
               // 이미 알람 화면에 있으면 새로 고침
@@ -303,23 +237,16 @@ class NotificationService {
               // 알람 화면으로 이동
               navigatorKey.currentState!.pushNamed('/alarm');
             }
-            debugPrint('알람 화면 이동 성공');
           } catch (e) {
-            debugPrint('알람 화면 이동 오류: $e');
             // 오류 발생 시 1초 후 다시 시도
             Future.delayed(const Duration(seconds: 1), () {
               try {
                 if (navigatorKey.currentState != null) {
                   navigatorKey.currentState!.pushNamed('/alarm');
-                  debugPrint('알람 화면 이동 재시도 성공');
                 }
-              } catch (e) {
-                debugPrint('알람 화면 이동 재시도 실패: $e');
-              }
+              } catch (e) {}
             });
           }
-        } else {
-          debugPrint('알람 화면 이동 실패: NavigatorState가 null입니다');
         }
       });
     });
@@ -332,7 +259,6 @@ class NotificationService {
       final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
 
       if (alarmScheduledDate == null) {
-        debugPrint('저장된 알람 시간이 없습니다.');
         return false;
       }
 
@@ -350,19 +276,13 @@ class NotificationService {
               now.isAfter(alarmTimeStart)) &&
           now.isBefore(alarmTimeEnd);
 
-      debugPrint(
-        '알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
-      );
-
       // 알람 시간이 유효하지 않은 경우(5분 이상 지난 경우) 알람 데이터 삭제
       if (!isValidAlarmTime && now.isAfter(alarmTimeEnd)) {
-        debugPrint('알람 시간이 5분 이상 지나 만료되었습니다. 알람 데이터를 초기화합니다.');
         await _clearExpiredAlarmData();
       }
 
       return isValidAlarmTime;
     } catch (e) {
-      debugPrint('알람 시간 유효성 검사 중 오류 발생: $e');
       return false;
     }
   }
@@ -388,17 +308,12 @@ class NotificationService {
       // 전역 상태 초기화
       startedFromNotification = false;
       initialRoute = '/';
-
-      debugPrint('만료된 알람 데이터가 성공적으로 초기화되었습니다.');
-    } catch (e) {
-      debugPrint('만료된 알람 데이터 초기화 중 오류 발생: $e');
-    }
+    } catch (e) {}
   }
 
   /// 알람 상태 활성화
   void _activateAlarm() {
     // 이 메서드는 현재 사용되지 않습니다만 향후 확장성을 위해 유지
-    debugPrint('알람 상태 활성화됨');
   }
 
   /// 알람 상태 비활성화
@@ -420,16 +335,9 @@ class NotificationService {
         final flagFile = File('${directory.path}/alarm_notification.flag');
         if (await flagFile.exists()) {
           await flagFile.delete();
-          debugPrint('알림 플래그 파일 삭제 완료');
         }
-      } catch (e) {
-        debugPrint('알림 플래그 파일 삭제 실패: $e');
-      }
-
-      debugPrint('알람 상태 비활성화 완료: 모든 알람 관련 상태가 초기화되었습니다.');
-    } catch (e) {
-      debugPrint('알람 상태 비활성화 중 오류 발생: $e');
-    }
+      } catch (e) {}
+    } catch (e) {}
   }
 
   /// 알람 관련 알림 채널 설정 (일반 알림만 사용)
@@ -453,8 +361,6 @@ class NotificationService {
           vibrationPattern: Int64List.fromList([0, 500, 200, 500]), // 진동 패턴 설정
         ),
       );
-
-      debugPrint('알람 알림 채널 설정 완료 (진동만 사용)');
     }
   }
 
@@ -477,17 +383,13 @@ class NotificationService {
         final bool? granted =
             await androidImplementation.requestNotificationsPermission();
 
-        debugPrint('알림 권한 상태: $granted');
-
         // 정확한 알람 설정 권한 요청 (Android 12+)
         bool canScheduleExactAlarms = await _checkAndRequestExactAlarms();
-        debugPrint('정확한 알람 예약 가능 여부: $canScheduleExactAlarms');
 
         return granted ?? false;
       }
       return false;
     } catch (e) {
-      debugPrint('알림 권한 요청 오류: $e');
       return false;
     }
   }
@@ -518,7 +420,6 @@ class NotificationService {
       }
       return false;
     } catch (e) {
-      debugPrint('정확한 알람 권한 요청 오류: $e');
       return false;
     }
   }
@@ -531,20 +432,16 @@ class NotificationService {
         'requestBatteryOptimization',
       );
       if (result) {
-        debugPrint('배터리 최적화 설정 변경 요청 성공');
         // 3초 대기 후 상태 다시 확인
         await Future.delayed(const Duration(seconds: 3));
         final bool status = await platform.invokeMethod(
           'isBatteryOptimizationDisabled',
         );
-        debugPrint('배터리 최적화 예외 상태: $status');
         return status;
       } else {
-        debugPrint('배터리 최적화 설정 변경 요청 실패');
         return false;
       }
     } catch (e) {
-      debugPrint('배터리 최적화 설정 변경 요청 실패: $e');
       return false;
     }
   }
@@ -586,16 +483,7 @@ class NotificationService {
 
       // 알림 상태를 미리 저장
       await _saveNotificationStateForRestart();
-
-      debugPrint('======================================');
-      debugPrint('테스트 알림 발송 완료');
-      debugPrint('발송 시간: ${DateTime.now().toString()}');
-      debugPrint('알림 ID: 100');
-      debugPrint('페이로드: alarm_test');
-      debugPrint('======================================');
-    } catch (e) {
-      debugPrint('테스트 알림 발송 실패: $e');
-    }
+    } catch (e) {}
   }
 
   /// 인텐트를 사용한 테스트 알람 시작
@@ -606,13 +494,7 @@ class NotificationService {
 
       // 네이티브 코드에서 알람 인텐트 테스트 호출
       final result = await platform.invokeMethod('testAlarmIntent');
-
-      debugPrint('======================================');
-      debugPrint('인텐트 테스트 요청 완료: $result');
-      debugPrint('======================================');
-    } catch (e) {
-      debugPrint('인텐트 테스트 요청 실패: $e');
-    }
+    } catch (e) {}
   }
 
   /// 기상 알람 예약
@@ -680,14 +562,6 @@ class NotificationService {
       final hours = difference.inHours;
       final minutes = difference.inMinutes % 60;
 
-      debugPrint('======================================');
-      debugPrint('알람 예약 정보:');
-      debugPrint('설정된 시간: ${time.hour}시 ${time.minute}분');
-      debugPrint(
-        '알람 예정 시간: ${scheduledDateTime.year}년 ${scheduledDateTime.month}월 ${scheduledDateTime.day}일 ${scheduledDateTime.hour}시 ${scheduledDateTime.minute}분',
-      );
-      debugPrint('현재 시간으로부터: $hours시간 $minutes분 후');
-
       // SharedPreferences에 알람 시간 저장
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -698,10 +572,7 @@ class NotificationService {
           scheduledDateTime.toString(),
         );
         await prefs.setString('alarm_scheduled_at', DateTime.now().toString());
-        debugPrint('알람 시간 SharedPreferences에 저장됨');
-      } catch (e) {
-        debugPrint('알람 시간 저장 실패: $e');
-      }
+      } catch (e) {}
 
       // 알림 상태를 미리 저장 (앱이 꺼져있다가 재시작될 때를 대비)
       await _saveNotificationStateForRestart();
@@ -717,12 +588,8 @@ class NotificationService {
         payload: 'alarm', // 알림 페이로드
       );
 
-      debugPrint('알람 예약 성공');
-      debugPrint('======================================');
-
       return;
     } catch (e) {
-      debugPrint('알람 예약 실패: $e');
       rethrow;
     }
   }
@@ -769,16 +636,7 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: 'alarm_snooze',
       );
-
-      // 스누즈 알람 로그 출력
-      debugPrint('======================================');
-      debugPrint('스누즈 알람 설정 완료');
-      debugPrint('현재 시간: ${now.toString()}');
-      debugPrint('알람 예정 시간: ${scheduledDateTime.toString()} (5분 후)');
-      debugPrint('======================================');
-    } catch (e) {
-      debugPrint('스누즈 알람 설정 실패: $e');
-    }
+    } catch (e) {}
   }
 
   /// 모든 알람 알림 취소
@@ -800,22 +658,8 @@ class NotificationService {
         await prefs.remove('alarm_minute');
         await prefs.remove('alarm_scheduled_date');
         await prefs.remove('alarm_scheduled_at');
-        debugPrint('알람 관련 SharedPreferences 데이터 삭제됨');
-      } catch (e) {
-        debugPrint('알람 관련 SharedPreferences 데이터 삭제 실패: $e');
-      }
-
-      debugPrint('======================================');
-      debugPrint('모든 알람 취소 완료');
-      debugPrint('- 기본 알람 (ID: 0) 취소됨');
-      debugPrint('- 스누즈 알람 (ID: 1) 취소됨');
-      debugPrint('- 테스트 알람 (ID: 999) 취소됨');
-      debugPrint('- 테스트 알람 (ID: 100) 취소됨');
-      debugPrint('취소 시간: ${DateTime.now().toString()}');
-      debugPrint('======================================');
-    } catch (e) {
-      debugPrint('알람 취소 실패: $e');
-    }
+      } catch (e) {}
+    } catch (e) {}
   }
 
   /// 활성화된 알림 가져오기
@@ -832,7 +676,6 @@ class NotificationService {
           [];
       return activeNotifications;
     } catch (e) {
-      debugPrint('활성화된 알림 가져오기 오류: $e');
       return [];
     }
   }
@@ -842,16 +685,13 @@ class NotificationService {
     try {
       // 1. 알림 권한 확인 및 요청
       final bool notificationPermission = await requestPermission();
-      debugPrint('알림 권한 상태: $notificationPermission');
 
       // 2. 정확한 알람 권한 확인 및 요청
       final bool exactAlarmPermission = await _checkAndRequestExactAlarms();
-      debugPrint('정확한 알람 권한 상태: $exactAlarmPermission');
 
       // 3. 배터리 최적화 예외 요청
       final bool batteryOptimization =
           await _requestBatteryOptimizationDisable();
-      debugPrint('배터리 최적화 예외 상태: $batteryOptimization');
 
       return {
         'notification': notificationPermission,
@@ -859,7 +699,6 @@ class NotificationService {
         'batteryOptimization': batteryOptimization,
       };
     } catch (e) {
-      debugPrint('권한 확인 중 오류 발생: $e');
       return {
         'notification': false,
         'exactAlarm': false,

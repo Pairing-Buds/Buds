@@ -50,23 +50,14 @@ class DioApiService {
       if (!isUnauthorizedControllerClosed) {
         await unauthorizedController.close();
         isUnauthorizedControllerClosed = true;
-        if (kDebugMode) {
-          print('unauthorizedController 닫힘');
-        }
       }
     } catch (e) {
       isUnauthorizedControllerClosed = true;
-      if (kDebugMode) {
-        print('unauthorizedController 닫기 오류: $e');
-      }
     }
   }
 
   static void resetUnauthorizedController() {
     isUnauthorizedControllerClosed = false;
-    if (kDebugMode) {
-      print('unauthorizedController 상태 리셋됨');
-    }
   }
 
   Future<void> ensureInitialized() async {
@@ -111,14 +102,7 @@ class DioApiService {
       );
 
       _dio.interceptors.add(CookieManager(_cookieJar!));
-
-      if (kDebugMode) {
-        print('쿠키 자동 관리 설정 완료. 저장 경로: $cookiePath');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('쿠키 자동 관리 설정 실패: $e');
-      }
       // 쿠키 매니저 설정 실패 시 메모리에만 저장하는 기본 쿠키 자르 사용
       _cookieJar = PersistCookieJar();
       _dio.interceptors.add(CookieManager(_cookieJar!));
@@ -139,9 +123,6 @@ class DioApiService {
           // 에러 인터셉터
           // 401 에러 처리 - 중복 로그인 또는 토큰 만료
           if (error.response?.statusCode == 401) {
-            if (kDebugMode) {
-              print('401 에러 감지: 중복 로그인 또는 토큰 만료');
-            }
             // 중복 로그인 처리를 위한 이벤트 발생 (컨트롤러가 닫히지 않았을 때만)
             if (!isUnauthorizedControllerClosed) {
               try {
@@ -149,9 +130,6 @@ class DioApiService {
               } catch (e) {
                 // 컨트롤러가 닫혔거나 다른 에러 발생 시
                 isUnauthorizedControllerClosed = true;
-                if (kDebugMode) {
-                  print('이벤트 추가 실패: $e');
-                }
               }
             }
           }
@@ -162,34 +140,6 @@ class DioApiService {
 
     // 로깅 인터셉터 추가
     _dio.interceptors.add(DioLoggingInterceptor());
-
-    // 추가 디버그 인터셉터 추가
-    if (kDebugMode) {
-      _dio.interceptors.add(
-        InterceptorsWrapper(
-          onRequest: (options, handler) {
-            print('🌐 API 요청 시작: ${options.method} ${options.path}');
-            print('🌐 요청 헤더: ${options.headers}');
-            print('🌐 요청 데이터: ${options.data}');
-            return handler.next(options);
-          },
-          onResponse: (response, handler) {
-            print('✅ API 응답 성공: ${response.statusCode}');
-            print('✅ 응답 데이터: ${response.data}');
-            // 쿠키 확인
-            _printCookies(response.requestOptions.uri.toString());
-            return handler.next(response);
-          },
-          onError: (DioException e, handler) {
-            print('❌ API 오류 발생: ${e.type}');
-            print('❌ 오류 메시지: ${e.message}');
-            print('❌ 응답 상태 코드: ${e.response?.statusCode}');
-            print('❌ 응답 데이터: ${e.response?.data}');
-            return handler.next(e);
-          },
-        ),
-      );
-    }
 
     _isInitialized = true;
     _initCompleter.complete();
@@ -226,16 +176,7 @@ class DioApiService {
   }
 
   // 디버깅용 쿠키 출력 함수
-  void _printCookies(String url) async {
-    if (kDebugMode && _cookieJar != null) {
-      try {
-        final cookies = await _cookieJar!.loadForRequest(Uri.parse(url));
-        print('🍪 저장된 쿠키: $cookies');
-      } catch (e) {
-        print('쿠키 로드 실패: $e');
-      }
-    }
-  }
+  void _printCookies(String url) async {}
 
   // 모든 쿠키 삭제
   Future<void> clearCookies() async {
@@ -243,13 +184,8 @@ class DioApiService {
       await ensureInitialized();
       if (_cookieJar != null) {
         await _cookieJar!.deleteAll();
-        if (kDebugMode) {
-          print('모든 쿠키가 삭제되었습니다.');
-        }
       }
-    } catch (e) {
-      print('쿠키 삭제 실패: $e');
-    }
+    } catch (e) {}
   }
 
   // 앱 시작 시 저장된 쿠키 확인
@@ -257,9 +193,6 @@ class DioApiService {
     try {
       await ensureInitialized();
       if (_cookieJar == null) {
-        if (kDebugMode) {
-          print('쿠키 자르가 초기화되지 않았습니다.');
-        }
         return false;
       }
 
@@ -267,25 +200,14 @@ class DioApiService {
         Uri.parse(ApiConstants.baseUrl),
       );
 
-      if (kDebugMode) {
-        print('🍪 앱 시작 시 저장된 쿠키 확인: $cookies');
-      }
-
       // 액세스 토큰이나 리프레시 토큰이 있는지 확인
       final hasAuthCookies = cookies.any(
         (cookie) =>
             cookie.name == 'access_token' || cookie.name == 'refresh_token',
       );
 
-      if (kDebugMode) {
-        print('인증 쿠키 존재 여부: $hasAuthCookies');
-      }
-
       return hasAuthCookies;
     } catch (e) {
-      if (kDebugMode) {
-        print('저장된 쿠키 확인 중 오류: $e');
-      }
       return false;
     }
   }
@@ -404,12 +326,5 @@ class DioApiService {
   }
 
   // DioException 처리
-  void _handleDioError(DioException e) {
-    if (kDebugMode) {
-      print('Dio 오류: ${e.type}');
-      print('요청 URL: ${e.requestOptions.path}');
-      print('상태 코드: ${e.response?.statusCode}');
-      print('응답 데이터: ${e.response?.data}');
-    }
-  }
+  void _handleDioError(DioException e) {}
 }

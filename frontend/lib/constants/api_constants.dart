@@ -12,10 +12,6 @@ class ApiConstants {
     final envUrl = dotenv.env['API_URL'];
 
     if (envUrl == null || envUrl.isEmpty) {
-      // 환경 변수가 없는 경우, 개발 모드에서만 경고 출력
-      if (kDebugMode) {
-        print('경고: API_URL 환경 변수가 설정되지 않았습니다.');
-      }
       return '';
     }
 
@@ -25,9 +21,6 @@ class ApiConstants {
   static String get fastApiUrl {
     final fastUrl = dotenv.env['FASTAPI_URL'];
     if (fastUrl == null || fastUrl.isEmpty) {
-      if (kDebugMode) {
-        print('경고: FASTAPI_URL 환경 변수가 설정되지 않았습니다.');
-      }
       return '';
     }
     return fastUrl;
@@ -37,9 +30,6 @@ class ApiConstants {
   static String get googleMapsApiKey {
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
-      if (kDebugMode) {
-        print('경고: GOOGLE_MAPS_API_KEY 환경 변수가 설정되지 않았습니다.');
-      }
       return '';
     }
     return apiKey;

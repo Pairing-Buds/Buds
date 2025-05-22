@@ -57,13 +57,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     _enableLockScreenBypass();
 
     // 알람 화면 시작 로그
-    debugPrint('======================================');
-    debugPrint('알람 화면이 시작되었습니다.');
-    debugPrint('시작 시간: ${DateTime.now().toString()}');
-    debugPrint('알람 ID: ${widget.notificationId}');
-    debugPrint('알람 제목: ${widget.title}');
-    debugPrint('알람 메시지: ${widget.message}');
-    debugPrint('======================================');
+   
   }
 
   @override
@@ -78,10 +72,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
     _disableLockScreenBypass();
 
     // 알람 화면 종료 로그
-    debugPrint('======================================');
-    debugPrint('알람 화면이 종료되었습니다.');
-    debugPrint('종료 시간: ${DateTime.now().toString()}');
-    debugPrint('======================================');
+   
 
     super.dispose();
   }
@@ -90,9 +81,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   Future<void> _enableLockScreenBypass() async {
     try {
       await _lockScreenManager.enableLockScreenBypass();
-      debugPrint('알람 화면: 잠금화면 바이패스 활성화 요청 완료');
+     
     } catch (e) {
-      debugPrint('알람 화면: 잠금화면 바이패스 활성화 오류: $e');
+      
     }
   }
 
@@ -100,9 +91,9 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   Future<void> _disableLockScreenBypass() async {
     try {
       await _lockScreenManager.disableLockScreenBypass();
-      debugPrint('알람 화면: 잠금화면 바이패스 비활성화 요청 완료');
+     
     } catch (e) {
-      debugPrint('알람 화면: 잠금화면 바이패스 비활성화 오류: $e');
+      
     }
   }
 
@@ -115,10 +106,10 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
         _currentTime = DateTime.now();
       });
       _enableLockScreenBypass();
-      debugPrint('알람 화면: 앱이 재개됨 - 잠금화면 바이패스 활성화');
+    
     } else if (state == AppLifecycleState.paused) {
       // 앱이 백그라운드로 갈 때 처리
-      debugPrint('알람 화면: 앱이 일시정지됨');
+     
     }
   }
 
@@ -256,10 +247,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
       final result = await wakeUpService.verifyWakeUp();
 
       // 알람 종료 로그
-      debugPrint('======================================');
-      debugPrint('사용자가 알람을 종료했습니다.');
-      debugPrint('알람 종료 시간: ${DateTime.now().toString()}');
-      debugPrint('======================================');
+      
 
       // 알림 취소
       await NotificationService().cancelAllAlarms();
@@ -309,10 +297,7 @@ class _AlarmScreenState extends State<AlarmScreen> with WidgetsBindingObserver {
   void _snoozeAlarm() async {
     try {
       // 알람 스누즈 로그
-      debugPrint('======================================');
-      debugPrint('사용자가 알람을 5분 후로 스누즈했습니다.');
-      debugPrint('스누즈 요청 시간: ${DateTime.now().toString()}');
-      debugPrint('======================================');
+     
 
       // 스누즈 함수 호출
       await NotificationService().snoozeAlarm();

@@ -50,13 +50,13 @@ class _AdminQuestionScreenState extends State<AdminQuestionScreen> with SingleTi
         isLoading = false;
       });
       
-      debugPrint('문의 목록 조회 성공!');
+     
     } catch (e) {
       setState(() {
         errorMsg = '문의 목록 조회 실패: $e';
         isLoading = false;
       });
-      debugPrint('문의 목록 조회 실패: $e');
+      
     }
   }
 

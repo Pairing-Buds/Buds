@@ -53,13 +53,7 @@ final StepCounterManager stepCounterManager = StepCounterManager();
 void notificationTapBackground(NotificationResponse notificationResponse) {
   // 백그라운드에서 실행될 코드
   // 이 함수는 정적으로 접근 가능하고 NotificationService에서 참조됨
-  debugPrint(
-    '======================================\n'
-    '백그라운드 알림 핸들러 실행됨\n'
-    'ID: ${notificationResponse.id}, 페이로드: ${notificationResponse.payload}\n'
-    '시간: ${DateTime.now().toString()}\n'
-    '======================================',
-  );
+  
 
   try {
     // 알람 관련 알림인 경우 (ID 또는 페이로드로 확인)
@@ -74,12 +68,12 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
       SharedPreferences.getInstance().then((prefs) {
         // 알림을 통한 시작 상태 저장
         prefs.setBool('started_from_notification', true).then((_) {
-          debugPrint('백그라운드: started_from_notification = true 저장됨');
+         
         });
 
         // 초기 라우트 저장
         prefs.setString('initial_route', '/alarm').then((_) {
-          debugPrint('백그라운드: initial_route = /alarm 저장됨');
+         
         });
       });
 
@@ -87,10 +81,10 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
       startedFromNotification = true;
       initialRoute = '/alarm';
 
-      debugPrint('백그라운드: 알람 알림 상태 저장 완료');
+      
     }
   } catch (e) {
-    debugPrint('백그라운드 알림 처리 오류: $e');
+    
   }
 }
 
@@ -111,13 +105,9 @@ void main() async {
   try {
     final apiService = DioApiService();
     await apiService.ensureInitialized();
-    if (kDebugMode) {
-      print('API 서비스 초기화 완료');
-    }
+   
   } catch (e) {
-    if (kDebugMode) {
-      print('API 서비스 초기화 실패: $e');
-    }
+   
   }
 
   // 알림 서비스 초기화
@@ -127,9 +117,9 @@ void main() async {
   // 걸음 수 측정 서비스 초기화
   try {
     await stepCounterManager.initialize();
-    debugPrint('걸음 수 측정 서비스 초기화 성공');
+    
   } catch (e) {
-    debugPrint('걸음 수 측정 서비스 초기화 오류: $e');
+   
   }
 
   // 알림 상태 초기화
@@ -141,14 +131,14 @@ void main() async {
     final prefs = await SharedPreferences.getInstance();
     // 'completed_onboarding' 키가 없으면 true (첫 실행)
     isFirstLaunch = !(prefs.getBool('completed_onboarding') ?? false);
-    debugPrint('앱 첫 실행 여부: $isFirstLaunch');
+   
 
     // 알림으로 시작된 경우가 아니고, 첫 실행이라면 온보딩 화면으로 설정
     if (isFirstLaunch && !startedFromNotification) {
       initialRoute = '/onboarding';
     }
   } catch (e) {
-    debugPrint('앱 첫 실행 상태 확인 중 오류 발생: $e');
+    
   }
 
   // 네이티브 인텐트 확인 (안드로이드 전용)
@@ -158,9 +148,7 @@ void main() async {
     final String action = intentData['action'] as String? ?? '';
     final int notificationId = intentData['notification_id'] as int? ?? -1;
 
-    debugPrint(
-      '인텐트 확인: action=$action, isAlarm=$isAlarm, notificationId=$notificationId',
-    );
+   
 
     // 알람 관련 인텐트인지 확인
     bool isAlarmRelated =
@@ -192,28 +180,24 @@ void main() async {
                 now.isAfter(alarmTimeStart)) &&
             now.isBefore(alarmTimeEnd);
 
-        debugPrint(
-          '인텐트 알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
-        );
+       
       }
 
       // 알람 시간이 유효할 때만 알람 화면으로 이동
       if (isValidAlarmTime) {
         startedFromNotification = true;
         initialRoute = '/alarm';
-        debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었습니다. 알람 화면으로 이동합니다.');
+       
 
         // 알람 상태를 SharedPreferences에 저장
         await prefs.setBool('started_from_notification', true);
         await prefs.setString('initial_route', '/alarm');
       } else {
-        debugPrint('인텐트 확인: 알람 인텐트로 앱이 시작되었지만, 알람 시간이 유효하지 않아 홈 화면으로 이동합니다.');
         startedFromNotification = false;
         initialRoute = '/';
       }
     }
   } catch (e) {
-    debugPrint('인텐트 확인 중 오류 발생: $e');
   }
 
   // SharedPreferences에서 알림 상태 불러오기 (인텐트에서 확인되지 않은 경우)
@@ -225,9 +209,6 @@ void main() async {
       final savedRoute = prefs.getString('initial_route') ?? '/';
       final alarmScheduledDate = prefs.getString('alarm_scheduled_date');
 
-      debugPrint(
-        'SharedPreferences에서 알림 상태 확인: notificationFlag=$notificationFlag, savedRoute=$savedRoute, alarmScheduledDate=$alarmScheduledDate',
-      );
 
       // 저장된 알람 시간이 있는지 확인하고, 현재 시간과 비교
       bool isValidAlarmTime = false;
@@ -246,20 +227,16 @@ void main() async {
                 now.isAfter(alarmTimeStart)) &&
             now.isBefore(alarmTimeEnd);
 
-        debugPrint(
-          '알람 시간 유효성: $isValidAlarmTime (알람시간: $scheduledDate, 현재시간: $now, 허용 시간 종료: $alarmTimeEnd)',
-        );
+      
       }
 
       // 알림을 통해 시작되었고, 라우트가 알람인 경우에만 알람 화면으로 이동
       if (notificationFlag && savedRoute == '/alarm' && isValidAlarmTime) {
-        debugPrint('SharedPreferences: 알림을 통해 시작된 것으로 확인됨');
         startedFromNotification = true;
         initialRoute = '/alarm';
       } else {
         // 유효하지 않은 알람이면 홈 화면으로 이동하도록 설정
         if (notificationFlag && savedRoute == '/alarm' && !isValidAlarmTime) {
-          debugPrint('알람 시간이 지났거나 유효하지 않아 홈 화면으로 이동합니다');
           startedFromNotification = false;
           initialRoute = '/';
         }
@@ -269,7 +246,6 @@ void main() async {
       await prefs.setBool('started_from_notification', false);
       await prefs.remove('initial_route');
     } catch (e) {
-      debugPrint('SharedPreferences에서 알림 상태 읽기 실패: $e');
     }
   }
 
@@ -278,23 +254,17 @@ void main() async {
   // await NotificationService().requestPermission();
 
   // 앱 상태 로깅
-  debugPrint('======================================');
-  debugPrint('앱 시작됨: ${DateTime.now().toString()}');
-  debugPrint('알림을 통한 시작 여부: $startedFromNotification');
-  debugPrint('앱 첫 실행 여부: $isFirstLaunch');
-  debugPrint('초기 라우트: $initialRoute');
-  debugPrint('======================================');
-
+  
   // 앱이 비정상 종료되거나 메인 함수 실행이 완료될 때 실행될 클린업 코드
   WidgetsBinding.instance.addObserver(
     LifecycleEventHandler(
       resumeCallBack: () async {
-        debugPrint('앱 resume: ${DateTime.now()}');
+       
         // StreamController 상태 리셋
         DioApiService.resetUnauthorizedController();
       },
       suspendingCallBack: () async {
-        debugPrint('앱 suspending: ${DateTime.now()}');
+       
         // 앱이 종료될 때 StreamController 닫기
         await DioApiService.closeUnauthorizedController();
       },
@@ -353,9 +323,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // 로깅 추가
-    debugPrint(
-      'MyApp build 함수 실행: initialRoute=$initialRoute, startedFromNotification=$startedFromNotification',
-    );
+   
 
     // 초기화 중이면 스플래시 화면 표시
     if (!_isInitialized) {

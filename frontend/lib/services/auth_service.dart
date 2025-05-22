@@ -17,16 +17,7 @@ class DioAuthService {
   // 로그인
   Future<User> login(String email, String password) async {
     try {
-      if (kDebugMode) {
-        print('Dio로 로그인 시도: $email');
-        print('로그인 URL: ${ApiConstants.loginUrl}');
-      }
-
       final data = {'userEmail': email, 'password': password};
-
-      if (kDebugMode) {
-        print('로그인 요청 데이터: $data');
-      }
 
       // 응답에 쿠키 헤더 포함하도록 설정 (이제 자동으로 처리됨)
       final dioOptions = Options(
@@ -43,20 +34,8 @@ class DioAuthService {
         options: dioOptions,
       );
 
-      if (kDebugMode) {
-        print('로그인 응답: ${response.data}');
-        if (response is Response) {
-          print('응답 헤더: ${response.headers}');
-          print('쿠키: ${response.headers['set-cookie']}');
-        }
-      }
-
       // 상태 코드 확인 - 401 Unauthorized 또는 다른 오류 상태 코드 확인
       if (response is Response && response.statusCode != 200) {
-        if (kDebugMode) {
-          print('로그인 실패: 상태 코드 ${response.statusCode}');
-          print('오류 메시지: ${response.data}');
-        }
         throw Exception('로그인 실패: 인증 오류 (${response.statusCode})');
       }
 
@@ -64,14 +43,7 @@ class DioAuthService {
       if (response is Response &&
           (response.headers['set-cookie'] == null ||
               response.headers['set-cookie']!.isEmpty)) {
-        if (kDebugMode) {
-          print('로그인 실패: 인증 쿠키가 없습니다');
-        }
         throw Exception('로그인 실패: 인증 쿠키 없음');
-      }
-
-      if (kDebugMode) {
-        print('로그인 성공, 사용자 정보 조회 시작');
       }
 
       // 로그인 성공 후 사용자 정보 조회
@@ -79,17 +51,9 @@ class DioAuthService {
         // getUserProfile 메서드를 호출하여 최신 사용자 정보 조회
         final user = await getUserProfile();
 
-        if (kDebugMode) {
-          print('로그인 성공 및 사용자 정보 조회 완료: ${user.email}, 이름: ${user.name}');
-        }
-
         return user;
       } catch (profileError) {
         // 사용자 정보 조회 실패 시 기본 정보로 대체
-        if (kDebugMode) {
-          print('로그인은 성공했으나 사용자 정보 조회 실패: $profileError');
-          print('기본 사용자 정보로 대체합니다.');
-        }
 
         // 기본 사용자 객체 생성
         return User(
@@ -100,9 +64,6 @@ class DioAuthService {
         );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('로그인 요청 오류: $e');
-      }
       throw Exception('로그인 실패: $e');
     }
   }
@@ -121,14 +82,10 @@ class DioAuthService {
         'birthDate': birthDate ?? '',
       };
 
-      print('회원가입 요청 데이터: $data');
-
       final response = await _apiService.post(
         ApiConstants.registerUrl.replaceFirst(ApiConstants.baseUrl, ''),
         data: data,
       );
-
-      print('회원가입 응답 데이터: ${response.data}');
 
       // 응답 검증
       if (response is Response && response.data == null) {
@@ -153,7 +110,6 @@ class DioAuthService {
         createdAt: DateTime.now(),
       );
     } catch (e) {
-      print('회원가입 프로세스 오류 세부 정보: $e');
       throw Exception('회원가입 실패: $e');
     }
   }
@@ -163,22 +119,10 @@ class DioAuthService {
     try {
       final data = {'userName': userName, 'userCharacter': userCharacter};
 
-      if (kDebugMode) {
-        print('회원가입 완료 요청 데이터: $data');
-        print(
-          '회원가입 완료 API 엔드포인트 (상대): ${ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, '')}',
-        );
-        print('회원가입 완료 API 엔드포인트 (전체): ${ApiConstants.signUpCompleteUrl}');
-      }
-
       final response = await _apiService.patch(
         ApiConstants.signUpCompleteUrl.replaceFirst(ApiConstants.baseUrl, ''),
         data: data,
       );
-
-      if (kDebugMode) {
-        print('회원가입 완료 응답: ${response.data}');
-      }
 
       if (response is Response) {
         final responseData = response.data as Map<String, dynamic>? ?? {};
@@ -189,9 +133,6 @@ class DioAuthService {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('회원가입 완료 요청 오류: $e');
-      }
       throw Exception('회원가입 완료 요청 실패: $e');
     }
   }
@@ -201,18 +142,10 @@ class DioAuthService {
     try {
       final data = {'userCharacter': userCharacter};
 
-      if (kDebugMode) {
-        print('캐릭터 업데이트 요청 데이터: $data');
-      }
-
       final response = await _apiService.patch(
         ApiConstants.userProfileUrl.replaceFirst(ApiConstants.baseUrl, ''),
         data: data,
       );
-
-      if (kDebugMode) {
-        print('캐릭터 업데이트 응답: ${response.data}');
-      }
 
       if (response is Response) {
         final responseData = response.data as Map<String, dynamic>? ?? {};
@@ -223,9 +156,6 @@ class DioAuthService {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('캐릭터 업데이트 요청 오류: $e');
-      }
       throw Exception('캐릭터 업데이트 요청 실패: $e');
     }
   }
@@ -252,10 +182,6 @@ class DioAuthService {
       if (response is Response && response.data != null) {
         final responseData = response.data as Map<String, dynamic>;
 
-        if (kDebugMode) {
-          print('getUserProfile 응답: $responseData');
-        }
-
         // 서버 응답 구조 확인
         if (responseData['statusCode'] == 'OK' &&
             responseData['resMsg'] != null) {
@@ -277,9 +203,6 @@ class DioAuthService {
 
       throw Exception('프로필 데이터를 찾을 수 없습니다');
     } catch (e) {
-      if (kDebugMode) {
-        print('프로필 조회 실패: $e');
-      }
       throw Exception('프로필 조회 실패: $e');
     }
   }
@@ -289,10 +212,6 @@ class DioAuthService {
     try {
       // 먼저 저장된 쿠키 확인
       final hasStoredCookies = await _apiService.checkSavedCookies();
-
-      if (kDebugMode) {
-        print('저장된 쿠키 확인 결과: $hasStoredCookies');
-      }
 
       // 저장된 쿠키가 있으면 바로 true 반환
       if (hasStoredCookies) {
@@ -307,15 +226,9 @@ class DioAuthService {
 
         return response is Response && response.statusCode == 200;
       } catch (e) {
-        if (kDebugMode) {
-          print('서버 쿠키 확인 오류: $e');
-        }
         return false;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('쿠키 확인 오류: $e');
-      }
       return false;
     }
   }
@@ -323,23 +236,11 @@ class DioAuthService {
   // 비밀번호 재설정 이메일 요청
   Future<bool> requestPasswordReset(String email) async {
     try {
-      if (kDebugMode) {
-        print('비밀번호 재설정 이메일 요청: $email');
-        print(
-          '요청 URL: ${ApiConstants.requestPasswordResetUrl}?user-email=$email',
-        );
-      }
-
       // 1. 쿼리 파라미터만 사용
       final queryParams = {'user-email': email};
 
       // 2. 요청 본문은 비워두기
       final data = {};
-
-      if (kDebugMode) {
-        print('쿼리 파라미터: $queryParams');
-        print('요청 데이터: $data');
-      }
 
       final response = await _apiService.post(
         ApiConstants.requestPasswordResetUrl.replaceFirst(
@@ -356,14 +257,6 @@ class DioAuthService {
         ),
       );
 
-      if (kDebugMode) {
-        print('비밀번호 재설정 이메일 요청 응답: ${response.data}');
-        print('응답 상태 코드: ${response.statusCode}');
-        if (response is Response) {
-          print('응답 헤더: ${response.headers}');
-        }
-      }
-
       if (response is Response) {
         final responseData = response.data as Map<String, dynamic>? ?? {};
         final statusCode = responseData['statusCode'] as String? ?? '';
@@ -372,9 +265,6 @@ class DioAuthService {
         if (statusCode != 'OK') {
           final resMsg =
               responseData['resMsg'] as String? ?? '알 수 없는 오류가 발생했습니다.';
-          if (kDebugMode) {
-            print('비밀번호 재설정 이메일 요청 실패: $resMsg');
-          }
           throw Exception(resMsg);
         }
 
@@ -383,9 +273,6 @@ class DioAuthService {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('비밀번호 재설정 이메일 요청 오류: $e');
-      }
       throw Exception('비밀번호 재설정 이메일 요청 실패: $e');
     }
   }
@@ -393,10 +280,6 @@ class DioAuthService {
   // 비밀번호 재설정 (토큰 + 새 비밀번호)
   Future<bool> resetPassword(String token, String newPassword) async {
     try {
-      if (kDebugMode) {
-        print('비밀번호 재설정 요청: token=$token');
-      }
-
       final response = await _apiService.post(
         ApiConstants.resetPasswordUrl.replaceFirst(ApiConstants.baseUrl, ''),
         data: {'token': token, 'newPassword': newPassword},
@@ -407,10 +290,6 @@ class DioAuthService {
         ),
       );
 
-      if (kDebugMode) {
-        print('비밀번호 재설정 응답: ${response.data}');
-      }
-
       if (response is Response) {
         final responseData = response.data as Map<String, dynamic>? ?? {};
         final statusCode = responseData['statusCode'] as String? ?? '';
@@ -419,9 +298,6 @@ class DioAuthService {
         if (statusCode != 'OK') {
           final resMsg =
               responseData['resMsg'] as String? ?? '알 수 없는 오류가 발생했습니다.';
-          if (kDebugMode) {
-            print('비밀번호 재설정 실패: $resMsg');
-          }
           throw Exception(resMsg);
         }
 
@@ -430,9 +306,6 @@ class DioAuthService {
 
       return false;
     } catch (e) {
-      if (kDebugMode) {
-        print('비밀번호 재설정 오류: $e');
-      }
       throw Exception('비밀번호 재설정 실패: $e');
     }
   }
@@ -440,11 +313,6 @@ class DioAuthService {
   // 회원 탈퇴
   Future<bool> withdrawUser(String password) async {
     try {
-      if (kDebugMode) {
-        print('회원 탈퇴 요청: password=****');
-        print('탈퇴 URL: /users/withdrawal');
-      }
-
       final data = {'password': password};
 
       final response = await _apiService.delete(
@@ -455,10 +323,6 @@ class DioAuthService {
           validateStatus: (status) => status != null && status < 500,
         ),
       );
-
-      if (kDebugMode) {
-        print('회원 탈퇴 응답: ${response.data}');
-      }
 
       if (response is Response) {
         final responseData = response.data as Map<String, dynamic>? ?? {};
@@ -472,9 +336,6 @@ class DioAuthService {
       }
       throw Exception('회원 탈퇴 실패: 서버 응답 오류');
     } catch (e) {
-      if (kDebugMode) {
-        print('회원 탈퇴 요청 오류: $e');
-      }
       throw Exception('회원 탈퇴 실패: $e');
     }
   }
@@ -504,7 +365,6 @@ class DioAuthService {
       }
       return false;
     } catch (e) {
-      print('이메일 인증 요청 오류: $e');
       throw Exception('이메일 인증 요청 실패: $e');
     }
   }
@@ -528,7 +388,6 @@ class DioAuthService {
       }
       return false;
     } catch (e) {
-      print('이메일 토큰 검증 오류: $e');
       throw Exception('이메일 토큰 검증 실패: $e');
     }
   }

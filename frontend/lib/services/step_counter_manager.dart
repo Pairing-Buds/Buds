@@ -47,8 +47,10 @@ class StepCounterManager {
   Stream<bool> get serviceStatusStream => _serviceStatusController.stream;
 
   // 리워드 상태 스트림 컨트롤러
-  final _rewardStatusController = StreamController<Map<String, dynamic>>.broadcast();
-  Stream<Map<String, dynamic>> get rewardStatusStream => _rewardStatusController.stream;
+  final _rewardStatusController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get rewardStatusStream =>
+      _rewardStatusController.stream;
 
   // 리워드 서비스
   final StepRewardService _stepRewardService = StepRewardService();
@@ -65,22 +67,18 @@ class StepCounterManager {
   Future<void> initialize() async {
     // 이미 초기화 완료된 경우 중복 실행 방지
     if (_isInitialized) {
-      debugPrint('StepCounterManager: 이미 초기화되었습니다.');
       return;
     }
-
-    debugPrint('StepCounterManager: 초기화 시작...');
 
     try {
       // 이전에 저장된 걸음 수 로드
       await _loadSavedSteps();
-      
+
       // 이전에 저장된 리워드 요청 상태 로드
       await _loadRewardRequestStatus();
 
       // 권한 확인
       final hasPermission = await checkPermission();
-      debugPrint('StepCounterManager: 권한 확인 결과 - $hasPermission');
 
       if (hasPermission) {
         // 걸음 수 이벤트 리스너 설정
@@ -94,9 +92,7 @@ class StepCounterManager {
 
         // 초기화 완료 표시
         _isInitialized = true;
-        debugPrint('StepCounterManager: 초기화 완료');
       } else {
-        debugPrint('StepCounterManager: 권한이 없어 초기화를 완료할 수 없습니다.');
         // 권한 요청 부분 주석 처리 - 초기화 시 자동으로 권한 요청하지 않음
         // 대신 사용자가 실제로 걸음 수 기능을 사용할 때만 권한 요청
         // final granted = await requestPermission();
@@ -106,7 +102,6 @@ class StepCounterManager {
         // }
       }
     } catch (e) {
-      debugPrint('StepCounterManager: 초기화 중 오류 발생 - $e');
       // 5초 후에 다시 초기화 시도
       Future.delayed(const Duration(seconds: 5), () {
         initialize();
@@ -124,16 +119,12 @@ class StepCounterManager {
       if (savedSteps != null) {
         _currentSteps = savedSteps;
         _stepCountController.add(_currentSteps);
-        debugPrint('저장된 걸음 수 로드됨: $_currentSteps');
       }
 
       if (savedTarget != null) {
         _targetSteps = savedTarget;
-        debugPrint('저장된 목표 걸음 수 로드됨: $_targetSteps');
       }
-    } catch (e) {
-      debugPrint('저장된 걸음 수 로드 오류: $e');
-    }
+    } catch (e) {}
   }
 
   // 저장된 리워드 요청 상태 불러오기
@@ -141,16 +132,14 @@ class StepCounterManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastRewardDate = prefs.getString('last_step_reward_date');
-      
+
       if (lastRewardDate != null) {
         final today = DateTime.now().toString().split(' ')[0]; // YYYY-MM-DD 형식
         _isRewardRequested = lastRewardDate == today;
-        debugPrint('저장된 리워드 요청 상태 로드됨: $_isRewardRequested (마지막 요청일: $lastRewardDate)');
       } else {
         _isRewardRequested = false;
       }
     } catch (e) {
-      debugPrint('저장된 리워드 요청 상태 로드 오류: $e');
       _isRewardRequested = false;
     }
   }
@@ -160,16 +149,13 @@ class StepCounterManager {
     try {
       final prefs = await SharedPreferences.getInstance();
       final today = DateTime.now().toString().split(' ')[0]; // YYYY-MM-DD 형식
-      
+
       if (requested) {
         await prefs.setString('last_step_reward_date', today);
       }
-      
+
       _isRewardRequested = requested;
-      debugPrint('리워드 요청 상태 저장됨: $_isRewardRequested (날짜: $today)');
-    } catch (e) {
-      debugPrint('리워드 요청 상태 저장 오류: $e');
-    }
+    } catch (e) {}
   }
 
   // 서비스 상태 확인
@@ -180,9 +166,7 @@ class StepCounterManager {
       );
       _isServiceRunning = result ?? false;
       _serviceStatusController.add(_isServiceRunning);
-      debugPrint('서비스 실행 상태: $_isServiceRunning');
     } catch (e) {
-      debugPrint('서비스 상태 확인 오류: $e');
       _isServiceRunning = false;
       _serviceStatusController.add(_isServiceRunning);
     }
@@ -192,31 +176,23 @@ class StepCounterManager {
   void _setupStepCountListener() {
     if (_isEventListenerSet) return;
 
-    _eventChannel.receiveBroadcastStream().listen(
-      (event) {
-        if (event is int) {
-          _currentSteps = event;
-          _stepCountController.add(event);
-          debugPrint('걸음 수 이벤트 수신: $_currentSteps');
-          
-          // 목표 달성 확인 및 리워드 요청
-          _checkGoalAchievement();
-        }
-      },
-      onError: (error) {
-        debugPrint('Step counter error: $error');
-      },
-    );
+    _eventChannel.receiveBroadcastStream().listen((event) {
+      if (event is int) {
+        _currentSteps = event;
+        _stepCountController.add(event);
+
+        // 목표 달성 확인 및 리워드 요청
+        _checkGoalAchievement();
+      }
+    }, onError: (error) {});
 
     _isEventListenerSet = true;
-    debugPrint('걸음 수 이벤트 리스너 설정됨');
   }
 
   // 목표 달성 확인 및 리워드 요청
   Future<void> _checkGoalAchievement() async {
     // 목표를 달성했고, 오늘 아직 리워드를 요청하지 않았다면
     if (_currentSteps >= _targetSteps && !_isRewardRequested) {
-      debugPrint('목표 걸음 수 $_targetSteps 달성! 현재: $_currentSteps');
       await requestStepReward();
     }
   }
@@ -235,23 +211,21 @@ class StepCounterManager {
     }
 
     try {
-      debugPrint('걸음수 목표 달성 리워드 요청 시작');
       final result = await _stepRewardService.requestStepReward(
         currentSteps: _currentSteps,
-        targetSteps: _targetSteps
+        targetSteps: _targetSteps,
       );
-      
+
       // 요청 성공 시 상태 저장
       if (result['success'] == true) {
         await _saveRewardRequestStatus(true);
       }
-      
+
       // 결과 스트림에 전송
       _rewardStatusController.add(result);
-      
+
       return result;
     } catch (e) {
-      debugPrint('걸음수 리워드 요청 오류: $e');
       final result = {
         'success': false,
         'isNewReward': false,
@@ -269,7 +243,6 @@ class StepCounterManager {
       final status = await Permission.activityRecognition.status;
       return status.isGranted;
     } catch (e) {
-      debugPrint('Error checking permission: $e');
       return false;
     }
   }
@@ -281,29 +254,22 @@ class StepCounterManager {
       // 활동 인식 권한 요청 (걸음수 측정에 필수)
       final activityStatus = await Permission.activityRecognition.request();
       final activityGranted = activityStatus.isGranted;
-      
+
       // 알림 권한 요청 (걸음수 상태 알림에 필요)
       final notificationService = NotificationService();
-      final notificationPermissions = await notificationService.checkAndRequestAllPermissions();
-      final notificationGranted = notificationPermissions['notification'] ?? false;
-      
-      debugPrint('권한 요청 결과 - 활동 인식: $activityGranted, 알림: $notificationGranted');
-      
+      final notificationPermissions =
+          await notificationService.checkAndRequestAllPermissions();
+      final notificationGranted =
+          notificationPermissions['notification'] ?? false;
+
       if (activityGranted && !_isInitialized) {
         // 권한을 얻은 후 초기화가 아직 완료되지 않았다면 초기화 재시도
         await initialize();
       }
-      
-      return {
-        'activity': activityGranted,
-        'notification': notificationGranted
-      };
+
+      return {'activity': activityGranted, 'notification': notificationGranted};
     } catch (e) {
-      debugPrint('권한 요청 오류: $e');
-      return {
-        'activity': false,
-        'notification': false
-      };
+      return {'activity': false, 'notification': false};
     }
   }
 
@@ -314,7 +280,6 @@ class StepCounterManager {
       final permissions = await requestPermissions();
       return permissions['activity'] ?? false;
     } catch (e) {
-      debugPrint('Error requesting permission: $e');
       return false;
     }
   }
@@ -335,14 +300,11 @@ class StepCounterManager {
       if (result == true) {
         _isServiceRunning = true;
         _serviceStatusController.add(_isServiceRunning);
-        debugPrint('StepCounterManager: 걸음 수 서비스 시작 성공');
         return true;
       } else {
-        debugPrint('StepCounterManager: 걸음 수 서비스 시작 실패');
         return false;
       }
     } catch (e) {
-      debugPrint('StepCounterManager: 서비스 시작 중 오류 발생 - $e');
       _isServiceRunning = false;
       _serviceStatusController.add(_isServiceRunning);
       return false;
@@ -359,14 +321,11 @@ class StepCounterManager {
       if (result == true) {
         _isServiceRunning = false;
         _serviceStatusController.add(_isServiceRunning);
-        debugPrint('StepCounterManager: 걸음 수 서비스 중지 성공');
         return true;
       } else {
-        debugPrint('StepCounterManager: 걸음 수 서비스 중지 실패');
         return false;
       }
     } catch (e) {
-      debugPrint('StepCounterManager: 서비스 중지 중 오류 발생 - $e');
       return false;
     }
   }
@@ -380,18 +339,13 @@ class StepCounterManager {
         if (steps > 0 || _currentSteps == 0) {
           _currentSteps = steps;
           _stepCountController.add(_currentSteps);
-          debugPrint('현재 걸음 수 확인됨: $_currentSteps');
-          
+
           // 목표 달성 확인 및 리워드 요청
           _checkGoalAchievement();
-        } else {
-          // 새 값이 0이고 현재 값이 0보다 크면 기존 값 유지하고 로그 출력
-          debugPrint('걸음 수 값이 0으로 반환됨, 기존 값 $_currentSteps 유지');
         }
       }
       return _currentSteps;
     } catch (e) {
-      debugPrint('Error getting step count: $e');
       return _currentSteps;
     }
   }
@@ -399,8 +353,7 @@ class StepCounterManager {
   // 목표 걸음 수 설정
   void setTargetSteps(int steps) {
     _targetSteps = steps;
-    debugPrint('목표 걸음 수 설정됨: $_targetSteps');
-    
+
     // 목표 변경 후 달성 여부 확인
     _checkGoalAchievement();
   }

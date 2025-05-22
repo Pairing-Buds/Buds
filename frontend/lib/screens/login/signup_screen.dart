@@ -115,25 +115,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // 생년월일 선택 다이얼로그
   Future<void> _selectDate(BuildContext context) async {
     // 한국어 로케일 초기화 확인
-    debugPrint('날짜 선택 다이얼로그 시작');
+   
     try {
       await initializeDateFormatting('ko_KR', null);
-      debugPrint('한국어 로케일 초기화 완료');
+      
 
       final DateTime? picked = await DatePickerUtil.showBirthDatePicker(
         context,
       );
-      debugPrint('선택된 날짜: $picked');
+      
 
       if (picked != null) {
         setState(() {
           // yyyy-MM-dd 형식으로 저장
           _birthDateController.text = DatePickerUtil.formatDate(picked);
-          debugPrint('설정된 생년월일: ${_birthDateController.text}');
+         
         });
       }
     } catch (e) {
-      debugPrint('날짜 선택 다이얼로그 오류: $e');
+     
       // 오류 발생 시 기본 형식으로 시도
       try {
         final DateTime? picked = await showDatePicker(
@@ -147,32 +147,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
           // locale 매개변수 제거
         );
 
-        debugPrint('기본 다이얼로그 선택된 날짜: $picked');
+       
 
         if (picked != null) {
           setState(() {
             _birthDateController.text = DateFormat('yyyy-MM-dd').format(picked);
-            debugPrint('기본 다이얼로그로 설정된 생년월일: ${_birthDateController.text}');
+            
           });
         }
       } catch (fallbackError) {
-        debugPrint('기본 날짜 다이얼로그도 실패: $fallbackError');
+        
       }
     }
   }
 
   // 회원가입 폼 제출
   void _submitForm() async {
-    debugPrint('회원가입 폼 제출 시작');
+    
     if (_formKey.currentState!.validate()) {
-      debugPrint('폼 유효성 검사 통과');
+      
       setState(() {
         _isLoading = true;
       });
 
       try {
-        debugPrint('이메일, 비밀번호 유효성 확인 완료');
-        debugPrint('캐릭터 선택 화면으로 이동');
+      
 
         if (!mounted) return;
 
@@ -193,7 +192,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } catch (e) {
-        debugPrint('회원가입 실패 오류: $e');
+       
         // 오류 메시지 표시
         if (!mounted) return;
         Toast(
@@ -207,10 +206,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             _isLoading = false;
           });
         }
-        debugPrint('회원가입 프로세스 종료');
+        
       }
     } else {
-      debugPrint('폼 유효성 검사 실패');
+      
     }
   }
 
