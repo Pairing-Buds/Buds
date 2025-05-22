@@ -103,66 +103,6 @@ class DiaryScheduler:
             logger.error(f"일기 생성 스케줄러 작업 중 오류 발생: {str(e)}")
 
 
-# MySQL에 일기 저장 함수 추가 (db/mysql.py에 추가 필요)
-"""
-def save_diary(user_id, date, emotion_diary, active_diary):
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # 이미 해당 날짜의
-
-        # 이미 해당 날짜의 일기가 있는지 확인
-        cursor.execute(
-            "SELECT id FROM diaries WHERE user_id = %s AND date = %s",
-            (user_id, date)
-        )
-        existing_diary = cursor.fetchone()
-
-        if existing_diary:
-            # 기존 일기 업데이트
-            cursor.execute(
-                "UPDATE diaries SET emotion_diary = %s, active_diary = %s, updated_at = NOW() WHERE id = %s",
-                (emotion_diary, active_diary, existing_diary['id'])
-            )
-        else:
-            # 새 일기 삽입
-            cursor.execute(
-                "INSERT INTO diaries (user_id, date, emotion_diary, active_diary, created_at, updated_at) VALUES (%s, %s, %s, %s, NOW(), NOW())",
-                (user_id, date, emotion_diary, active_diary)
-            )
-
-        conn.commit()
-        return True
-    except Exception as e:
-        conn.rollback()
-        logger.error(f"일기 저장 중 오류: {str(e)}")
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
-def get_active_users():
-    try:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # 활성 사용자 가져오기
-        # 예: 최근 7일 이내에 로그인한 사용자
-        cursor.execute(
-            "SELECT id FROM users WHERE last_login_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
-        )
-
-        users = cursor.fetchall()
-        return users
-    except Exception as e:
-        logger.error(f"활성 사용자 조회 중 오류: {str(e)}")
-        return []
-    finally:
-        cursor.close()
-        conn.close()
-"""
-
 # 앱 시작 시 스케줄러 초기화 및 시작
 diary_scheduler = DiaryScheduler()
 

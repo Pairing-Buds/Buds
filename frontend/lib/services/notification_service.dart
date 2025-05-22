@@ -335,10 +335,6 @@ class NotificationService {
             >();
 
     if (androidImplementation != null) {
-      // 기본 알림 권한 자동 요청 비활성화 (주석 처리)
-      // await androidImplementation.requestNotificationsPermission();
-
-      // 일반 알림 채널만 등록 (기기 기본 설정 사용)
       await androidImplementation.createNotificationChannel(
         AndroidNotificationChannel(
           'alarm_channel_standard',
@@ -346,10 +342,13 @@ class NotificationService {
           description: '기본 알람 알림을 위한 채널입니다',
           importance: Importance.high,
           showBadge: true,
+          playSound: false, // 소리 비활성화
+          enableVibration: true, // 진동 활성화
+          vibrationPattern: Int64List.fromList([0, 500, 200, 500]), // 진동 패턴 설정
         ),
       );
 
-      debugPrint('알람 알림 채널 설정 완료 (기기 기본 설정 사용)');
+      debugPrint('알람 알림 채널 설정 완료 (진동만 사용)');
     }
   }
 
@@ -421,11 +420,23 @@ class NotificationService {
   // 배터리 최적화 설정 무시 요청
   Future<bool> _requestBatteryOptimizationDisable() async {
     try {
+      // 배터리 최적화 예외 요청
       final bool result = await platform.invokeMethod(
         'requestBatteryOptimization',
       );
-      debugPrint('배터리 최적화 설정 무시 요청 결과: $result');
-      return result;
+      if (result) {
+        debugPrint('배터리 최적화 설정 변경 요청 성공');
+        // 3초 대기 후 상태 다시 확인
+        await Future.delayed(const Duration(seconds: 3));
+        final bool status = await platform.invokeMethod(
+          'isBatteryOptimizationDisabled',
+        );
+        debugPrint('배터리 최적화 예외 상태: $status');
+        return status;
+      } else {
+        debugPrint('배터리 최적화 설정 변경 요청 실패');
+        return false;
+      }
     } catch (e) {
       debugPrint('배터리 최적화 설정 변경 요청 실패: $e');
       return false;
@@ -509,8 +520,15 @@ class NotificationService {
       channelDescription: '기본 알람 알림을 위한 채널입니다',
       importance: Importance.max,
       priority: Priority.high,
-      fullScreenIntent: true,
       category: AndroidNotificationCategory.alarm,
+      autoCancel: false,
+      ongoing: true,
+      showWhen: true,
+      enableLights: true,
+      playSound: false,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 200, 500]),
+      fullScreenIntent: true,
       actions: <AndroidNotificationAction>[
         const AndroidNotificationAction(
           'dismiss',
@@ -579,6 +597,9 @@ class NotificationService {
         debugPrint('알람 시간 저장 실패: $e');
       }
 
+      // 알림 상태를 미리 저장 (앱이 꺼져있다가 재시작될 때를 대비)
+      await _saveNotificationStateForRestart();
+
       // 알림 예약
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         0, // ID
@@ -586,8 +607,7 @@ class NotificationService {
         '일어날 시간이에요! 탭하여 알람 화면으로 이동하세요.',
         scheduledDateTime,
         notificationDetails,
-        androidScheduleMode:
-            AndroidScheduleMode.exactAllowWhileIdle, // 앱이 종료되어도 작동
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: 'alarm', // 알림 페이로드
       );
 
@@ -708,6 +728,37 @@ class NotificationService {
     } catch (e) {
       debugPrint('활성화된 알림 가져오기 오류: $e');
       return [];
+    }
+  }
+
+  /// 알람에 필요한 모든 권한 확인 및 요청
+  Future<Map<String, bool>> checkAndRequestAllPermissions() async {
+    try {
+      // 1. 알림 권한 확인 및 요청
+      final bool notificationPermission = await requestPermission();
+      debugPrint('알림 권한 상태: $notificationPermission');
+
+      // 2. 정확한 알람 권한 확인 및 요청
+      final bool exactAlarmPermission = await _checkAndRequestExactAlarms();
+      debugPrint('정확한 알람 권한 상태: $exactAlarmPermission');
+
+      // 3. 배터리 최적화 예외 요청
+      final bool batteryOptimization =
+          await _requestBatteryOptimizationDisable();
+      debugPrint('배터리 최적화 예외 상태: $batteryOptimization');
+
+      return {
+        'notification': notificationPermission,
+        'exactAlarm': exactAlarmPermission,
+        'batteryOptimization': batteryOptimization,
+      };
+    } catch (e) {
+      debugPrint('권한 확인 중 오류 발생: $e');
+      return {
+        'notification': false,
+        'exactAlarm': false,
+        'batteryOptimization': false,
+      };
     }
   }
 }
