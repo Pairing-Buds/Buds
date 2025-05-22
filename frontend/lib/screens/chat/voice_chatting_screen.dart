@@ -1,23 +1,12 @@
-// Dart imports:
 import 'dart:async';
-
-// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-// Package imports:
-import 'package:flutter_tts/flutter_tts.dart';
-import 'package:noise_meter/noise_meter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:buds/providers/auth_provider.dart';
-
-
-// Project imports:
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:buds/config/theme.dart';
 import 'package:buds/services/chat_service.dart';
+import 'package:buds/screens/chat/chat_detail_screen.dart';
+import 'package:noise_meter/noise_meter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class VoiceChattingScreen extends StatefulWidget {
   const VoiceChattingScreen({super.key});
@@ -39,7 +28,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
 
   late NoiseMeter _noiseMeter;
   StreamSubscription<NoiseReading>? _noiseSubscription;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -48,26 +36,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     _initializeSTT();
     _checkMicPermission();
   }
-
-  String _getCharacterIcon(String characterName) {
-    switch (characterName) {
-      case '마멋':
-        return 'assets/icons/characters/marmeticon.png';
-      case '고양이':
-        return 'assets/icons/characters/foxicon.png';
-      case '개구리':
-        return 'assets/icons/characters/frogicon.png';
-      case '게코':
-        return 'assets/icons/characters/lizardicon.png';
-      case '오리':
-        return 'assets/icons/characters/duckicon.png';
-      case '토끼':
-        return 'assets/icons/characters/rabbiticon.png';
-      default:
-        return 'assets/icons/characters/marmeticon.png';
-    }
-  }
-
 
   void _initializeTTS() async {
     await _tts.setLanguage("ko-KR");
@@ -88,56 +56,15 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
       if (!_isMuted) _startListening();
     });
   }
-
-  Future<void> _playRemoteAudio(String audioPath) async {
-    final baseUrl = dotenv.env['FASTAPI_URL'];
-    if (baseUrl == null || baseUrl.isEmpty) {
-      print('❌ FASTAPI_URL 누락');
-      return;
-    }
-
-    final url = '$baseUrl$audioPath';
-    print('🔊 재생할 URL: $url');
-
-    try {
-      final player = AudioPlayer();
-
-      // 🔍 재생 상태 먼저 listen() 등록
-      player.onPlayerStateChanged.listen((state) {
-        print('🎧 현재 상태: $state');
-        if (state == PlayerState.completed) {
-          print("✅ 오디오 재생 완료됨 → STT 시작");
-          _ttsPlaying = false;
-
-          if (!_isMuted) {
-            Future.delayed(const Duration(milliseconds: 300), _startListening);
-          }
-        }
-      });
-
-      // 🔊 설정
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(1.0);
-
-      // ▶️ 재생 시도
-      print('📢 오디오 재생 시도 전');
-      await player.play(UrlSource(url));
-      print('📢 오디오 재생 시도 후');
-    } catch (e) {
-      print('❌ 오디오 재생 오류: $e');
-    }
-  }
-
   Future<void> _checkMicPermission() async {
     final status = await Permission.microphone.status;
 
     if (!status.isGranted) {
       final result = await Permission.microphone.request();
       if (result.isGranted) {
-        print('🎤 마이크 권한 허용됨');
-        _initializeSTT();
+        _initializeSTT(); // 권한 허용되면 STT 초기화 시작
       } else {
-        print('❌ 마이크 권한 거부됨');
+        // 안내 메시지 띄우기
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('마이크 권한이 필요합니다')),
@@ -145,39 +72,33 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         }
       }
     } else {
-      print('✅ 마이크 권한 이미 있음');
       _initializeSTT();
     }
   }
 
   void _initializeSTT() async {
     final available = await _speech.initialize(
-      onStatus: (status) => print('🎙️ STT 상태: $status'),
-      onError: (error) => print('❌ STT 오류: $error'),
     );
 
-    print('✅ STT 초기화 성공 여부: $available');
     if (available) {
       _startListening();
     } else {
-      print('🚫 STT 초기화 실패: 마이크 권한 확인 필요');
     }
   }
 
   Future<void> _startListening() async {
+
     await Future.delayed(const Duration(milliseconds: 200));
 
     if (_speech.isListening || _isMuted || _ttsPlaying) return;
 
     final initialized = await _speech.initialize(
       onStatus: (status) {
-        print('🎙️ STT 상태: $status');
         if (status == 'done' || status == 'notListening') {
           Future.delayed(const Duration(milliseconds: 500), _startListening);
         }
       },
       onError: (error) {
-        print('❌ STT 오류: $error');
         if (error.permanent || error.errorMsg == 'error_speech_timeout') {
           Future.delayed(const Duration(milliseconds: 500), _startListening);
         }
@@ -185,13 +106,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     );
 
     if (initialized) {
-      print("✅ STT 시작");
       _speech.listen(
         onResult: (result) {
-          print("🎧 onResult called!");
-          print("👉 인식된 문장: '${result.recognizedWords}'");
-          print("✅ FinalResult 여부: ${result.finalResult}");
-
           if (result.finalResult && result.recognizedWords.trim().isNotEmpty) {
             _handleUserSpeech(result.recognizedWords.trim());
           }
@@ -206,9 +122,10 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         ),
       );
     } else {
-      print("❌ STT 초기화 실패");
     }
   }
+
+
 
   void _stopListening() {
     if (_speech.isListening) {
@@ -217,6 +134,7 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
   }
 
   void _startNoiseListener() {
+    // 이미 실행 중이면 다시 시작 안 함
     if (_noiseSubscription != null) return;
 
     _noiseMeter = NoiseMeter();
@@ -224,10 +142,8 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     try {
       _noiseSubscription = _noiseMeter.noise.listen((NoiseReading reading) {
         final dB = reading.meanDecibel;
-        print("📈 현재 소음 dB: $dB");
 
-        if (_ttsPlaying && dB > 94) {
-          print("🎤 사용자 말 감지됨! → TTS 중단 → STT 시작");
+        if (_ttsPlaying && dB > 88) {
 
           _tts.stop();
           _ttsPlaying = false;
@@ -240,47 +156,33 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         }
       });
     } catch (e) {
-      print("❌ NoiseMeter 오류: $e");
     }
   }
+
+
+
 
   void _handleUserSpeech(String text) async {
     setState(() {
       _chatHistory.add({"text": text, "isUser": true});
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    });
-
     try {
       final response = await _chatService.sendMessage(
         message: text,
-        isVoice: true,
+        isVoice: false,
       );
 
-      final messageText = response['text'];
-      final audioPath = response['audioPath'];
-
       setState(() {
-        _chatHistory.add({"text": messageText, "isUser": false});
+        _chatHistory.add({"text": response, "isUser": false});
       });
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      });
-
-      if (!_isMuted && audioPath != null) {
-        Future.delayed(const Duration(milliseconds: 500), () {
-          _playRemoteAudio(audioPath);
-        });
-      } else if (!_isMuted) {
-        await _tts.speak(messageText);
+      if (!_isMuted) {
+        await _tts.speak(response);
       } else {
         _startListening();
       }
     } catch (e) {
-      print("❌ 오류: $e");
       _startListening();
     }
   }
@@ -302,12 +204,12 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
     }
   }
 
+
   @override
   void dispose() {
     _noiseSubscription?.cancel();
     _speech.stop();
     _tts.stop();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -315,8 +217,6 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final userCharacter = Provider.of<AuthProvider>(context, listen: false).userData?['userCharacter'] ?? '마멋';
-    final characterIconPath = _getCharacterIcon(userCharacter);
 
     return Scaffold(
       backgroundColor: AppColors.cardBackground,
@@ -324,11 +224,10 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
         child: Column(
           children: [
             SizedBox(height: screenHeight * 0.08),
-            Image.asset(characterIconPath, width: screenHeight * 0.25),
+            Image.asset('assets/images/marmet_head.png', width: screenHeight * 0.25),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 itemCount: _chatHistory.length,
                 itemBuilder: (context, index) {
@@ -365,7 +264,21 @@ class _VoiceChattingScreenState extends State<VoiceChattingScreen> {
                       _tts.stop();
                       _speech.stop();
                       _noiseSubscription?.cancel();
-                      Navigator.pop(context);
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChatDetailScreen(
+                            initialHistory: _chatHistory.map((e) {
+                              return {
+                                'message': e['text'],
+                                'is_user': e['isUser'] ?? false,
+                                'created_at': DateTime.now().toIso8601String(),
+                              };
+                            }).toList(),
+                          ),
+                        ),
+                            (route) => route.isFirst,
+                      );
                     },
                     child: const Icon(Icons.close, size: 40, color: Colors.black),
                   ),

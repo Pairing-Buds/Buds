@@ -1,0 +1,27 @@
+# .env 등 민감 정보
+.env
+
+# IDE 설정
+.idea/
+*.iml
+
+# Python 캐시
+__pycache__/
+*.pyc
+
+# 로그/데이터 파일
+*.log
+chroma_db/
+=*
+# IDE 설정
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 로그/데이터/캐시
+*.log
+chroma_db/
+=*

@@ -1,8 +1,5 @@
-// Flutter imports:
 import 'package:flutter/material.dart';
-
-// Project imports:
-import '../../../models/badge_model.dart';
+import 'package:buds/models/badge_model.dart';
 
 class CalendarBadge extends StatelessWidget {
   final List<BadgeModel> badges;

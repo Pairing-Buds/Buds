@@ -1,13 +1,10 @@
-// Package imports:
 import 'package:dio/dio.dart';
-
-// Project imports:
 import 'package:buds/services/fast_api_service.dart';
 
 class ChatService {
   final FastApiService _fastApiService = FastApiService();
 
-  Future<Map<String, dynamic>> sendMessage({
+  Future<String> sendMessage({
     required String message,
     required bool isVoice,
   }) async {
@@ -21,51 +18,39 @@ class ChatService {
       );
 
       final data = response.data;
-
       if (response.statusCode == 200 && data is Map<String, dynamic>) {
-        // 텍스트와 오디오 경로를 항상 map으로 반환
-        return {
-          'text': data['message'] ?? data['text'] ?? '응답 없음',
-          'audioPath': data['audio_path'] ?? null,
-          // 'created_at': DateTime.parse(data['created_at']).toLocal().toIso8601String(),
-
-        };
+        return data['message'] ?? '응답 없음';
       } else {
         throw Exception('서버 응답 형식 오류: $data');
       }
     } on DioException catch (e) {
-      print('❌ 메시지 전송 실패: $e');
-      return {
-        'text': '친구 집에 놀러왔어. 이따가 연락할게.',
-        'audioPath': null,
-      };
+      final resData = e.response?.data;
+
+      if (e.response?.statusCode == 422 || e.response?.statusCode == 500) {
+        final fallbackMsg = resData is Map && resData['response'] is String
+            ? resData['response']
+            : '음성 인식에 실패했어요. 다시 시도해 주세요.';
+        return fallbackMsg;
+      }
+
+      return '대화 중 오류가 발생했어요.';
     }
   }
 
-
-  Future<Map<String, dynamic>> getChatHistory(
-      {int offset = 0, int limit = 100}) async {
+  Future<List<Map<String, dynamic>>> getChatHistory() async {
     try {
       final response = await _fastApiService.post(
         '/chat/history',
-        data: {'offset': offset, 'limit': limit},
+        data: {'limit': 50},
       );
 
-      final data = response.data;
-      return {
-        'messages': List<Map<String, dynamic>>.from(data['messages']),
-        'hasMore': data['has_more'],
-        'nextOffset': data['next_offset'],
-        'totalCount': data['total_count'],
-      };
+      if (response.data is List) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        return [];
+      }
     } catch (e) {
-      print('❌ getChatHistory 오류: $e');
-      return {
-        'messages': [],
-        'hasMore': false,
-        'nextOffset': null,
-        'totalCount': 0,
-      };
+      return [];
     }
   }
 }

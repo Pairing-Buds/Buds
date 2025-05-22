@@ -1,19 +1,9 @@
-// Flutter imports:
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-
-// Project imports:
-import 'package:buds/screens/activity/shell_screen.dart';
 import 'package:buds/screens/chat/chat_detail_screen.dart';
-import 'package:buds/screens/home/widgets/speech_bubble.dart';
-import 'package:buds/screens/home/latest_letter_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:buds/screens/activity/shell_screen.dart';
+import 'package:buds/screens/letter/letter_screen.dart';
 import 'package:buds/screens/survey/survey_screen.dart';
-import 'package:buds/screens/mypage/widgets/wake_up_section.dart';
-import 'package:provider/provider.dart';
-import 'package:buds/providers/my_page_provider.dart';
-import 'package:buds/screens/login/onboarding_screen.dart';
-import 'package:buds/providers/auth_provider.dart';
-import 'package:buds/screens/character/models/character_data.dart';
+import 'package:buds/screens/home/widgets/speech_bubble.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -29,9 +19,7 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChatDetailScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ChatDetailScreen()),
                 );
               },
               child: Image.asset(
@@ -47,8 +35,6 @@ class HomeScreen extends StatelessWidget {
             left: 20,
             child: GestureDetector(
               onTap: () {
-                // 태양 아이콘을 눌렀을 때 기상 시간 알림 설정 바텀시트 열기
-                _showTimePickerBottomSheet(context);
               },
               child: Image.asset(
                 'assets/icons/sun.png',
@@ -58,44 +44,33 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // // 음악 on/off 아이콘
-          // Positioned(
-          //   top: 50,
-          //   right: 20,
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       Navigator.push(
-          //         context,
-          //         MaterialPageRoute(builder: (context) => const SurveyScreen()),
-          //       );
-          //     },
-          //     child: Image.asset(
-          //       'assets/icons/survey_icon.png',
-          //       width: 40,
-          //       height: 40,
-          //     ),
-          //   ),
-          // ),
+          // 음악 on/off 아이콘
+          Positioned(
+            top: 50,
+            right: 20,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SurveyScreen()),
+                );
+              },
+              child: Image.asset(
+                'assets/icons/music_active.png',
+                width: 40,
+                height: 40,
+              ),
+            ),
+          ),
 
           // 캐릭터 이미지
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.44,
-            left: MediaQuery.of(context).size.width * 0.5 - 75,
-            child: Consumer<AuthProvider>(
-              builder: (context, authProvider, child) {
-                final userCharacter = authProvider.userData?['userCharacter'];
-                int characterIndex = getCharacterIndex(userCharacter);
-
-                if (kDebugMode) {
-                  print('홈화면: 사용자 캐릭터: $userCharacter, 인덱스: $characterIndex');
-                }
-
-                return Image.asset(
-                  CharacterData.getImage(characterIndex),
-                  width: 150,
-                  height: 150,
-                );
-              },
+            top: MediaQuery.of(context).size.height * 0.435,
+            left: MediaQuery.of(context).size.width * 0.5 - 100,
+            child: Image.asset(
+              'assets/icons/characters/newmarmet.png',
+              width: 200,
+              height: 200,
             ),
           ),
 
@@ -110,7 +85,9 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ShellScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const ShellScreen(),
+                  ),
                 );
               },
               child: Image.asset(
@@ -132,7 +109,7 @@ class HomeScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LastLetterScreen(),
+                      builder: (context) => const LetterScreen(),
                     ),
                   );
                 },
@@ -147,44 +124,5 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  // 기상 시간 설정 바텀시트 표시 메서드
-  void _showTimePickerBottomSheet(BuildContext context) {
-    // WakeUpSection의 static 메서드를 사용하여 바텀시트 표시
-    WakeUpSection.showTimePickerBottomSheet(context);
-  }
-
-  // 서버 캐릭터 이름을 인덱스로 변환 (Character 섹션과 동일한 로직)
-  int getCharacterIndex(String? serverCharacterName) {
-    if (serverCharacterName == null || serverCharacterName.isEmpty) {
-      return 0; // 기본값
-    }
-
-    // 서버 캐릭터 이름 대소문자 처리
-    String normalizedName = serverCharacterName.toUpperCase();
-
-    // 서버에서 받은 캐릭터 이름과 앱 내 캐릭터 매핑
-    Map<String, int> characterMap = {
-      '오리': 0,
-      'DUCK': 0,
-      '고양이': 1,
-      'FOX': 1,
-      'CAT': 1,
-      '개구리': 2,
-      'FROG': 2,
-      '게코': 3,
-      'GECKO': 3,
-      'LIZARD': 3,
-      '마멋': 4,
-      'MARMET': 4,
-      'MARMOT': 4,
-      '토끼': 5,
-      'RABBIT': 5,
-      'RABIT': 5,
-      'BUDDY': 4, // 기본 캐릭터는 마멋으로 설정
-    };
-
-    return characterMap[normalizedName] ?? 4; // 기본값으로 마멋(4) 반환
   }
 }

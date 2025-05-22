@@ -1,57 +1,136 @@
-// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:buds/config/theme.dart';
+import 'package:buds/screens/letter/letter_detail_screen.dart';
+import 'package:buds/services/letter_service.dart';
+import 'package:buds/models/letter_response_model.dart';
 
-// Project imports:
-import 'package:buds/providers/letter_provider.dart';
-import 'package:buds/screens/letter/widgets/letter_container.dart';
-import 'package:buds/screens/letter/widgets/letter_empty_state.dart';
-import 'package:buds/screens/letter/widgets/letter_item.dart';
-import 'package:buds/screens/letter/widgets/letter_write_button.dart';
-import 'package:buds/models/letter_list_model.dart';
-
-class LetterList extends StatelessWidget {
+class LetterList extends StatefulWidget {
+  final Function(int) onCountFetched;
   final VoidCallback onWritePressed;
 
-  const LetterList({super.key, required this.onWritePressed});
+  const LetterList({super.key, required this.onCountFetched, required this.onWritePressed});
+
+  @override
+  State<LetterList> createState() => _LetterListState();
+}
+
+class _LetterListState extends State<LetterList> {
+  bool _countReported = false;
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LetterProvider>(
-      builder: (context, letterProvider, _) {
-        // 첫 빌드시 데이터 로드가 안되었다면 로드
-        if (letterProvider.letterResponse == null &&
-            !letterProvider.isLoadingLetters) {
-          letterProvider.fetchLetters();
-        }
-
-        if (letterProvider.isLoadingLetters) {
+    return FutureBuilder<LetterResponseModel>(
+      future: LetterService().fetchLetters(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        final letterResponse = letterProvider.letterResponse;
-        if (letterResponse == null) {
-          return const Center(child: Text('편지 목록을 불러올 수 없습니다.'));
+        if (snapshot.hasError) {
+          return Center(child: Text('오류: ${snapshot.error}'));
         }
 
-        final letters = letterResponse.letters;
+        final letterResponse = snapshot.data;
+        final letters = letterResponse?.letters ?? [];
 
-        return LetterContainer(
-          children: [
-            Expanded(
-              child:
-                  letters.isEmpty
-                      ? const LetterEmptyState()
-                      : ListView.separated(
-                        itemCount: letters.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 20),
-                        itemBuilder: (context, index) {
-                          return LetterItem(letter: letters[index]);
-                        },
+        if (!_countReported && letterResponse != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onCountFetched(letterResponse.letterCnt);
+            _countReported = true;
+          });
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 2,
+                offset: const Offset(1, -1),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  itemCount: letters.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 20),
+                  itemBuilder: (context, index) {
+                    final letter = letters[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => LetterDetailScreen(
+                              opponentId: letter.userId,
+                              opponentName: letter.userName,
+                              ),
+                            ),
+                        );
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(letter.userName, style: const TextStyle(fontSize: 16)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  letter.lastLetterDate,
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  letter.lastLetterStatus == "UNREAD" ? "읽지 않음" : "읽음",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: letter.lastLetterStatus == "UNREAD"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Image.asset(
+                            letter.received
+                                ? 'assets/icons/letter/reply.png'
+                                : 'assets/icons/letter/send.png',
+                            width: 36,
+                            height: 36,
+                          ),
+                        ],
                       ),
-            ),
-            LetterWriteButton(onPressed: onWritePressed),
-          ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: widget.onWritePressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: const Text('익명의 편지 보내기'),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).viewPadding.bottom + 10),
+            ],
+          ),
         );
       },
     );

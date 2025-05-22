@@ -32,7 +32,6 @@ class CalendarDay extends StatelessWidget {
     final isSameMonth = thisDate.month == today.month && thisDate.year == today.year;
 
     final dateCircleSize = screenWidth * 0.085;
-    final badgeSize = screenWidth * 0.12;
 
     final textColor = isToday
         ? Colors.white
